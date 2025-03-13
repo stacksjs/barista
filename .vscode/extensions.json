@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "davidanson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker",
+    "mariomatheu.syntax-project-pbxproj",
+    "mhcpnl.xcodestrings",
+    "swiftlang.swift-vscode",
+    "vknabel.vscode-swiftlint"
+  ]
+}
