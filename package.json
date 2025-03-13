@@ -1,0 +1,54 @@
+{
+  "name": "barista",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "A lightweight macOS utility that serves up a perfectly organized menubar.",
+  "author": "Chris Breuer <chris@stacksjs.org>",
+  "license": "MIT",
+  "homepage": "https://github.com/stacksjs/barista#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stacksjs/barista.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stacksjs/barista/issues"
+  },
+  "keywords": [
+    "barista",
+    "menubar",
+    "management",
+    "app",
+    "mac"
+  ],
+  "scripts": {
+    "build": "xcodebuild -project src/Barista.xcodeproj -scheme Barista -configuration Release CONFIGURATION_BUILD_DIR=$(pwd)/dist",
+    "package": "rm -rf ./dist/Barista.dmg && create-dmg --volname \"Barista\" --window-pos 200 120 --window-size 800 500 --background ./src/assets/dmg-bg.jpg --icon-size 128 --app-drop-link 600 250 --icon \"Barista.app\" 200 250 ./dist/Barista.dmg ./dist/Barista.app",
+    "lint": "swiftlint ./src/**",
+    "lint:fix": "swiftlint ./src/** --fix ",
+    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
+    "changelog": "bunx changelogen --output CHANGELOG.md",
+    "prepublishOnly": "bun --bun run build",
+    "release": "bun run changelog && bunx bumpp package.json --all",
+    "test": "bun test",
+    "dev:docs": "bun --bun vitepress dev docs",
+    "build:docs": "bun --bun vitepress build docs",
+    "preview:docs": "bun --bun vitepress preview docs",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "devDependencies": {
+    "@stacksjs/docs": "^0.69.3",
+    "@stacksjs/eslint-config": "^4.8.2-beta.1",
+    "@types/bun": "^1.2.5",
+    "bumpp": "^10.1.0",
+    "lint-staged": "^15.5.0",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^5.8.2"
+  },
+  "overrides": {
+    "unconfig": "0.3.10"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "bunx --bun eslint . --fix"
+  }
+}
