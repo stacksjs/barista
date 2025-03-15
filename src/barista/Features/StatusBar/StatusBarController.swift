@@ -344,6 +344,15 @@ class StatusBarController {
         aboutItem.target = self
         menu.addItem(aboutItem)
 
+        // Add "Check for Updates..." menu item
+        let updateMenuItem = NSMenuItem(
+            title: NSLocalizedString("Check for Updates...", comment: "Menu item title for checking updates"),
+            action: #selector(checkForUpdates),
+            keyEquivalent: "U"
+        )
+        updateMenuItem.target = self
+        menu.addItem(updateMenuItem)
+
         let prefItem = NSMenuItem(title: "Preferences...".localized, action: #selector(openPreferenceViewControllerIfNeeded), keyEquivalent: "P")
         prefItem.target = self
         menu.addItem(prefItem)
@@ -602,6 +611,13 @@ class StatusBarController {
     // Make sure to terminate the caffeinate process when the app is terminated
     deinit {
         disableCaffeinate()
+    }
+
+    @objc func checkForUpdates(_ sender: Any) {
+        // Forward the check for updates action to the app delegate
+        if let appDelegate = NSApp.delegate as? AppDelegate {
+            appDelegate.checkForUpdates(sender)
+        }
     }
 }
 

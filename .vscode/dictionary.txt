@@ -1,4 +1,5 @@
 antfu
+appcast
 Bezier
 biomejs
 booleanish
@@ -14,6 +15,7 @@ commitlintrc
 composables
 davidanson
 dbaeumer
+declutter
 degit
 deps
 destructurable
@@ -39,6 +41,7 @@ quickfix
 scrollback
 shikijs
 socio
+softprops
 Solana
 Spatie
 stacksjs
