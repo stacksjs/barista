@@ -23,6 +23,55 @@ Barista is a sleek, lightweight menu bar manager for macOS that helps you declut
 - 🌙 **Always-Hidden Section** _Keep certain items permanently hidden_
 - 🌐 **RTL Support** _Full support for right-to-left languages_
 
+## Auto-Updates
+
+Barista includes automatic update functionality powered by [Sparkle](https://sparkle-project.org/). When a new version is released, users will be automatically notified and prompted to update.
+
+### How It Works
+
+1. The app periodically checks for updates from the GitHub repository
+2. When an update is available, users receive a notification
+3. Users can choose to install the update with a single click
+
+### For Developers
+
+To release a new version with auto-update support:
+
+1. Make your changes and increase the version number
+2. Create a new tag and push it to GitHub
+3. GitHub Actions will automatically:
+   - Build the application
+   - Sign it for Sparkle updates
+   - Create a release
+   - Update the appcast.xml file
+
+For more details on how to work with the auto-update system, see:
+
+- [Sparkle Update Guide](docs/SPARKLE_UPDATES.md)
+- [GitHub Release Guide](docs/GITHUB_UPDATES.md)
+
+## Troubleshooting
+
+### Build Issues
+
+If you encounter build issues with dependencies like HotKey or Sparkle:
+
+1. Run the dependency setup script:
+
+   ```bash
+   ./scripts/setup-dependencies.sh
+   ```
+
+2. For "No such module 'HotKey'" errors:
+   - Reset Swift Package Manager caches in Xcode
+   - See [Build Instructions](docs/BUILD_INSTRUCTIONS.md) for detailed steps
+
+3. For Sparkle framework issues:
+   - Make sure the Copy Frameworks build phase is added to your Xcode project
+   - Check that the Sparkle framework is properly copied to the app bundle
+
+For complete troubleshooting steps, see [Build Instructions](docs/BUILD_INSTRUCTIONS.md).
+
 ## How It Works
 
 Barista adds a divider to your menu bar. Items to the right of the divider can be hidden with a single click, giving you a cleaner menu bar when you don't need those items.

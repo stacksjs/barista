@@ -22,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupHotKey()
         openPreferencesIfNeeded()
         detectLTRLang()
+        setupUpdates()
 
         // Connect the About menu item to our custom handler
         if let mainMenu = NSApp.mainMenu,
@@ -30,6 +31,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             aboutMenuItem.action = #selector(showAboutPanel)
             aboutMenuItem.target = self
         }
+
+        // Also add a "Check for Updates..." menu item if Sparkle is available
+        if UpdateManager.shared.updatesAvailable,
+           let mainMenu = NSApp.mainMenu,
+           let appMenu = mainMenu.items.first?.submenu {
+            let updateMenuItem = NSMenuItem(
+                title: NSLocalizedString("Check for Updates...", comment: "Menu item title for checking updates"),
+                action: #selector(checkForUpdates),
+                keyEquivalent: ""
+            )
+            updateMenuItem.target = self
+            appMenu.insertItem(updateMenuItem, at: 1) // Insert after About menu item
+        }
+    }
+
+    @objc func checkForUpdates(_ sender: Any) {
+        UpdateManager.shared.checkForUpdates()
+    }
+
+    func setupUpdates() {
+        // This initializes the update manager and sets up Sparkle if available
+        UpdateManager.setupUpdates()
     }
 
     @objc func showAboutPanel(_ sender: Any) {

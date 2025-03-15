@@ -12,3 +12,35 @@ temp
 docs/.vitepress/cache
 src/Timer.xcodeproj/project.xcworkspace/xcuserdata/*
 src/Timer.xcodeproj/xcuserdata/*
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Sparkle Auto-Update related
+/keys/
+/Frameworks/
+/temp_release/
+*.app
+appcast.xml
+sparkle.app/
+Sparkle Test App.app/
+# Don't ignore the appcast.xml template, but ignore any signatures
+**/sparkle_private.pem
+**/sparkle_public.pem

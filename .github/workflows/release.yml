@@ -8,7 +8,7 @@ on:
 jobs:
   release:
     name: release
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +29,90 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
+      # Extract version from tag
+      - name: Get version from tag
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+          echo "BUILD=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+
+      # Build macOS app
+      - name: Build macOS App
+        run: |
+          cd src
+          xcodebuild -project Barista.xcodeproj -scheme Barista -configuration Release -derivedDataPath ../build
+          cd ..
+          mkdir -p artifacts
+          ditto -c -k --keepParent build/Build/Products/Release/Barista.app artifacts/Barista-${{ env.VERSION }}.zip
+
+      # Setup Sparkle signing key
+      - name: Setup Sparkle signing key
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > keys/sparkle_private.pem
+          chmod 600 keys/sparkle_private.pem
+
+      # Sign and update appcast
+      - name: Sign update and generate appcast
+        id: sign_update
+        run: |
+          FILE_SIZE=$(wc -c < artifacts/Barista-${{ env.VERSION }}.zip | tr -d ' ')
+          SIGNATURE=$(openssl dgst -sha256 -sign keys/sparkle_private.pem artifacts/Barista-${{ env.VERSION }}.zip | openssl base64 -A)
+          echo "SIGNATURE=$SIGNATURE" >> $GITHUB_ENV
+          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
+
+          cat > appcast.xml << EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <channel>
+              <title>Barista Updates</title>
+              <description>Most recent changes with links to updates.</description>
+              <language>en</language>
+              <item>
+                <title>Version ${{ env.VERSION }}</title>
+                <description>
+                  <![CDATA[
+                    <h2>Changes in Barista ${{ env.VERSION }}</h2>
+                    <ul>
+                      <li>See release notes on GitHub</li>
+                    </ul>
+                  ]]>
+                </description>
+                <pubDate>$(date -R)</pubDate>
+                <enclosure
+                  url="https://github.com/stacksjs/barista/releases/download/v${{ env.VERSION }}/Barista-${{ env.VERSION }}.zip"
+                  sparkle:version="${{ env.BUILD }}"
+                  sparkle:shortVersionString="${{ env.VERSION }}"
+                  length="${{ env.FILE_SIZE }}"
+                  type="application/octet-stream"
+                  sparkle:edSignature="${{ env.SIGNATURE }}" />
+                <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
+              </item>
+            </channel>
+          </rss>
+          EOF
+
+      # Create GitHub release
       - name: Create GitHub release
         run: bunx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
+      # Attach Binaries to GitHub release
       - name: Attach Binaries
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/barista-darwin-arm64/Barista.app
+            artifacts/Barista-${{ env.VERSION }}.zip
+            appcast.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Commit and push updated appcast.xml to repository
+      - name: Commit updated appcast.xml
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add appcast.xml
+          git commit -m "chore: update appcast.xml for version ${{ env.VERSION }}" || echo "No changes to commit"
+          git push
