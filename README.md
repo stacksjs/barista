@@ -7,7 +7,7 @@
 
 # Barista
 
-Barista is a sleek, lightweight menu bar manager for macOS that helps you declutter your menu bar by hiding items you don't need to see all the time.
+Barista is a sleek, lightweight menu bar manager for macOS that helps you declutter your menu bar by hiding items you don't need to see all the time. Also, if you activate caffeinated-mode, your computer will not sleep or dim.
 
 > _Stay caffeinated & craft pretty menu bars._
 
