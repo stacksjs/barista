@@ -16,7 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0"),
-        .package(url: "https://github.com/soffes/HotKey", from: "0.1.3")
+        .package(url: "https://github.com/soffes/HotKey", from: "0.2.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
