@@ -1,4 +1,4 @@
-<p align="center"><img src=".github/art/cover.jpg" alt="Social Card of Barista"></p>
+<p align="center"><img src="src/assets/icon_512@2x.png" alt="Barista Logo" width="200" height="200"></p>
 
 [![GitHub Actions][github-actions-src]][github-actions-href]
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -8,6 +8,8 @@
 # Barista
 
 Barista is a sleek, lightweight menu bar manager for macOS that helps you declutter your menu bar by hiding items you don't need to see all the time.
+
+> _Stay caffeinated & craft pretty menu bars._
 
 ## Features
 
@@ -26,15 +28,15 @@ Barista is a sleek, lightweight menu bar manager for macOS that helps you declut
 Barista adds a divider to your menu bar. Items to the right of the divider can be hidden with a single click, giving you a cleaner menu bar when you don't need those items.
 
 <p align="center">
- <img width="400" src="src/img/screen1.png">
- <img width="400" src="src/img/screen2.png">
+ <img width="400" src="src/assets/screen1.png">
+ <img width="400" src="src/assets/screen2.png">
 </p>
 
 ## Installation
 
 <!-- ### App Store
 
-[![AppStore](src/img/appstore.svg)](https://itunes.apple.com/app/...) -->
+[![AppStore](src/assets/appstore.svg)](https://itunes.apple.com/app/...) -->
 
 ### Homebrew
 
@@ -55,16 +57,9 @@ brew install --cask barista
 3. **Show Hidden Items**: Click the arrow icon again to reveal hidden items
 4. **Access Settings**: Right-click the arrow icon to access preferences
 
-### Planned Improvements
-
-- **"..." Icon Mode**: Replace the arrow icon with a "..." icon similar to Bartender for a more intuitive experience
-- **Smart Hide**: Automatically hide specific apps based on rules
-- **Menu Organization**: Group and categorize menu bar items
-- **Custom Icons**: Personalize the appearance of your menu bar items
-
 ## Requirements
 
-- macOS Ventura (13.0) or later
+- macOS Ventura (13.5) or later
 
 ## Contributing
 
@@ -90,7 +85,7 @@ We would like to extend our thanks to the following sponsors for funding Stacks 
 
 The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
 
-Made with ❤️
+Made with 💙
 
 <!-- Badges -->
 [github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/barista/ci.yml?style=flat-square&branch=main

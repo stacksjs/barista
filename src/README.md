@@ -1,5 +1,5 @@
 <p align="center">
- <img width="200" height="200" margin-right="100%" src="https://github.com/stacksjs/barista/blob/develop/img/icon_512%402x.png?raw=true">
+ <img width="200" height="200" margin-right="100%" src="https://github.com/stacksjs/barista/blob/main/src/assets/icon_512%402x.png?raw=true">
 </p>
 <p align="center">
  <a href="https://webuild.community">
