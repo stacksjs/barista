@@ -33,3 +33,11 @@ jobs:
         run: bunx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Attach Binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/barista-darwin-arm64/Barista.app
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
