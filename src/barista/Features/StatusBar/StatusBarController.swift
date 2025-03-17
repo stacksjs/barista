@@ -220,12 +220,8 @@ class StatusBarController {
     }
 
     private func collapseMenuBar() {
-        guard self.isBtnSeparateValidPosition && !self.isCollapsed else {
-            autoCollapseIfNeeded()
-            return
-        }
-
-        btnSeparate.length = self.btnHiddenCollapseLength
+        guard !self.isCollapsed else {return}
+        btnSeparate.length = 0
         if let button = btnExpandCollapse.button {
             // Use coffee cup icon if caffeinate is active, otherwise use normal expand icon
             if isCaffeinated {
@@ -233,10 +229,6 @@ class StatusBarController {
             } else {
                 button.image = Assets.expandImage
             }
-        }
-        if Preferences.useFullStatusBarOnExpandEnabled {
-            NSApp.setActivationPolicy(.accessory)
-            NSApp.deactivate()
         }
     }
 
@@ -252,11 +244,6 @@ class StatusBarController {
             }
         }
         autoCollapseIfNeeded()
-
-        if Preferences.useFullStatusBarOnExpandEnabled {
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-        }
     }
 
     private func autoCollapseIfNeeded() {

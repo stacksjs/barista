@@ -115,16 +115,6 @@ enum Preferences {
         }
     }
 
-    static var useFullStatusBarOnExpandEnabled: Bool {
-        get {
-            UserDefaults.standard.bool(forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
-        }
-
-        set {
-            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.useFullStatusBarOnExpandEnabled)
-        }
-    }
-
     static var isCaffeinateEnabled: Bool {
         get {
             UserDefaults.standard.bool(forKey: UserDefaults.Key.isCaffeinateEnabled)
