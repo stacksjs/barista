@@ -41,8 +41,8 @@ if [ ! -f "Package.resolved" ]; then
         "repositoryURL": "https://github.com/soffes/HotKey",
         "state": {
           "branch": null,
-          "revision": "c13662730cb5bc28de4a799854bbb018a90649bf",
-          "version": "0.1.3"
+          "revision": "a3cf605d7a96f6ff50e04fcb6dea6e2613cfcbe4",
+          "version": "0.2.1"
         }
       },
       {
