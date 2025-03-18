@@ -1,6 +1,5 @@
 import Cocoa
 
-@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func terminate() {
         NSApp.terminate(nil)
@@ -24,7 +23,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let appName = "Barista"
             components.append(appName) // main app name
             let newPath = NSString.path(withComponents: components)
-            NSWorkspace.shared.launchApplication(newPath)
+
+            // Replace deprecated launchApplication with modern API
+            let url = URL(fileURLWithPath: newPath)
+            NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
         } else {
             self.terminate()
         }

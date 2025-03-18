@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:barista}",
+            "name": "Debug barista",
+            "program": "${workspaceFolder:barista}/.build/debug/barista",
+            "preLaunchTask": "swift: Build Debug barista"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:barista}",
+            "name": "Release barista",
+            "program": "${workspaceFolder:barista}/.build/release/barista",
+            "preLaunchTask": "swift: Build Release barista"
+        }
+    ]
+}

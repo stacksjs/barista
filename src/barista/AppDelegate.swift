@@ -3,8 +3,6 @@ import Cocoa
 import HotKey
 import UserNotifications
 
-@NSApplicationMain
-
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     var statusBarController = StatusBarController()
 
