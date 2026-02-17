@@ -44,3 +44,4 @@ Sparkle Test App.app/
 # Don't ignore the appcast.xml template, but ignore any signatures
 **/sparkle_private.pem
 **/sparkle_public.pem
+pantry
