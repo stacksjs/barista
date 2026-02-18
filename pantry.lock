@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "packages": {
+    "better-dx@0.2.5": {
+      "name": "better-dx",
+      "version": "0.2.5",
+      "resolved": "registry:better-dx@0.2.5"
+    }
+  }
+}

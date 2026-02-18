@@ -1,0 +1,647 @@
+<script>
+const caffeinated = false
+const remainingTime = '0:00'
+const durationFormatted = 'Off'
+const durationMinutes = -1
+const isAutoCollapse = false
+const autoCollapseDelay = 10
+const autoLaunch = false
+const version = '1.0.0'
+</script>
+
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: #1f2b47;
+    --text: #e0e0e0;
+    --text-muted: #8892a4;
+    --accent: #e2b659;
+    --accent-hover: #f0c96e;
+    --danger: #e74c3c;
+    --success: #2ecc71;
+    --border: #2a3a5c;
+    --radius: 10px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 16px;
+    padding-top: 36px; /* space for macOS traffic light buttons */
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-icon {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .header-text h1 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .header-text span {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .status-section {
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .status-indicator.active {
+    background: rgba(46, 204, 113, 0.15);
+    color: var(--success);
+  }
+
+  .status-indicator.inactive {
+    background: rgba(136, 146, 164, 0.15);
+    color: var(--text-muted);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .status-indicator.active .status-dot {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .timer-display {
+    font-size: 36px;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    color: var(--text);
+  }
+
+  .timer-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .toggle-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    margin: 14px 0;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: -0.2px;
+    -webkit-app-region: no-drag;
+  }
+
+  .toggle-btn.enable {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #1a1a2e;
+    box-shadow: 0 2px 12px rgba(226, 182, 89, 0.3);
+  }
+
+  .toggle-btn.enable:hover {
+    background: linear-gradient(135deg, var(--accent-hover), #f7d77c);
+    box-shadow: 0 4px 16px rgba(226, 182, 89, 0.45);
+    transform: translateY(-1px);
+  }
+
+  .toggle-btn.enable:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 6px rgba(226, 182, 89, 0.3);
+  }
+
+  .toggle-btn.disable {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger);
+    border: 1px solid rgba(231, 76, 60, 0.25);
+  }
+
+  .toggle-btn.disable:hover {
+    background: rgba(231, 76, 60, 0.25);
+    border-color: rgba(231, 76, 60, 0.4);
+  }
+
+  .toggle-btn.disable:active {
+    background: rgba(231, 76, 60, 0.35);
+  }
+
+  .section {
+    padding: 12px 0;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .duration-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .duration-btn {
+    padding: 10px 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    -webkit-app-region: no-drag;
+  }
+
+  .duration-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--bg-card);
+  }
+
+  .duration-btn:active {
+    transform: scale(0.96);
+  }
+
+  .duration-btn.selected {
+    border-color: var(--accent);
+    background: rgba(226, 182, 89, 0.15);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: 0 0 8px rgba(226, 182, 89, 0.15);
+  }
+
+  .pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+
+  .pref-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    -webkit-app-region: no-drag;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch.on {
+    background: var(--accent);
+  }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .toggle-switch.on::after {
+    transform: translateX(20px);
+  }
+
+  .toggle-switch:active::after {
+    width: 24px;
+  }
+
+  .toggle-switch.on:active::after {
+    transform: translateX(16px);
+    width: 24px;
+  }
+
+  .menubar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .menubar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-app-region: no-drag;
+  }
+
+  .menubar-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-card);
+  }
+
+  .menubar-btn:active {
+    transform: scale(0.98);
+  }
+
+  .menubar-btn.collapsed {
+    border-color: var(--accent);
+    background: rgba(226, 182, 89, 0.1);
+  }
+
+  .menubar-btn span:first-child {
+    font-size: 18px;
+    font-weight: 300;
+    width: 20px;
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  .menubar-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  .pref-value {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="header-icon">☕</div>
+    <div class="header-text">
+      <h1>Barista</h1>
+      <span>v{{ version }}</span>
+    </div>
+  </div>
+
+  <div class="status-section">
+    @if(caffeinated)
+      <div class="status-indicator active">
+        <span class="status-dot"></span>
+        Caffeinated
+      </div>
+      <div class="timer-display" ref="timer">{{ remainingTime }}</div>
+      <div class="timer-label">{{ durationFormatted }}</div>
+    @else
+      <div class="status-indicator inactive">
+        <span class="status-dot"></span>
+        Sleeping
+      </div>
+      <div class="timer-display" style="font-size: 20px; margin-top: 12px;">Ready to brew</div>
+    @endif
+  </div>
+
+  @if(caffeinated)
+    <button class="toggle-btn disable" id="toggleBtn" onclick="toggleCaffeinate()">
+      Disable Caffeinate
+    </button>
+  @else
+    <button class="toggle-btn enable" id="toggleBtn" onclick="toggleCaffeinate()">
+      Enable Caffeinate
+    </button>
+  @endif
+
+  <div class="section">
+    <div class="section-title">Duration</div>
+    <div class="duration-grid">
+      <button class="duration-btn{{ durationMinutes === 15 ? ' selected' : '' }}" onclick="setDuration(15)">15m</button>
+      <button class="duration-btn{{ durationMinutes === 30 ? ' selected' : '' }}" onclick="setDuration(30)">30m</button>
+      <button class="duration-btn{{ durationMinutes === 45 ? ' selected' : '' }}" onclick="setDuration(45)">45m</button>
+      <button class="duration-btn{{ durationMinutes === 60 ? ' selected' : '' }}" onclick="setDuration(60)">1h</button>
+      <button class="duration-btn{{ durationMinutes === 240 ? ' selected' : '' }}" onclick="setDuration(240)">4h</button>
+      <button class="duration-btn{{ durationMinutes === 480 ? ' selected' : '' }}" onclick="setDuration(480)">8h</button>
+      <button class="duration-btn{{ durationMinutes === 720 ? ' selected' : '' }}" onclick="setDuration(720)">12h</button>
+      <button class="duration-btn{{ durationMinutes === -1 ? ' selected' : '' }}" onclick="setDuration(-1)">&#8734;</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Menu Bar</div>
+    <div class="menubar-controls">
+      <button class="menubar-btn" id="menubarToggleBtn" onclick="toggleMenubar()">
+        <span id="menubarIcon">&#8249;</span>
+        <span id="menubarLabel">Collapse Items</span>
+      </button>
+      <span class="menubar-hint" id="menubarHint">Cmd+drag icons left of &#8249; to manage them</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Settings</div>
+    <div class="pref-row">
+      <span class="pref-label">Auto Collapse</span>
+      <div class="toggle-switch{{ isAutoCollapse ? ' on' : '' }}" id="autoCollapseToggle" onclick="toggleAutoCollapse()"></div>
+    </div>
+    <div class="pref-row">
+      <span class="pref-label">Auto Collapse Delay</span>
+      <span class="pref-value" id="autoCollapseDelayLabel">{{ autoCollapseDelay }}s</span>
+    </div>
+    <div class="pref-row">
+      <span class="pref-label">Launch at Login</span>
+      <div class="toggle-switch{{ autoLaunch ? ' on' : '' }}" id="autoLaunchToggle" onclick="toggleAutoLaunch()"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Barista &mdash; powered by <a href="https://github.com/stacksjs/stx">stx</a> + <a href="https://github.com/stacksjs/craft">Craft</a>
+  </div>
+</div>
+
+<script client>
+  var API = window.location.origin
+
+  // Expose all handler functions globally so inline onclick attributes work
+  // (client scripts are wrapped in an IIFE by stx for isolation)
+
+  window.fetchStatus = async function() {
+    var res = await fetch(API + '/api/status')
+    return res.json()
+  }
+
+  window.toggleCaffeinate = async function() {
+    await fetch(API + '/api/caffeinate/toggle', { method: 'POST' })
+    location.reload()
+  }
+
+  window.setDuration = async function(minutes) {
+    await fetch(API + '/api/caffeinate/duration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minutes: minutes }),
+    })
+    location.reload()
+  }
+
+  window.toggleAutoCollapse = async function() {
+    var status = await window.fetchStatus()
+    var newValue = !status.isAutoCollapse
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isAutoCollapse: newValue }),
+    })
+    // Update native auto-collapse
+    if (window.craft && window.craft.menubar) {
+      if (newValue) {
+        await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
+      } else {
+        await window.craft.menubar.setAutoCollapse(0)
+      }
+    }
+    location.reload()
+  }
+
+  window.toggleAutoLaunch = async function() {
+    var status = await window.fetchStatus()
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ autoLaunch: !status.autoLaunch }),
+    })
+    location.reload()
+  }
+
+  // ===== Menu Bar Collapse =====
+  var menubarCollapsed = false
+
+  window.toggleMenubar = async function() {
+    if (!window.craft || !window.craft.menubar) return
+    await window.craft.menubar.toggle()
+  }
+
+  function updateMenubarUI(collapsed) {
+    menubarCollapsed = collapsed
+    var btn = document.getElementById('menubarToggleBtn')
+    var icon = document.getElementById('menubarIcon')
+    var label = document.getElementById('menubarLabel')
+    if (btn && icon && label) {
+      if (collapsed) {
+        btn.classList.add('collapsed')
+        icon.innerHTML = '&#8250;'
+        label.textContent = 'Expand Items'
+      } else {
+        btn.classList.remove('collapsed')
+        icon.innerHTML = '&#8249;'
+        label.textContent = 'Collapse Items'
+      }
+    }
+  }
+
+  // Listen for menubar state changes from native
+  window.addEventListener('craft:menubar:stateChange', function(e) {
+    if (e.detail) {
+      updateMenubarUI(e.detail.collapsed)
+    }
+  })
+
+  async function initMenubar() {
+    if (!window.craft || !window.craft.menubar) return
+    // Initialize the native menubar collapse system
+    await window.craft.menubar.init()
+    // Set auto-collapse if preference is enabled
+    var status = await window.fetchStatus()
+    if (status.isAutoCollapse) {
+      await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
+    }
+  }
+
+  // Update timer every second when caffeinated
+  async function updateTimer() {
+    var status = await window.fetchStatus()
+    var timerEl = document.querySelector('[ref="timer"]')
+    if (timerEl && status.active) {
+      timerEl.textContent = status.remainingFormatted
+    }
+  }
+
+  // Build tray menu from current status and set it via Craft bridge
+  async function setupTrayMenu() {
+    if (!window.craft || !window.craft.tray || !window.craft.tray.setMenu) return
+
+    var status = await window.fetchStatus()
+    var caffeinated = status.active
+    var durationMinutes = status.durationMinutes || -1
+
+    var menu = [
+      {
+        label: caffeinated ? '✓ Caffeinate Active' : 'Enable Caffeinate',
+        action: 'toggleCaffeinate',
+      },
+      { type: 'separator' },
+      { label: 'Toggle Menu Bar Items', action: 'toggleMenubar' },
+      { type: 'separator' },
+      { label: '15 minutes', action: 'duration:15', type: durationMinutes === 15 ? 'checkbox' : 'normal', checked: durationMinutes === 15 },
+      { label: '30 minutes', action: 'duration:30', type: durationMinutes === 30 ? 'checkbox' : 'normal', checked: durationMinutes === 30 },
+      { label: '45 minutes', action: 'duration:45', type: durationMinutes === 45 ? 'checkbox' : 'normal', checked: durationMinutes === 45 },
+      { label: '1 hour', action: 'duration:60', type: durationMinutes === 60 ? 'checkbox' : 'normal', checked: durationMinutes === 60 },
+      { label: '4 hours', action: 'duration:240', type: durationMinutes === 240 ? 'checkbox' : 'normal', checked: durationMinutes === 240 },
+      { label: '8 hours', action: 'duration:480', type: durationMinutes === 480 ? 'checkbox' : 'normal', checked: durationMinutes === 480 },
+      { label: '12 hours', action: 'duration:720', type: durationMinutes === 720 ? 'checkbox' : 'normal', checked: durationMinutes === 720 },
+      { label: 'Indefinitely', action: 'duration:-1', type: durationMinutes === -1 ? 'checkbox' : 'normal', checked: durationMinutes === -1 },
+      { type: 'separator' },
+      { label: 'Auto Collapse', action: 'toggleAutoCollapse', type: 'checkbox', checked: status.isAutoCollapse },
+      { type: 'separator' },
+      { label: 'Preferences...', action: 'preferences' },
+      { label: 'About Barista', action: 'about' },
+      { type: 'separator' },
+      { label: 'Quit Barista', action: 'quit' },
+    ]
+
+    await window.craft.tray.setMenu(menu)
+  }
+
+  // Listen for tray menu actions from Craft
+  window.addEventListener('craft:tray:menuAction', async function(e) {
+    var action = e.detail && e.detail.action
+    if (!action) return
+
+    if (action === 'toggleCaffeinate') {
+      await window.toggleCaffeinate()
+    }
+    else if (action === 'toggleMenubar') {
+      await window.toggleMenubar()
+    }
+    else if (action === 'toggleAutoCollapse') {
+      await window.toggleAutoCollapse()
+    }
+    else if (action === 'preferences') {
+      if (window.craft && window.craft.window && window.craft.window.show) {
+        await window.craft.window.show()
+      }
+    }
+    else if (action === 'about') {
+      if (window.craft && window.craft.window && window.craft.window.show) {
+        await window.craft.window.show()
+      }
+    }
+    else if (action === 'quit') {
+      if (window.craft && window.craft.app && window.craft.app.quit) {
+        await window.craft.app.quit()
+      }
+    }
+    else if (action.indexOf('duration:') === 0) {
+      var minutes = parseInt(action.split(':')[1], 10)
+      await window.setDuration(minutes)
+    }
+  })
+
+  // Poll for timer updates every second
+  setInterval(updateTimer, 1000)
+
+  // Update tray title and menu with caffeinate status
+  var lastTrayTitle = ''
+  async function updateTray() {
+    var status = await window.fetchStatus()
+
+    // Update tray title (only when changed)
+    if (window.craft && window.craft.tray && window.craft.tray.setTitle) {
+      var title = status.active ? ('\u2615 ' + status.remainingFormatted) : '\u2615'
+      if (title !== lastTrayTitle) {
+        lastTrayTitle = title
+        await window.craft.tray.setTitle(title)
+      }
+    }
+  }
+
+  setInterval(updateTray, 1000)
+
+  // Initialize on first load (wait for Craft bridge to be ready)
+  window.addEventListener('craft:ready', function() {
+    setupTrayMenu()
+    updateTray()
+    initMenubar()
+  })
+
+  // Fallback: try after a short delay in case craft:ready already fired
+  setTimeout(function() {
+    setupTrayMenu()
+    updateTray()
+    initMenubar()
+  }, 500)
+</script>

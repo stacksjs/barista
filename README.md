@@ -1,103 +1,66 @@
 <p align="center"><img src=".github/art/barista.gif" alt="Barista Logo" width="100%"></p>
 
 [![GitHub Actions][github-actions-src]][github-actions-href]
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
-[![macOS Ventura+](https://img.shields.io/badge/requirements-macOS%20Ventura+-ff69b4.svg)](https://img.shields.io/badge/requirements-macOS%20Ventura+-ff69b4.svg)
 
 # Barista
 
-Barista is a sleek, lightweight menu bar manager for macOS that helps you declutter your menu bar by hiding items you don't need to see all the time. Also, if you activate caffeinated-mode, your computer will not sleep or dim.
+> Stay caffeinated & craft pretty menu bars.
 
-> _Stay caffeinated & craft pretty menu bars._
+A lightweight macOS menubar utility built with [stx](https://github.com/stacksjs/stx) + [Craft](https://github.com/stacksjs/craft). Barista lives in your menu bar and helps you manage menu bar clutter and prevent your Mac from sleeping.
 
 ## Features
 
-- 🔄 **Menu Bar Manager** _Manage your menu bar with ease_
-- ☕ **Caffeinate** _Caffeinate your Mac to prevent it from sleeping (or dimming)_
-- 🍎 **Native macOS Experience** _Built with SwiftUI for a seamless Mac experience_
-- ⚙️ **Customizable** _Choose which items to hide and when_
-- ⏱️ **Auto-Hide** _Automatically hide items after a customizable delay_
-- 🔑 **Global Hotkey** _Toggle visibility with a keyboard shortcut_
-- 🚀 **Startup Launch** _Option to launch at login_
-- 🌙 **Always-Hidden Section** _Keep certain items permanently hidden_
-- 🌐 **RTL Support** _Full support for right-to-left languages_
+- **Caffeinate** — Prevent your Mac from sleeping with customizable durations (15m, 30m, 1h, 4h, 8h, 12h, indefinite)
+- **Menu Bar Management** — Collapse and organize your menu bar items
+- **Auto Collapse** — Automatically hide menu bar items after a delay
+- **Launch at Login** — Start Barista when you log in
+- **Native Performance** — Built with Craft's native webview (1.4MB binary, <100ms startup)
+- **Beautiful UI** — Dark-themed popup window with intuitive controls
 
-## Installation
-
-<!-- ### App Store
-
-[![AppStore](src/assets/appstore.svg)](https://itunes.apple.com/app/...) -->
-
-### Homebrew
+## Get Started
 
 ```bash
-brew install --cask barista
+bun install
+bun run dev
 ```
 
-### Manual Download
+## Development
 
-- [Download latest version](https://github.com/stacksjs/barista/releases/latest)
-- Open and drag the app to the Applications folder
-- Launch Barista and drag the icon in your menu bar _(hold `CMD` to move)_ to position it where you want
+```bash
+# Run the app in development mode
+bun run dev
 
-## Usage
+# Lint
+bun run lint
+bun run lint:fix
 
-1. **Position the Icons**: Hold `⌘` (Command) and drag to arrange the Barista icons in your menu bar
-2. **Hide Menu Items**: Click the "vertical ellipsis" to hide items to the left of the divider
-3. **Show Hidden Items**: Click the "vertical ellipsis" again to reveal hidden items
-4. **Access Settings**: Right-click the "vertical ellipsis" to access preferences
+# Build for production
+bun run build
+```
 
-## Requirements
+## Architecture
 
-- macOS Ventura (13.5) or later
+Barista is built as a native macOS menubar app using:
 
-### For Developers
+- **[stx](https://github.com/stacksjs/stx)** — Template engine for the UI (`.stx` files)
+- **[Craft](https://github.com/stacksjs/craft)** — Native webview framework (Zig-powered, Electron alternative)
+- **[@stacksjs/desktop](https://github.com/stacksjs/stx/tree/main/packages/desktop)** — Desktop APIs (power management, preferences, system tray)
 
-To release a new version with auto-update support:
-
-1. Make your changes and increase the version number
-2. Create a new tag and push it to GitHub
-3. GitHub Actions will automatically:
-   - Build the application
-   - Sign it for Sparkle updates
-   - Create a release
-   - Update the appcast.xml file
-
-For more details on how to work with the auto-update system, see:
-
-- [Sparkle Update Guide](docs/SPARKLE_UPDATES.md)
-- [GitHub Release Guide](docs/GITHUB_UPDATES.md)
-
-#### Troubleshooting
-
-##### Build Issues
-
-If you encounter build issues with dependencies like HotKey or Sparkle:
-
-1. Run the dependency setup script:
-
-   ```bash
-   ./scripts/setup-dependencies.sh
-   ```
-
-2. For "No such module 'HotKey'" errors:
-   - Reset Swift Package Manager caches in Xcode
-   - See [Build Instructions](docs/BUILD_INSTRUCTIONS.md) for detailed steps
-
-3. For Sparkle framework issues:
-   - Make sure the Copy Frameworks build phase is added to your Xcode project
-   - Check that the Sparkle framework is properly copied to the app bundle
-
-For complete troubleshooting steps, see [Build Instructions](docs/BUILD_INSTRUCTIONS.md).
+```
+app.ts                 Entry point: starts server + Craft window
+src/barista.stx        UI template (popup window)
+src/server.ts          Local HTTP server (API + template rendering)
+src/caffeinate.ts      Caffeinate process management
+src/menu.ts            System tray menu builder
+src/preferences.ts     App preferences (JSON storage)
+```
 
 ## Contributing
 
 We welcome contributions! Please feel free to submit a Pull Request.
 
 ## Credits
-
-_Many thanks to..._
 
 - [Hidden Bar](https://github.com/dwarvesf/hidden) for being the initial code inspiration
 - [Bartender](https://www.macbartender.com)
