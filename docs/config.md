@@ -12,24 +12,30 @@ import path from 'node:path'
 
 const config: ReverseProxyOptions = {
   /**
-   * The from URL to proxy from.
-   * Default: localhost:5173
+
+   _ The from URL to proxy from.
+   _ Default: localhost:5173
+
    */
   from: 'localhost:5173',
 
   /**
-   * The to URL to proxy to.
-   * Default: stacks.localhost
+
+   _ The to URL to proxy to.
+   _ Default: stacks.localhost
+
    */
   to: 'stacks.localhost',
 
   /**
-   * The HTTPS settings.
-   * Default: true
-   * If set to false, the proxy will use HTTP.
-   * If set to true, the proxy will use HTTPS.
-   * If set to an object, the proxy will use HTTPS with the provided settings.
-   */
+
+   _ The HTTPS settings.
+   _ Default: true
+   _ If set to false, the proxy will use HTTP.
+   _ If set to true, the proxy will use HTTPS.
+   _ If set to an object, the proxy will use HTTPS with the provided settings.
+
+   _/
   https: {
     domain: 'stacks.localhost',
     hostCertCN: 'stacks.localhost',
@@ -48,10 +54,12 @@ const config: ReverseProxyOptions = {
   },
 
   /**
-   * The verbose setting.
-   * Default: false
-   * If set to true, the proxy will log more information.
-   */
+
+   _ The verbose setting.
+   _ Default: false
+   _ If set to true, the proxy will log more information.
+
+   _/
   verbose: false,
 }
 

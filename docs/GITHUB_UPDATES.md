@@ -95,7 +95,7 @@ If you prefer to use GitHub Pages, follow these additional steps:
 You can automate this process with a simple script:
 
 ```bash
-#!/bin/bash
+# !/bin/bash
 # Usage: ./release.sh 1.8 13 "Fixed bugs and added features"
 
 VERSION=$1
@@ -112,7 +112,7 @@ ditto -c -k --keepParent "build/Release/Barista.app" "Barista-$VERSION.zip"
 ./sign_update.sh "Barista-$VERSION.zip"
 
 # Update appcast.xml (you would need to implement this part)
-# ...
+#
 
 # Commit and push
 git add appcast.xml

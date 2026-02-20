@@ -30,7 +30,7 @@ This project uses Swift Package Manager for dependencies like HotKey. If you're 
 If issues persist, try adding the HotKey package manually:
 
 1. In Xcode, go to File → Swift Packages → Add Package Dependency
-2. Enter the URL: `https://github.com/soffes/HotKey`
+2. Enter the URL: `<https://github.com/soffes/HotKey>`
 3. Select "Up to Next Major" version with "0.1.3" as the minimum version
 4. Make sure the "barista" target is selected
 
