@@ -1,42 +1,35 @@
-name: CI
+name: Releaser
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   release:
-    name: release
     runs-on: macos-latest
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
 
-      - name: Install Bun
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v2
-
-      - name: Use cached node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            node-modules-
 
       - name: Install Dependencies
         run: bun install
 
-      # Extract version from tag
       - name: Get version from tag
         id: get_version
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
           echo "BUILD=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
 
-      # Build macOS app
       - name: Build macOS App
         run: |
           cd src
@@ -45,14 +38,12 @@ jobs:
           mkdir -p artifacts
           ditto -c -k --keepParent build/Build/Products/Release/Barista.app artifacts/Barista-${{ env.VERSION }}.zip
 
-      # Setup Sparkle signing key
       - name: Setup Sparkle signing key
         run: |
           mkdir -p keys
           echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > keys/sparkle_private.pem
           chmod 600 keys/sparkle_private.pem
 
-      # Sign and update appcast
       - name: Sign update and generate appcast
         id: sign_update
         run: |
@@ -92,15 +83,8 @@ jobs:
           </rss>
           EOF
 
-      # Create GitHub release
-      - name: Create GitHub release
-        run: bunx changelogithub
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      # Attach Binaries to GitHub release
-      - name: Attach Binaries
-        uses: softprops/action-gh-release@v2
+      - name: Create GitHub Release
+        uses: stacksjs/action-releaser@v1.2.9
         with:
           files: |
             artifacts/Barista-${{ env.VERSION }}.zip
@@ -108,7 +92,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Commit and push updated appcast.xml to repository
       - name: Commit updated appcast.xml
         run: |
           git config --local user.email "actions@github.com"
