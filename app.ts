@@ -37,9 +37,9 @@ const app = createApp({
   craftPath,
   url: `http://127.0.0.1:${port}`,
   window: {
-    title: 'Barista',
+    title: '☕️',
     width: 320,
-    height: 620,
+    height: 740,
     systemTray: true,
     hideDockIcon: !prefs.get('showInDock'),
     titlebarHidden: true,

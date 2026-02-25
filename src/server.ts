@@ -119,6 +119,7 @@ export function startServer(options: ServerOptions = {}) {
         const menu = buildBaristaMenu({
           caffeinated: isCaffeinated(),
           isAutoCollapse: prefs.get('isAutoCollapse'),
+          isMenubarCollapsed: false, // State managed natively, not tracked server-side
           durationMinutes: prefs.get('caffeinateDurationMinutes'),
         })
         return Response.json(menu, { headers })

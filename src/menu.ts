@@ -12,6 +12,7 @@ export interface MenuItem {
 export interface AppState {
   caffeinated: boolean
   isAutoCollapse: boolean
+  isMenubarCollapsed: boolean
   durationMinutes: number
 }
 
@@ -38,6 +39,10 @@ export function buildBaristaMenu(state: AppState): MenuItem[] {
       ],
     },
     { type: 'separator' },
+    {
+      label: state.isMenubarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
+      action: 'toggleMenubar',
+    },
     {
       label: state.isAutoCollapse ? 'Disable Auto Collapse' : 'Enable Auto Collapse',
       action: 'toggleAutoCollapse',

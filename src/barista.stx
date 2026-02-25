@@ -353,7 +353,7 @@ const version = '1.0.0'
 
 <div class="app">
   <div class="header">
-    <div class="header-icon">☕</div>
+    <div class="header-icon">☕︎</div>
     <div class="header-text">
       <h1>Barista</h1>
       <span>v{{ version }}</span>
@@ -614,14 +614,13 @@ const version = '1.0.0'
   // Poll for timer updates every second
   setInterval(updateTimer, 1000)
 
-  // Update tray title and menu with caffeinate status
+  // Update ☕️ tray title with caffeinate timer info.
   var lastTrayTitle = ''
   async function updateTray() {
     var status = await window.fetchStatus()
 
-    // Update tray title (only when changed)
     if (window.craft && window.craft.tray && window.craft.tray.setTitle) {
-      var title = status.active ? ('\u2615 ' + status.remainingFormatted) : '\u2615'
+      var title = status.active ? ('\u2615\uFE0F ' + status.remainingFormatted) : '\u2615\uFE0F'
       if (title !== lastTrayTitle) {
         lastTrayTitle = title
         await window.craft.tray.setTitle(title)
