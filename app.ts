@@ -26,7 +26,7 @@ if (prefs.get('caffeinateOnStartup')) {
 }
 
 // Build initial tray menu
-const initialMenu = buildBaristaMenu({
+const _initialMenu = buildBaristaMenu({
   caffeinated: isCaffeinated(),
   isAutoCollapse: prefs.get('isAutoCollapse'),
   durationMinutes: prefs.get('caffeinateDurationMinutes'),
