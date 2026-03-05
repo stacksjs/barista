@@ -24,8 +24,10 @@
   "scripts": {
     "build": "xcodebuild -project src/Barista.xcodeproj -scheme Barista -configuration Release CONFIGURATION_BUILD_DIR=$(pwd)/dist",
     "package": "rm -rf ./dist/Barista.dmg && create-dmg --volname \"Barista\" --window-pos 200 120 --window-size 800 500 --background ./src/assets/dmg-bg.jpg --icon-size 128 --app-drop-link 600 250 --icon \"Barista.app\" 200 250 ./dist/Barista.dmg ./dist/Barista.app",
-    "lint": "bunx --bun pickier lint .",
-    "lint:fix": "bunx --bun pickier lint . --fix",
+    "lint": "bunx --bun pickier .",
+    "lint:fix": "bunx --bun pickier . --fix",
+    "format": "bunx --bun pickier . --format",
+    "format:fix": "bunx --bun pickier . --format --write",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "changelog": "bunx changelogen --output CHANGELOG.md",
     "prepublishOnly": "bun --bun run build",
