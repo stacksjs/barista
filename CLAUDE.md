@@ -2,7 +2,7 @@
 
 ## About
 
-A lightweight macOS utility that serves up a perfectly organized menubar.
+Barista is a lightweight macOS menubar utility built with stx and Craft that helps manage menu bar clutter and prevent your Mac from sleeping. It features caffeinate controls with customizable durations, auto-collapse for menu bar items, and launch-at-login support. The app runs as a native webview with a tiny footprint (1.4MB binary, <100ms startup).
 
 ## Linting
 
