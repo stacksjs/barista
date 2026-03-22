@@ -40,14 +40,17 @@
   },
   "devDependencies": {
     "better-dx": "^0.2.7",
-    "bumpp": "^10.1.0",
-    "lint-staged": "^15.5.1",
-    "simple-git-hooks": "^2.12.1"
+    "bumpp": "^10.1.0"
   },
   "overrides": {
     "unconfig": "0.3.10"
   },
-  "lint-staged": {
-    "*.{js,ts}": "bunx --bun pickier lint --fix"
+  "git-hooks": {
+    "pre-commit": {
+      "staged-lint": {
+        "*.{js,ts,json,yaml,yml,md}": "bunx --bun pickier lint --fix"
+      }
+    },
+    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
   }
 }
