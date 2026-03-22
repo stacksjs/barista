@@ -42,9 +42,6 @@
     "better-dx": "^0.2.7",
     "bumpp": "^10.1.0"
   },
-  "overrides": {
-    "unconfig": "0.3.10"
-  },
   "git-hooks": {
     "pre-commit": {
       "staged-lint": {
