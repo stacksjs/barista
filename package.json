@@ -39,7 +39,6 @@
     "typecheck": "echo 'No TypeScript source files to check'"
   },
   "devDependencies": {
-    "@stacksjs/docs": "^0.70.23",
     "better-dx": "^0.2.7",
     "bumpp": "^10.1.0",
     "lint-staged": "^15.5.1",
