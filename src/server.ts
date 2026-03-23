@@ -42,6 +42,10 @@ export function startServer(options: ServerOptions = {}) {
               isAutoCollapse: prefs.get('isAutoCollapse'),
               autoCollapseDelay: prefs.get('autoCollapseDelay'),
               autoLaunch: prefs.get('autoLaunch'),
+              caffeinateOnStartup: prefs.get('caffeinateOnStartup'),
+              alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
+              separatorHidden: prefs.get('separatorHidden'),
+              globalHotkey: prefs.get('globalHotkey'),
               version: '1.0.0',
             },
             wrapInDocument: true,
@@ -69,6 +73,10 @@ export function startServer(options: ServerOptions = {}) {
           isAutoCollapse: prefs.get('isAutoCollapse'),
           autoCollapseDelay: prefs.get('autoCollapseDelay'),
           autoLaunch: prefs.get('autoLaunch'),
+          caffeinateOnStartup: prefs.get('caffeinateOnStartup'),
+          alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
+          separatorHidden: prefs.get('separatorHidden'),
+          globalHotkey: prefs.get('globalHotkey'),
         }, { headers })
       }
 
@@ -119,8 +127,8 @@ export function startServer(options: ServerOptions = {}) {
         const menu = buildBaristaMenu({
           caffeinated: isCaffeinated(),
           isAutoCollapse: prefs.get('isAutoCollapse'),
-          isMenubarCollapsed: false, // State managed natively, not tracked server-side
           durationMinutes: prefs.get('caffeinateDurationMinutes'),
+          alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
         })
         return Response.json(menu, { headers })
       }

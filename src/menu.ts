@@ -12,8 +12,9 @@ export interface MenuItem {
 export interface AppState {
   caffeinated: boolean
   isAutoCollapse: boolean
-  isMenubarCollapsed: boolean
+  isMenubarCollapsed?: boolean
   durationMinutes: number
+  alwaysHiddenEnabled?: boolean
 }
 
 export function buildBaristaMenu(state: AppState): MenuItem[] {
@@ -42,10 +43,19 @@ export function buildBaristaMenu(state: AppState): MenuItem[] {
     {
       label: state.isMenubarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
       action: 'toggleMenubar',
+      shortcut: 'Cmd+Shift+B',
     },
     {
-      label: state.isAutoCollapse ? 'Disable Auto Collapse' : 'Enable Auto Collapse',
+      label: 'Auto Collapse',
       action: 'toggleAutoCollapse',
+      type: 'checkbox',
+      checked: state.isAutoCollapse,
+    },
+    {
+      label: 'Always-Hidden Section',
+      action: 'toggleAlwaysHidden',
+      type: 'checkbox',
+      checked: state.alwaysHiddenEnabled ?? false,
     },
     { type: 'separator' },
     { label: 'Preferences...', action: 'preferences', shortcut: 'Cmd+,' },

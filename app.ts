@@ -7,9 +7,10 @@
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { createApp } from '@stacksjs/ts-craft'
+import { setAutoLaunch } from '@stacksjs/desktop'
 import { startServer } from './src/server'
 import { prefs } from './src/preferences'
-import { enableCaffeinate, isCaffeinated, onChange } from './src/caffeinate'
+import { enableCaffeinate, isCaffeinated } from './src/caffeinate'
 import { buildBaristaMenu } from './src/menu'
 
 // Resolve the native Craft binary (Zig-compiled)
@@ -25,11 +26,27 @@ if (prefs.get('caffeinateOnStartup')) {
   console.log('Caffeinate enabled on startup')
 }
 
+// Sync auto-launch state
+const autoLaunchEnabled = prefs.get('autoLaunch')
+setAutoLaunch(autoLaunchEnabled, {
+  appName: 'Barista',
+  isHidden: true,
+}).catch(() => {})
+
+// Watch for auto-launch preference changes
+prefs.onChange('autoLaunch', (enabled) => {
+  setAutoLaunch(enabled as boolean, {
+    appName: 'Barista',
+    isHidden: true,
+  }).catch(() => {})
+})
+
 // Build initial tray menu
 const _initialMenu = buildBaristaMenu({
   caffeinated: isCaffeinated(),
   isAutoCollapse: prefs.get('isAutoCollapse'),
   durationMinutes: prefs.get('caffeinateDurationMinutes'),
+  alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
 })
 
 // Create the native Craft app

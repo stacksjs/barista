@@ -7,6 +7,9 @@ export interface BaristaPreferences extends Record<string, unknown> {
   isAutoCollapse: boolean
   autoCollapseDelay: number
   showInDock: boolean
+  alwaysHiddenEnabled: boolean
+  separatorHidden: boolean
+  globalHotkey: string
 }
 
 export const prefs = createPreferences<BaristaPreferences>({
@@ -18,5 +21,8 @@ export const prefs = createPreferences<BaristaPreferences>({
     isAutoCollapse: false,
     autoCollapseDelay: 10,
     showInDock: false,
+    alwaysHiddenEnabled: false,
+    separatorHidden: false,
+    globalHotkey: 'Cmd+Shift+B',
   },
 })

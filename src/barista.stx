@@ -6,6 +6,10 @@ const durationMinutes = -1
 const isAutoCollapse = false
 const autoCollapseDelay = 10
 const autoLaunch = false
+const caffeinateOnStartup = false
+const alwaysHiddenEnabled = false
+const separatorHidden = false
+const globalHotkey = 'Cmd+Shift+B'
 const version = '1.0.0'
 </script>
 
@@ -36,15 +40,16 @@ const version = '1.0.0'
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     user-select: none;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .app {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     padding: 16px;
-    padding-top: 36px; /* space for macOS traffic light buttons */
+    padding-top: 36px;
   }
 
   .header {
@@ -237,6 +242,12 @@ const version = '1.0.0'
     color: var(--text);
   }
 
+  .pref-sublabel {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
   .toggle-switch {
     position: relative;
     width: 44px;
@@ -336,6 +347,48 @@ const version = '1.0.0'
     color: var(--text-muted);
   }
 
+  .delay-picker {
+    display: flex;
+    gap: 4px;
+  }
+
+  .delay-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-app-region: no-drag;
+  }
+
+  .delay-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .delay-btn.selected {
+    border-color: var(--accent);
+    background: rgba(226, 182, 89, 0.15);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .hotkey-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-family: -apple-system, monospace;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
   .footer {
     margin-top: auto;
     padding-top: 12px;
@@ -353,7 +406,7 @@ const version = '1.0.0'
 
 <div class="app">
   <div class="header">
-    <div class="header-icon">☕︎</div>
+    <div class="header-icon">&#9749;&#65038;</div>
     <div class="header-text">
       <h1>Barista</h1>
       <span>v{{ version }}</span>
@@ -414,14 +467,57 @@ const version = '1.0.0'
 
   <div class="section">
     <div class="section-title">Settings</div>
+
     <div class="pref-row">
-      <span class="pref-label">Auto Collapse</span>
+      <div>
+        <div class="pref-label">Auto Collapse</div>
+        <div class="pref-sublabel">Hide items after a delay</div>
+      </div>
       <div class="toggle-switch{{ isAutoCollapse ? ' on' : '' }}" id="autoCollapseToggle" onclick="toggleAutoCollapse()"></div>
     </div>
+
+    @if(isAutoCollapse)
+      <div class="pref-row">
+        <span class="pref-label">Collapse Delay</span>
+        <div class="delay-picker">
+          <button class="delay-btn{{ autoCollapseDelay === 5 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(5)">5s</button>
+          <button class="delay-btn{{ autoCollapseDelay === 10 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(10)">10s</button>
+          <button class="delay-btn{{ autoCollapseDelay === 15 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(15)">15s</button>
+          <button class="delay-btn{{ autoCollapseDelay === 30 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(30)">30s</button>
+          <button class="delay-btn{{ autoCollapseDelay === 60 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(60)">60s</button>
+        </div>
+      </div>
+    @endif
+
     <div class="pref-row">
-      <span class="pref-label">Auto Collapse Delay</span>
-      <span class="pref-value" id="autoCollapseDelayLabel">{{ autoCollapseDelay }}s</span>
+      <div>
+        <div class="pref-label">Always-Hidden Section</div>
+        <div class="pref-sublabel">Keep some items permanently hidden</div>
+      </div>
+      <div class="toggle-switch{{ alwaysHiddenEnabled ? ' on' : '' }}" onclick="toggleAlwaysHidden()"></div>
     </div>
+
+    <div class="pref-row">
+      <div>
+        <div class="pref-label">Hide Separator</div>
+        <div class="pref-sublabel">Make the &#8249; indicator invisible</div>
+      </div>
+      <div class="toggle-switch{{ separatorHidden ? ' on' : '' }}" onclick="toggleSeparatorHidden()"></div>
+    </div>
+
+    <div class="pref-row">
+      <span class="pref-label">Global Hotkey</span>
+      <span class="hotkey-badge">{{ globalHotkey }}</span>
+    </div>
+
+    <div class="pref-row">
+      <div>
+        <div class="pref-label">Caffeinate on Startup</div>
+        <div class="pref-sublabel">Start caffeinated when launched</div>
+      </div>
+      <div class="toggle-switch{{ caffeinateOnStartup ? ' on' : '' }}" onclick="toggleCaffeinateOnStartup()"></div>
+    </div>
+
     <div class="pref-row">
       <span class="pref-label">Launch at Login</span>
       <div class="toggle-switch{{ autoLaunch ? ' on' : '' }}" id="autoLaunchToggle" onclick="toggleAutoLaunch()"></div>
@@ -435,9 +531,6 @@ const version = '1.0.0'
 
 <script client>
   var API = window.location.origin
-
-  // Expose all handler functions globally so inline onclick attributes work
-  // (client scripts are wrapped in an IIFE by stx for isolation)
 
   window.fetchStatus = async function() {
     var res = await fetch(API + '/api/status')
@@ -466,13 +559,24 @@ const version = '1.0.0'
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isAutoCollapse: newValue }),
     })
-    // Update native auto-collapse
     if (window.craft && window.craft.menubar) {
       if (newValue) {
         await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
       } else {
         await window.craft.menubar.setAutoCollapse(0)
       }
+    }
+    location.reload()
+  }
+
+  window.setAutoCollapseDelay = async function(seconds) {
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ autoCollapseDelay: seconds }),
+    })
+    if (window.craft && window.craft.menubar) {
+      await window.craft.menubar.setAutoCollapse(seconds)
     }
     location.reload()
   }
@@ -484,6 +588,48 @@ const version = '1.0.0'
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ autoLaunch: !status.autoLaunch }),
     })
+    location.reload()
+  }
+
+  window.toggleCaffeinateOnStartup = async function() {
+    var status = await window.fetchStatus()
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caffeinateOnStartup: !status.caffeinateOnStartup }),
+    })
+    location.reload()
+  }
+
+  window.toggleAlwaysHidden = async function() {
+    var status = await window.fetchStatus()
+    var newValue = !status.alwaysHiddenEnabled
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alwaysHiddenEnabled: newValue }),
+    })
+    if (window.craft && window.craft.menubar) {
+      if (newValue) {
+        await window.craft.menubar.enableAlwaysHidden()
+      } else {
+        await window.craft.menubar.disableAlwaysHidden()
+      }
+    }
+    location.reload()
+  }
+
+  window.toggleSeparatorHidden = async function() {
+    var status = await window.fetchStatus()
+    var newValue = !status.separatorHidden
+    await fetch(API + '/api/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ separatorHidden: newValue }),
+    })
+    if (window.craft && window.craft.menubar) {
+      await window.craft.menubar.setSeparatorHidden(newValue)
+    }
     location.reload()
   }
 
@@ -513,7 +659,6 @@ const version = '1.0.0'
     }
   }
 
-  // Listen for menubar state changes from native
   window.addEventListener('craft:menubar:stateChange', function(e) {
     if (e.detail) {
       updateMenubarUI(e.detail.collapsed)
@@ -522,13 +667,43 @@ const version = '1.0.0'
 
   async function initMenubar() {
     if (!window.craft || !window.craft.menubar) return
-    // Initialize the native menubar collapse system
     await window.craft.menubar.init()
-    // Set auto-collapse if preference is enabled
+
     var status = await window.fetchStatus()
+
+    // Set auto-collapse if preference is enabled
     if (status.isAutoCollapse) {
       await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
     }
+
+    // Enable always-hidden section if preference is enabled
+    if (status.alwaysHiddenEnabled) {
+      await window.craft.menubar.enableAlwaysHidden()
+    }
+
+    // Apply separator visibility
+    if (status.separatorHidden) {
+      await window.craft.menubar.setSeparatorHidden(true)
+    }
+
+    // Auto-collapse on startup after 1 second (matches Hidden's behavior)
+    setTimeout(function() {
+      if (window.craft && window.craft.menubar) {
+        window.craft.menubar.collapse()
+        updateMenubarUI(true)
+      }
+    }, 1000)
+  }
+
+  // Register global hotkey for menubar toggle
+  async function registerGlobalHotkey() {
+    if (!window.craft || !window.craft.app || !window.craft.app.registerShortcut) return
+    var status = await window.fetchStatus()
+    var hotkey = status.globalHotkey || 'Cmd+Shift+B'
+
+    await window.craft.app.registerShortcut(hotkey, function() {
+      window.toggleMenubar()
+    })
   }
 
   // Update timer every second when caffeinated
@@ -555,6 +730,18 @@ const version = '1.0.0'
       },
       { type: 'separator' },
       { label: 'Toggle Menu Bar Items', action: 'toggleMenubar' },
+      {
+        label: 'Auto Collapse',
+        action: 'toggleAutoCollapse',
+        type: 'checkbox',
+        checked: status.isAutoCollapse,
+      },
+      {
+        label: 'Always-Hidden Section',
+        action: 'toggleAlwaysHidden',
+        type: 'checkbox',
+        checked: status.alwaysHiddenEnabled,
+      },
       { type: 'separator' },
       { label: '15 minutes', action: 'duration:15', type: durationMinutes === 15 ? 'checkbox' : 'normal', checked: durationMinutes === 15 },
       { label: '30 minutes', action: 'duration:30', type: durationMinutes === 30 ? 'checkbox' : 'normal', checked: durationMinutes === 30 },
@@ -564,8 +751,6 @@ const version = '1.0.0'
       { label: '8 hours', action: 'duration:480', type: durationMinutes === 480 ? 'checkbox' : 'normal', checked: durationMinutes === 480 },
       { label: '12 hours', action: 'duration:720', type: durationMinutes === 720 ? 'checkbox' : 'normal', checked: durationMinutes === 720 },
       { label: 'Indefinitely', action: 'duration:-1', type: durationMinutes === -1 ? 'checkbox' : 'normal', checked: durationMinutes === -1 },
-      { type: 'separator' },
-      { label: 'Auto Collapse', action: 'toggleAutoCollapse', type: 'checkbox', checked: status.isAutoCollapse },
       { type: 'separator' },
       { label: 'Preferences...', action: 'preferences' },
       { label: 'About Barista', action: 'about' },
@@ -589,6 +774,9 @@ const version = '1.0.0'
     }
     else if (action === 'toggleAutoCollapse') {
       await window.toggleAutoCollapse()
+    }
+    else if (action === 'toggleAlwaysHidden') {
+      await window.toggleAlwaysHidden()
     }
     else if (action === 'preferences') {
       if (window.craft && window.craft.window && window.craft.window.show) {
@@ -614,7 +802,7 @@ const version = '1.0.0'
   // Poll for timer updates every second
   setInterval(updateTimer, 1000)
 
-  // Update ☕️ tray title with caffeinate timer info.
+  // Update tray title with caffeinate timer info
   var lastTrayTitle = ''
   async function updateTray() {
     var status = await window.fetchStatus()
@@ -635,6 +823,7 @@ const version = '1.0.0'
     setupTrayMenu()
     updateTray()
     initMenubar()
+    registerGlobalHotkey()
   })
 
   // Fallback: try after a short delay in case craft:ready already fired
@@ -642,5 +831,6 @@ const version = '1.0.0'
     setupTrayMenu()
     updateTray()
     initMenubar()
+    registerGlobalHotkey()
   }, 500)
 </script>
