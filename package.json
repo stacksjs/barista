@@ -22,21 +22,22 @@
     "mac"
   ],
   "scripts": {
-    "build": "xcodebuild -project src/Barista.xcodeproj -scheme Barista -configuration Release CONFIGURATION_BUILD_DIR=$(pwd)/dist",
-    "package": "rm -rf ./dist/Barista.dmg && create-dmg --volname \"Barista\" --window-pos 200 120 --window-size 800 500 --background ./src/assets/dmg-bg.jpg --icon-size 128 --app-drop-link 600 250 --icon \"Barista.app\" 200 250 ./dist/Barista.dmg ./dist/Barista.app",
     "lint": "bunx --bun pickier .",
     "lint:fix": "bunx --bun pickier . --fix",
     "format": "bunx --bun pickier . --format",
     "format:fix": "bunx --bun pickier . --format --write",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "changelog": "bunx changelogen --output CHANGELOG.md",
-    "prepublishOnly": "bun --bun run build",
     "release": "bun --bun run changelog && bunx --bun bumpp package.json --all",
     "test": "bun test",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
-    "typecheck": "echo 'No TypeScript source files to check'"
+    "typecheck": "bunx --bun tsc --noEmit"
+  },
+  "dependencies": {
+    "@stacksjs/desktop": "^0.2.10",
+    "@stacksjs/ts-craft": "^0.0.2"
   },
   "devDependencies": {
     "better-dx": "^0.2.7",

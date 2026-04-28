@@ -10,8 +10,7 @@ import { createApp } from '@stacksjs/ts-craft'
 import { setAutoLaunch } from '@stacksjs/desktop'
 import { startServer } from './src/server'
 import { prefs } from './src/preferences'
-import { enableCaffeinate, isCaffeinated } from './src/caffeinate'
-import { buildBaristaMenu } from './src/menu'
+import { enableCaffeinate } from './src/caffeinate'
 
 // Resolve the native Craft binary (Zig-compiled)
 const craftPath = join(homedir(), 'Code/Tools/craft/packages/zig/zig-out/bin/craft')
@@ -39,14 +38,6 @@ prefs.onChange('autoLaunch', (enabled) => {
     appName: 'Barista',
     isHidden: true,
   }).catch(() => {})
-})
-
-// Build initial tray menu
-const _initialMenu = buildBaristaMenu({
-  caffeinated: isCaffeinated(),
-  isAutoCollapse: prefs.get('isAutoCollapse'),
-  durationMinutes: prefs.get('caffeinateDurationMinutes'),
-  alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
 })
 
 // Create the native Craft app

@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 import { renderTemplate } from '@stacksjs/stx'
+import pkg from '../package.json' with { type: 'json' }
 import { enableCaffeinate, disableCaffeinate, toggleCaffeinate, getStatus, isCaffeinated } from './caffeinate'
 import { prefs } from './preferences'
 import { buildBaristaMenu } from './menu'
@@ -46,7 +47,7 @@ export function startServer(options: ServerOptions = {}) {
               alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
               separatorHidden: prefs.get('separatorHidden'),
               globalHotkey: prefs.get('globalHotkey'),
-              version: '1.0.0',
+              version: pkg.version,
             },
             wrapInDocument: true,
             title: 'Barista',
