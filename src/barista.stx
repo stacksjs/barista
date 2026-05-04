@@ -445,7 +445,6 @@ const version = '1.0.0'
     <div class="duration-grid">
       <button class="duration-btn{{ durationMinutes === 15 ? ' selected' : '' }}" onclick="setDuration(15)">15m</button>
       <button class="duration-btn{{ durationMinutes === 30 ? ' selected' : '' }}" onclick="setDuration(30)">30m</button>
-      <button class="duration-btn{{ durationMinutes === 45 ? ' selected' : '' }}" onclick="setDuration(45)">45m</button>
       <button class="duration-btn{{ durationMinutes === 60 ? ' selected' : '' }}" onclick="setDuration(60)">1h</button>
       <button class="duration-btn{{ durationMinutes === 240 ? ' selected' : '' }}" onclick="setDuration(240)">4h</button>
       <button class="duration-btn{{ durationMinutes === 480 ? ' selected' : '' }}" onclick="setDuration(480)">8h</button>
@@ -745,7 +744,6 @@ const version = '1.0.0'
       { type: 'separator' },
       { label: '15 minutes', action: 'duration:15', type: durationMinutes === 15 ? 'checkbox' : 'normal', checked: durationMinutes === 15 },
       { label: '30 minutes', action: 'duration:30', type: durationMinutes === 30 ? 'checkbox' : 'normal', checked: durationMinutes === 30 },
-      { label: '45 minutes', action: 'duration:45', type: durationMinutes === 45 ? 'checkbox' : 'normal', checked: durationMinutes === 45 },
       { label: '1 hour', action: 'duration:60', type: durationMinutes === 60 ? 'checkbox' : 'normal', checked: durationMinutes === 60 },
       { label: '4 hours', action: 'duration:240', type: durationMinutes === 240 ? 'checkbox' : 'normal', checked: durationMinutes === 240 },
       { label: '8 hours', action: 'duration:480', type: durationMinutes === 480 ? 'checkbox' : 'normal', checked: durationMinutes === 480 },

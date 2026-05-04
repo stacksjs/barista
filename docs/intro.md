@@ -1,49 +1,40 @@
-<p align="center"><img src="https://github.com/stacksjs/rpx/blob/main/.github/art/cover.jpg?raw=true" alt="Social Card of this repo"></p>
+<p align="center"><img src="https://github.com/stacksjs/barista/blob/main/.github/art/cover.jpg?raw=true" alt="Social Card of this repo"></p>
 
-# A Better Developer Experience
+# Keep your Mac awake
 
-> A TypeScript Starter Kit that will help you bootstrap your next project without minimal opinion.
+> Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free replacement for Caffeine, Amphetamine and KeepingYouAwake.
 
-# bun-ts-starter
+One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefinite), and your Mac stays awake until you say otherwise. As a bonus, Barista also tidies up your menu bar.
 
-This is an opinionated TypeScript Starter kit to help kick-start development of your next Bun package.
+## Why Barista
+
+- **Caffeinate-first** — the headline feature, not buried under preferences.
+- **Tiny** — 1.4 MB binary, under 100 ms cold start.
+- **Native** — built with Zig-powered [Craft](https://github.com/stacksjs/craft), no Electron, no Chromium.
+- **Free & open source** — MIT-licensed, no subscription, no telemetry.
 
 ## Get Started
 
-It's rather simple to get your package development started:
-
 ```bash
-# you may use this GitHub template or the following command
-bunx degit stacksjs/ts-starter my-pkg
-cd my-pkg
-
-# if you don't have pnpm installed, run `npm i -g pnpm`
-bun i # install all deps
-bun run build # builds the library for production-ready use
-
-# after you have successfully committed, you may create a "release"
-bun run release # automates git commits, versioning, and changelog generations
+# Clone and run
+git clone https://github.com/stacksjs/barista.git
+cd barista
+bun install
+bun run dev
 ```
 
-_Check out the package.json scripts for more commands._
+Once running, look for the ☕️ icon in your menu bar. Click it to caffeinate, choose a duration, and you're done.
 
-### Developer Experience (DX)
+For details on what caffeinate actually does (display sleep vs system sleep, lid-close behavior, etc.), see the [Caffeinate guide](./caffeinate.md).
 
-This Starter Kit comes pre-configured with the following:
+## What's next
 
-- [Powerful Build Process](https://github.com/oven-sh/bun) - via Bun
-- [Fully Typed APIs](https://www.typescriptlang.org/) - via TypeScript
-- [Documentation-ready](https://vitepress.dev/) - via VitePress
-- [CLI & Binary](https://www.npmjs.com/package/bunx) - via Bun & CAC
-- [Be a Good Commitizen](https://www.npmjs.com/package/git-cz) - pre-configured Commitizen & git-cz setup to simplify semantic git commits, versioning, and changelog generations
-- [Built With Testing In Mind](https://bun.sh/docs/cli/test) - pre-configured unit-testing powered by [Bun](https://bun.sh/docs/cli/test)
-- [Renovate](https://renovatebot.com/) - optimized & automated PR dependency updates
-- [ESLint](https://eslint.org/) - for code linting _(and formatting)_
-- [GitHub Actions](https://github.com/features/actions) - runs your CI _(fixes code style issues, tags releases & creates its changelogs, runs the test suite, etc.)_
+- [Caffeinate guide](./caffeinate.md) — durations, edge cases, and how it compares to `caffeinate(1)`.
+- [Configuration](./config.md) — preferences, hotkeys, launch-at-login.
 
 ## Changelog
 
-Please see our [releases](https://github.com/stacksjs/stacks/releases) page for more information on what has changed recently.
+Please see our [releases](https://github.com/stacksjs/barista/releases) page for more information on what has changed recently.
 
 ## Contributing
 
@@ -59,12 +50,6 @@ For casual chit-chat with others using this package:
 
 [Join the Stacks Discord Server](https://discord.gg/stacksjs)
 
-## Postcardware
-
-Two things are true: Stacks OSS will always stay open-source, and we do love to receive postcards from wherever Stacks is used! 🌍 _We also publish them on our website. And thank you, Spatie_
-
-Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094
-
 ## Sponsors
 
 We would like to extend our thanks to the following sponsors for funding Stacks development. If you are interested in becoming a sponsor, please reach out to us.
@@ -74,15 +59,12 @@ We would like to extend our thanks to the following sponsors for funding Stacks 
 
 ## Credits
 
+- [Hidden Bar](https://github.com/dwarvesf/hidden) for being the initial code inspiration
 - [Chris Breuer](https://github.com/chrisbbreuer)
-- [All Contributors](https://github.com/stacksjs/rpx/graphs/contributors)
+- [All Contributors](https://github.com/stacksjs/barista/graphs/contributors)
 
 ## License
 
-The MIT License (MIT). Please see [LICENSE](https://github.com/stacksjs/ts-starter/tree/main/LICENSE.md) for more information.
+The MIT License (MIT). Please see [LICENSE](https://github.com/stacksjs/barista/blob/main/LICENSE.md) for more information.
 
 Made with 💙
-
-<!-- Badges -->
-
-<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/rpx/main?style=flat-square

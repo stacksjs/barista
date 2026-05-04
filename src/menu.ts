@@ -29,7 +29,6 @@ export function buildBaristaMenu(state: AppState): MenuItem[] {
       submenu: [
         { label: '15 minutes', action: 'duration:15', type: 'radio', checked: state.durationMinutes === 15 },
         { label: '30 minutes', action: 'duration:30', type: 'radio', checked: state.durationMinutes === 30 },
-        { label: '45 minutes', action: 'duration:45', type: 'radio', checked: state.durationMinutes === 45 },
         { label: '1 hour', action: 'duration:60', type: 'radio', checked: state.durationMinutes === 60 },
         { label: '4 hours', action: 'duration:240', type: 'radio', checked: state.durationMinutes === 240 },
         { label: '8 hours', action: 'duration:480', type: 'radio', checked: state.durationMinutes === 480 },

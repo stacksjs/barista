@@ -5,18 +5,32 @@
 
 # Barista
 
-> Stay caffeinated & craft pretty menu bars.
+> Keep your Mac awake. One click from the menu bar.
 
-A lightweight macOS menubar utility built with [stx](https://github.com/stacksjs/stx) + [Craft](https://github.com/stacksjs/craft). Barista lives in your menu bar and helps you manage menu bar clutter and prevent your Mac from sleeping.
+Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free, modern replacement for [Caffeine](https://lightheadsw.com/caffeine/), [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) and [KeepingYouAwake](https://github.com/newmarcel/KeepingYouAwake). One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefinite), and your Mac stays awake until you say otherwise. Built with [stx](https://github.com/stacksjs/stx) + [Craft](https://github.com/stacksjs/craft) so it stays out of the way: 1.4MB binary, under 100ms startup, no Electron.
+
+As a bonus, Barista also tidies up your menu bar.
+
+## Why Barista
+
+|                  | Barista        | Caffeine.app | Amphetamine     | KeepingYouAwake |
+| ---------------- | -------------- | ------------ | --------------- | --------------- |
+| Price            | Free, MIT      | Paid         | Free (Mac App Store) | Free, MIT  |
+| Binary size      | ~1.4 MB        | ~3 MB        | ~15 MB          | ~5 MB           |
+| Cold start       | <100 ms        | ~150 ms      | ~300 ms         | ~150 ms         |
+| Runtime          | Native (Zig)   | Native       | Native          | Native          |
+| Bonus: menu bar tidying | Yes     | No           | No              | No              |
+| Source           | Open           | Closed       | Closed          | Open            |
 
 ## Features
 
-- **Caffeinate** — Prevent your Mac from sleeping with customizable durations (15m, 30m, 1h, 4h, 8h, 12h, indefinite)
-- **Menu Bar Management** — Collapse and organize your menu bar items
-- **Auto Collapse** — Automatically hide menu bar items after a delay
-- **Launch at Login** — Start Barista when you log in
-- **Native Performance** — Built with Craft's native webview (1.4MB binary, <100ms startup)
-- **Beautiful UI** — Dark-themed popup window with intuitive controls
+- **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (15m, 30m, 1h, 4h, 8h, 12h, indefinite). One click from the menu bar to toggle, with a live countdown in the tray.
+- **Caffeinate on startup** — Optional: start the app already caffeinated, so your Mac is awake the moment you log in.
+- **Global hotkey** — Toggle caffeinate (or the menu bar) without reaching for the mouse.
+- **Menu bar management** *(bonus)* — Collapse and organize menu bar items, with optional auto-collapse and an always-hidden section.
+- **Launch at login** — Start Barista when you log in.
+- **Native performance** — Built with Craft's native webview (1.4MB binary, <100ms startup, no Electron).
+- **Beautiful UI** — Dark-themed popup window with intuitive controls.
 
 ## Get Started
 
