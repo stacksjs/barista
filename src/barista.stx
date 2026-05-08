@@ -642,6 +642,11 @@ const version = '1.0.0'
 
   function updateMenubarUI(collapsed) {
     menubarCollapsed = collapsed
+    fetch('/api/menubar/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collapsed: collapsed }),
+    }).catch(function() {})
     var btn = document.getElementById('menubarToggleBtn')
     var icon = document.getElementById('menubarIcon')
     var label = document.getElementById('menubarLabel')

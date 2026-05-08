@@ -4,6 +4,7 @@ import pkg from '../package.json' with { type: 'json' }
 import { enableCaffeinate, disableCaffeinate, toggleCaffeinate, getStatus, isCaffeinated } from './caffeinate'
 import { prefs } from './preferences'
 import { buildBaristaMenu } from './menu'
+import { isMenubarCollapsed, setMenubarCollapsed } from './menubar'
 
 export interface ServerOptions {
   port?: number
@@ -128,10 +129,20 @@ export function startServer(options: ServerOptions = {}) {
         const menu = buildBaristaMenu({
           caffeinated: isCaffeinated(),
           isAutoCollapse: prefs.get('isAutoCollapse'),
+          isMenubarCollapsed: isMenubarCollapsed(),
           durationMinutes: prefs.get('caffeinateDurationMinutes'),
           alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
         })
         return Response.json(menu, { headers })
+      }
+
+      // API: Update menubar collapsed state (called by webview on craft:menubar:stateChange)
+      if (url.pathname === '/api/menubar/state' && req.method === 'POST') {
+        const body = await req.json() as { collapsed?: boolean }
+        if (typeof body.collapsed === 'boolean') {
+          setMenubarCollapsed(body.collapsed)
+        }
+        return Response.json({ collapsed: isMenubarCollapsed() }, { headers })
       }
 
       return new Response('Not Found', { status: 404, headers })

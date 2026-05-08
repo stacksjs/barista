@@ -43,7 +43,8 @@
     "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
-    "@stacksjs/desktop": "^0.2.10",
+    "@stacksjs/desktop": "^0.2.21",
+    "@stacksjs/stx": "^0.2.21",
     "@stacksjs/ts-craft": "^0.0.2"
   },
   "devDependencies": {
@@ -52,10 +53,10 @@
   },
   "git-hooks": {
     "pre-commit": {
-      "staged-lint": {
+      "stagedLint": {
         "*.{js,ts,json,yaml,yml,md}": "bunx --bun pickier lint --fix"
       }
     },
-    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
+    "commit-msg": "bunx --bun @stacksjs/gitlint --edit .git/COMMIT_EDITMSG"
   }
 }
