@@ -43,8 +43,8 @@
     "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
-    "@stacksjs/desktop": "^0.2.21",
-    "@stacksjs/stx": "^0.2.21",
+    "@stacksjs/desktop": "^0.2.82",
+    "@stacksjs/stx": "^0.2.82",
     "@stacksjs/ts-craft": "^0.0.2"
   },
   "devDependencies": {
