@@ -1,17 +1,9 @@
-<script>
-const caffeinated = false
-const remainingTime = '0:00'
-const durationFormatted = 'Off'
-const durationMinutes = -1
-const isAutoCollapse = false
-const autoCollapseDelay = 10
-const autoLaunch = false
-const caffeinateOnStartup = false
-const alwaysHiddenEnabled = false
-const separatorHidden = false
-const globalHotkey = 'Cmd+Shift+B'
-const version = '1.0.0'
-</script>
+{{--
+  Barista's popup window.
+
+  The server renders the shell and seeds the panel's initial state; from there
+  every value is a signal, refreshed once a second so the countdown ticks.
+--}}
 
 <style>
   :root {
@@ -404,7 +396,7 @@ const version = '1.0.0'
   }
 </style>
 
-<div class="app">
+<div class="app" x-ref="root" data-initial-state="{{ initialState }}">
   <div class="header">
     <div class="header-icon">&#9749;&#65038;</div>
     <div class="header-text">
@@ -419,8 +411,8 @@ const version = '1.0.0'
         <span class="status-dot"></span>
         Caffeinated
       </div>
-      <div class="timer-display" ref="timer">{{ remainingTime }}</div>
-      <div class="timer-label">{{ durationFormatted }}</div>
+      <div class="timer-display" x-text="remainingTime"></div>
+      <div class="timer-label" x-text="durationLabel"></div>
     @else
       <div class="status-indicator inactive">
         <span class="status-dot"></span>
@@ -430,37 +422,34 @@ const version = '1.0.0'
     @endif
   </div>
 
-  @if(caffeinated)
-    <button class="toggle-btn disable" id="toggleBtn" onclick="toggleCaffeinate()">
-      Disable Caffeinate
-    </button>
-  @else
-    <button class="toggle-btn enable" id="toggleBtn" onclick="toggleCaffeinate()">
-      Enable Caffeinate
-    </button>
-  @endif
+  <button
+    class="toggle-btn"
+    :class="{ disable: caffeinated, enable: !caffeinated }"
+    x-text="caffeinated ? 'Disable Caffeinate' : 'Enable Caffeinate'"
+    @click="toggleCaffeinate()"
+  ></button>
 
   <div class="section">
     <div class="section-title">Duration</div>
     <div class="duration-grid">
-      <button class="duration-btn{{ durationMinutes === 15 ? ' selected' : '' }}" onclick="setDuration(15)">15m</button>
-      <button class="duration-btn{{ durationMinutes === 30 ? ' selected' : '' }}" onclick="setDuration(30)">30m</button>
-      <button class="duration-btn{{ durationMinutes === 60 ? ' selected' : '' }}" onclick="setDuration(60)">1h</button>
-      <button class="duration-btn{{ durationMinutes === 240 ? ' selected' : '' }}" onclick="setDuration(240)">4h</button>
-      <button class="duration-btn{{ durationMinutes === 480 ? ' selected' : '' }}" onclick="setDuration(480)">8h</button>
-      <button class="duration-btn{{ durationMinutes === 720 ? ' selected' : '' }}" onclick="setDuration(720)">12h</button>
-      <button class="duration-btn{{ durationMinutes === -1 ? ' selected' : '' }}" onclick="setDuration(-1)">&#8734;</button>
+      @foreach(durations as duration)
+        <button
+          class="duration-btn"
+          :class="{ selected: durationMinutes === {{ duration.minutes }} }"
+          @click="setDuration({{ duration.minutes }})"
+        >{{ duration.short }}</button>
+      @endforeach
     </div>
   </div>
 
   <div class="section">
     <div class="section-title">Menu Bar</div>
     <div class="menubar-controls">
-      <button class="menubar-btn" id="menubarToggleBtn" onclick="toggleMenubar()">
-        <span id="menubarIcon">&#8249;</span>
-        <span id="menubarLabel">Collapse Items</span>
+      <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" @click="toggleMenuBar()">
+        <span x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
+        <span x-text="menuBarCollapsed ? 'Expand Items' : 'Collapse Items'"></span>
       </button>
-      <span class="menubar-hint" id="menubarHint">Cmd+drag icons left of &#8249; to manage them</span>
+      <span class="menubar-hint">Cmd+drag icons left of &#8249; to manage them</span>
     </div>
   </div>
 
@@ -472,18 +461,20 @@ const version = '1.0.0'
         <div class="pref-label">Auto Collapse</div>
         <div class="pref-sublabel">Hide items after a delay</div>
       </div>
-      <div class="toggle-switch{{ isAutoCollapse ? ' on' : '' }}" id="autoCollapseToggle" onclick="toggleAutoCollapse()"></div>
+      <div class="toggle-switch" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)"></div>
     </div>
 
     @if(isAutoCollapse)
       <div class="pref-row">
         <span class="pref-label">Collapse Delay</span>
         <div class="delay-picker">
-          <button class="delay-btn{{ autoCollapseDelay === 5 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(5)">5s</button>
-          <button class="delay-btn{{ autoCollapseDelay === 10 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(10)">10s</button>
-          <button class="delay-btn{{ autoCollapseDelay === 15 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(15)">15s</button>
-          <button class="delay-btn{{ autoCollapseDelay === 30 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(30)">30s</button>
-          <button class="delay-btn{{ autoCollapseDelay === 60 ? ' selected' : '' }}" onclick="setAutoCollapseDelay(60)">60s</button>
+          @foreach(collapseDelays as seconds)
+            <button
+              class="delay-btn"
+              :class="{ selected: autoCollapseDelay === {{ seconds }} }"
+              @click="setCollapseDelay({{ seconds }})"
+            >{{ seconds }}s</button>
+          @endforeach
         </div>
       </div>
     @endif
@@ -493,7 +484,7 @@ const version = '1.0.0'
         <div class="pref-label">Always-Hidden Section</div>
         <div class="pref-sublabel">Keep some items permanently hidden</div>
       </div>
-      <div class="toggle-switch{{ alwaysHiddenEnabled ? ' on' : '' }}" onclick="toggleAlwaysHidden()"></div>
+      <div class="toggle-switch" :class="{ on: alwaysHiddenEnabled }" @click="setAlwaysHidden(!alwaysHiddenEnabled)"></div>
     </div>
 
     <div class="pref-row">
@@ -501,12 +492,12 @@ const version = '1.0.0'
         <div class="pref-label">Hide Separator</div>
         <div class="pref-sublabel">Make the &#8249; indicator invisible</div>
       </div>
-      <div class="toggle-switch{{ separatorHidden ? ' on' : '' }}" onclick="toggleSeparatorHidden()"></div>
+      <div class="toggle-switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
     </div>
 
     <div class="pref-row">
       <span class="pref-label">Global Hotkey</span>
-      <span class="hotkey-badge">{{ globalHotkey }}</span>
+      <span class="hotkey-badge" x-text="globalHotkey"></span>
     </div>
 
     <div class="pref-row">
@@ -514,12 +505,12 @@ const version = '1.0.0'
         <div class="pref-label">Caffeinate on Startup</div>
         <div class="pref-sublabel">Start caffeinated when launched</div>
       </div>
-      <div class="toggle-switch{{ caffeinateOnStartup ? ' on' : '' }}" onclick="toggleCaffeinateOnStartup()"></div>
+      <div class="toggle-switch" :class="{ on: caffeinateOnStartup }" @click="savePreference('caffeinateOnStartup', !caffeinateOnStartup)"></div>
     </div>
 
     <div class="pref-row">
       <span class="pref-label">Launch at Login</span>
-      <div class="toggle-switch{{ autoLaunch ? ' on' : '' }}" id="autoLaunchToggle" onclick="toggleAutoLaunch()"></div>
+      <div class="toggle-switch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)"></div>
     </div>
   </div>
 
@@ -529,311 +520,171 @@ const version = '1.0.0'
 </div>
 
 <script client>
-  var API = window.location.origin
+  // Craft's native bridge owns the tray and the menu bar, and there is no stx
+  // primitive for it — this is the one place the popup reaches for a browser
+  // global. Everything else below is signals.
+  const bridge = () => window.craft
 
-  window.fetchStatus = async function() {
-    var res = await fetch(API + '/api/status')
-    return res.json()
+  const root = ref()
+
+  /** Server state, refreshed from /api/status. Seeded so the panel never paints a wrong value. */
+  const status = state({})
+
+  const caffeinated = derived(() => status().active === true)
+  const remainingTime = derived(() => status().remainingFormatted || '0:00')
+  const durationLabel = derived(() => status().durationFormatted || 'Off')
+  const durationMinutes = derived(() => status().caffeinateDurationMinutes ?? -1)
+  const isAutoCollapse = derived(() => status().isAutoCollapse === true)
+  const autoCollapseDelay = derived(() => status().autoCollapseDelay ?? 10)
+  const alwaysHiddenEnabled = derived(() => status().alwaysHiddenEnabled === true)
+  const separatorHidden = derived(() => status().separatorHidden === true)
+  const caffeinateOnStartup = derived(() => status().caffeinateOnStartup === true)
+  const autoLaunch = derived(() => status().autoLaunch === true)
+  const globalHotkey = derived(() => status().globalHotkey || 'Cmd+Shift+B')
+
+  const menuBarCollapsed = state(false)
+
+  async function refresh() {
+    status.set(await fetch('/api/status').then(response => response.json()))
   }
 
-  window.toggleCaffeinate = async function() {
-    await fetch(API + '/api/caffeinate/toggle', { method: 'POST' })
-    location.reload()
-  }
-
-  window.setDuration = async function(minutes) {
-    await fetch(API + '/api/caffeinate/duration', {
+  async function post(path, body) {
+    const response = await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ minutes: minutes }),
+      body: body === undefined ? undefined : JSON.stringify(body),
     })
-    location.reload()
+    status.set({ ...status(), ...await response.json() })
   }
 
-  window.toggleAutoCollapse = async function() {
-    var status = await window.fetchStatus()
-    var newValue = !status.isAutoCollapse
-    await fetch(API + '/api/preferences', {
+  // ===== Caffeinate =====
+
+  async function toggleCaffeinate() {
+    await post('/api/caffeinate/toggle')
+  }
+
+  async function setDuration(minutes) {
+    await post('/api/caffeinate/duration', { minutes })
+  }
+
+  // ===== Preferences =====
+
+  async function savePreference(key, value) {
+    await post('/api/preferences', { [key]: value })
+  }
+
+  async function setAutoCollapse(enabled) {
+    await savePreference('isAutoCollapse', enabled)
+    await bridge()?.menubar?.setAutoCollapse(enabled ? autoCollapseDelay() : 0)
+  }
+
+  async function setCollapseDelay(seconds) {
+    await savePreference('autoCollapseDelay', seconds)
+    await bridge()?.menubar?.setAutoCollapse(seconds)
+  }
+
+  async function setAlwaysHidden(enabled) {
+    await savePreference('alwaysHiddenEnabled', enabled)
+    const menubar = bridge()?.menubar
+    await (enabled ? menubar?.enableAlwaysHidden() : menubar?.disableAlwaysHidden())
+  }
+
+  async function setSeparatorHidden(hidden) {
+    await savePreference('separatorHidden', hidden)
+    await bridge()?.menubar?.setSeparatorHidden(hidden)
+  }
+
+  // ===== Menu bar =====
+
+  async function toggleMenuBar() {
+    await bridge()?.menubar?.toggle()
+  }
+
+  /** The tray menu labels the collapse state, so tell the server when it flips. */
+  async function reportMenuBarState(collapsed) {
+    menuBarCollapsed.set(collapsed)
+    await fetch('/api/menu-bar/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isAutoCollapse: newValue }),
+      body: JSON.stringify({ collapsed }),
     })
-    if (window.craft && window.craft.menubar) {
-      if (newValue) {
-        await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
-      } else {
-        await window.craft.menubar.setAutoCollapse(0)
-      }
+  }
+
+  async function initMenuBar() {
+    const menubar = bridge()?.menubar
+    if (!menubar) return
+
+    await menubar.init()
+    if (isAutoCollapse()) await menubar.setAutoCollapse(autoCollapseDelay())
+    if (alwaysHiddenEnabled()) await menubar.enableAlwaysHidden()
+    if (separatorHidden()) await menubar.setSeparatorHidden(true)
+
+    await menubar.collapse()
+    await reportMenuBarState(true)
+  }
+
+  // ===== Tray =====
+
+  /** The tray menu is built on the server, so the popup never defines a second one. */
+  async function syncTrayMenu() {
+    const tray = bridge()?.tray
+    if (!tray) return
+    await tray.setMenu(await fetch('/api/menu').then(response => response.json()))
+  }
+
+  let lastTrayTitle = ''
+
+  async function syncTrayTitle() {
+    const tray = bridge()?.tray
+    if (!tray) return
+
+    const title = caffeinated() ? `☕️ ${remainingTime()}` : '☕️'
+    if (title === lastTrayTitle) return
+
+    lastTrayTitle = title
+    await tray.setTitle(title)
+  }
+
+  const TRAY_ACTIONS = {
+    toggleCaffeinate,
+    toggleMenuBar,
+    toggleAutoCollapse: () => setAutoCollapse(!isAutoCollapse()),
+    toggleAlwaysHidden: () => setAlwaysHidden(!alwaysHiddenEnabled()),
+    preferences: () => bridge()?.window?.show(),
+    about: () => bridge()?.window?.show(),
+    quit: () => bridge()?.app?.quit(),
+  }
+
+  async function runTrayAction(action) {
+    if (action.startsWith('duration:')) {
+      await setDuration(Number.parseInt(action.slice('duration:'.length), 10))
+      return
     }
-    location.reload()
+
+    await TRAY_ACTIONS[action]?.()
   }
 
-  window.setAutoCollapseDelay = async function(seconds) {
-    await fetch(API + '/api/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ autoCollapseDelay: seconds }),
-    })
-    if (window.craft && window.craft.menubar) {
-      await window.craft.menubar.setAutoCollapse(seconds)
-    }
-    location.reload()
-  }
+  // ===== Wiring =====
 
-  window.toggleAutoLaunch = async function() {
-    var status = await window.fetchStatus()
-    await fetch(API + '/api/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ autoLaunch: !status.autoLaunch }),
-    })
-    location.reload()
-  }
+  useEventListener('craft:menubar:stateChange', event => reportMenuBarState(event.detail.collapsed))
+  useEventListener('craft:tray:menuAction', event => runTrayAction(event.detail.action))
+  useEventListener('craft:ready', initMenuBar)
 
-  window.toggleCaffeinateOnStartup = async function() {
-    var status = await window.fetchStatus()
-    await fetch(API + '/api/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ caffeinateOnStartup: !status.caffeinateOnStartup }),
-    })
-    location.reload()
-  }
+  onMount(async () => {
+    // The server already rendered this state, so read it rather than waiting a
+    // round trip and painting a stale panel first.
+    status.set(JSON.parse(root.value.dataset.initialState))
 
-  window.toggleAlwaysHidden = async function() {
-    var status = await window.fetchStatus()
-    var newValue = !status.alwaysHiddenEnabled
-    await fetch(API + '/api/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ alwaysHiddenEnabled: newValue }),
-    })
-    if (window.craft && window.craft.menubar) {
-      if (newValue) {
-        await window.craft.menubar.enableAlwaysHidden()
-      } else {
-        await window.craft.menubar.disableAlwaysHidden()
-      }
-    }
-    location.reload()
-  }
-
-  window.toggleSeparatorHidden = async function() {
-    var status = await window.fetchStatus()
-    var newValue = !status.separatorHidden
-    await fetch(API + '/api/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ separatorHidden: newValue }),
-    })
-    if (window.craft && window.craft.menubar) {
-      await window.craft.menubar.setSeparatorHidden(newValue)
-    }
-    location.reload()
-  }
-
-  // ===== Menu Bar Collapse =====
-  var menubarCollapsed = false
-
-  window.toggleMenubar = async function() {
-    if (!window.craft || !window.craft.menubar) return
-    await window.craft.menubar.toggle()
-  }
-
-  function updateMenubarUI(collapsed) {
-    menubarCollapsed = collapsed
-    fetch('/api/menubar/state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collapsed: collapsed }),
-    }).catch(function() {})
-    var btn = document.getElementById('menubarToggleBtn')
-    var icon = document.getElementById('menubarIcon')
-    var label = document.getElementById('menubarLabel')
-    if (btn && icon && label) {
-      if (collapsed) {
-        btn.classList.add('collapsed')
-        icon.innerHTML = '&#8250;'
-        label.textContent = 'Expand Items'
-      } else {
-        btn.classList.remove('collapsed')
-        icon.innerHTML = '&#8249;'
-        label.textContent = 'Collapse Items'
-      }
-    }
-  }
-
-  window.addEventListener('craft:menubar:stateChange', function(e) {
-    if (e.detail) {
-      updateMenubarUI(e.detail.collapsed)
-    }
+    await syncTrayMenu()
+    await syncTrayTitle()
+    await bridge()?.app?.registerShortcut(globalHotkey(), toggleMenuBar)
   })
 
-  async function initMenubar() {
-    if (!window.craft || !window.craft.menubar) return
-    await window.craft.menubar.init()
-
-    var status = await window.fetchStatus()
-
-    // Set auto-collapse if preference is enabled
-    if (status.isAutoCollapse) {
-      await window.craft.menubar.setAutoCollapse(status.autoCollapseDelay || 10)
-    }
-
-    // Enable always-hidden section if preference is enabled
-    if (status.alwaysHiddenEnabled) {
-      await window.craft.menubar.enableAlwaysHidden()
-    }
-
-    // Apply separator visibility
-    if (status.separatorHidden) {
-      await window.craft.menubar.setSeparatorHidden(true)
-    }
-
-    // Auto-collapse on startup after 1 second (matches Hidden's behavior)
-    setTimeout(function() {
-      if (window.craft && window.craft.menubar) {
-        window.craft.menubar.collapse()
-        updateMenubarUI(true)
-      }
-    }, 1000)
-  }
-
-  // Register global hotkey for menubar toggle
-  async function registerGlobalHotkey() {
-    if (!window.craft || !window.craft.app || !window.craft.app.registerShortcut) return
-    var status = await window.fetchStatus()
-    var hotkey = status.globalHotkey || 'Cmd+Shift+B'
-
-    await window.craft.app.registerShortcut(hotkey, function() {
-      window.toggleMenubar()
-    })
-  }
-
-  // Update timer every second when caffeinated
-  async function updateTimer() {
-    var status = await window.fetchStatus()
-    var timerEl = document.querySelector('[ref="timer"]')
-    if (timerEl && status.active) {
-      timerEl.textContent = status.remainingFormatted
-    }
-  }
-
-  // Build tray menu from current status and set it via Craft bridge
-  async function setupTrayMenu() {
-    if (!window.craft || !window.craft.tray || !window.craft.tray.setMenu) return
-
-    var status = await window.fetchStatus()
-    var caffeinated = status.active
-    var durationMinutes = status.durationMinutes || -1
-
-    var menu = [
-      {
-        label: caffeinated ? '✓ Caffeinate Active' : 'Enable Caffeinate',
-        action: 'toggleCaffeinate',
-      },
-      { type: 'separator' },
-      { label: 'Toggle Menu Bar Items', action: 'toggleMenubar' },
-      {
-        label: 'Auto Collapse',
-        action: 'toggleAutoCollapse',
-        type: 'checkbox',
-        checked: status.isAutoCollapse,
-      },
-      {
-        label: 'Always-Hidden Section',
-        action: 'toggleAlwaysHidden',
-        type: 'checkbox',
-        checked: status.alwaysHiddenEnabled,
-      },
-      { type: 'separator' },
-      { label: '15 minutes', action: 'duration:15', type: durationMinutes === 15 ? 'checkbox' : 'normal', checked: durationMinutes === 15 },
-      { label: '30 minutes', action: 'duration:30', type: durationMinutes === 30 ? 'checkbox' : 'normal', checked: durationMinutes === 30 },
-      { label: '1 hour', action: 'duration:60', type: durationMinutes === 60 ? 'checkbox' : 'normal', checked: durationMinutes === 60 },
-      { label: '4 hours', action: 'duration:240', type: durationMinutes === 240 ? 'checkbox' : 'normal', checked: durationMinutes === 240 },
-      { label: '8 hours', action: 'duration:480', type: durationMinutes === 480 ? 'checkbox' : 'normal', checked: durationMinutes === 480 },
-      { label: '12 hours', action: 'duration:720', type: durationMinutes === 720 ? 'checkbox' : 'normal', checked: durationMinutes === 720 },
-      { label: 'Indefinitely', action: 'duration:-1', type: durationMinutes === -1 ? 'checkbox' : 'normal', checked: durationMinutes === -1 },
-      { type: 'separator' },
-      { label: 'Preferences...', action: 'preferences' },
-      { label: 'About Barista', action: 'about' },
-      { type: 'separator' },
-      { label: 'Quit Barista', action: 'quit' },
-    ]
-
-    await window.craft.tray.setMenu(menu)
-  }
-
-  // Listen for tray menu actions from Craft
-  window.addEventListener('craft:tray:menuAction', async function(e) {
-    var action = e.detail && e.detail.action
-    if (!action) return
-
-    if (action === 'toggleCaffeinate') {
-      await window.toggleCaffeinate()
-    }
-    else if (action === 'toggleMenubar') {
-      await window.toggleMenubar()
-    }
-    else if (action === 'toggleAutoCollapse') {
-      await window.toggleAutoCollapse()
-    }
-    else if (action === 'toggleAlwaysHidden') {
-      await window.toggleAlwaysHidden()
-    }
-    else if (action === 'preferences') {
-      if (window.craft && window.craft.window && window.craft.window.show) {
-        await window.craft.window.show()
-      }
-    }
-    else if (action === 'about') {
-      if (window.craft && window.craft.window && window.craft.window.show) {
-        await window.craft.window.show()
-      }
-    }
-    else if (action === 'quit') {
-      if (window.craft && window.craft.app && window.craft.app.quit) {
-        await window.craft.app.quit()
-      }
-    }
-    else if (action.indexOf('duration:') === 0) {
-      var minutes = parseInt(action.split(':')[1], 10)
-      await window.setDuration(minutes)
-    }
-  })
-
-  // Poll for timer updates every second
-  setInterval(updateTimer, 1000)
-
-  // Update tray title with caffeinate timer info
-  var lastTrayTitle = ''
-  async function updateTray() {
-    var status = await window.fetchStatus()
-
-    if (window.craft && window.craft.tray && window.craft.tray.setTitle) {
-      var title = status.active ? ('\u2615\uFE0F ' + status.remainingFormatted) : '\u2615\uFE0F'
-      if (title !== lastTrayTitle) {
-        lastTrayTitle = title
-        await window.craft.tray.setTitle(title)
-      }
-    }
-  }
-
-  setInterval(updateTray, 1000)
-
-  // Initialize on first load (wait for Craft bridge to be ready)
-  window.addEventListener('craft:ready', function() {
-    setupTrayMenu()
-    updateTray()
-    initMenubar()
-    registerGlobalHotkey()
-  })
-
-  // Fallback: try after a short delay in case craft:ready already fired
-  setTimeout(function() {
-    setupTrayMenu()
-    updateTray()
-    initMenubar()
-    registerGlobalHotkey()
-  }, 500)
+  // The countdown ticks in the tray as well as the popup, and the tray menu's
+  // labels follow whatever the state became.
+  useInterval(async () => {
+    await refresh()
+    await syncTrayTitle()
+    await syncTrayMenu()
+  }, 1000)
 </script>

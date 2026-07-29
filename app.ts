@@ -1,65 +1,91 @@
 /**
- * Barista — Stay caffeinated & craft pretty menu bars.
+ * Barista — keep your Mac awake, one click from the menu bar.
  *
- * A lightweight macOS menubar utility built with stx + Craft.
- * Runs as a native menubar app with a popup window for quick access.
+ * The whole app is a template, a few endpoints and a tray menu; `createMenuBarApp`
+ * turns those into a native window.
  */
-import { join } from 'node:path'
-import { homedir } from 'node:os'
-import { createApp } from '@stacksjs/ts-craft'
-import { setAutoLaunch } from '@stacksjs/desktop'
-import { startServer } from './src/server'
-import { prefs } from './src/preferences'
-import { enableCaffeinate } from './src/caffeinate'
+import type { BaristaPreferences } from './src/preferences'
+import { resolve } from 'node:path'
+import { createMenuBarApp } from '@stacksjs/stx/menubar'
+import pkg from './package.json' with { type: 'json' }
+import { caffeinateSnapshot, disableCaffeinate, enableCaffeinate, isCaffeinated, toggleCaffeinate } from './src/caffeinate'
+import { COLLAPSE_DELAYS, DURATIONS } from './src/durations'
+import { buildTrayMenu } from './src/menu'
+import { DEFAULT_PREFERENCES } from './src/preferences'
 
-// Resolve the native Craft binary (Zig-compiled)
-const craftPath = join(homedir(), 'Code/Tools/craft/packages/zig/zig-out/bin/craft')
+/**
+ * Whether the menu bar is currently collapsed. Only the webview knows — it owns
+ * the Craft menu bar bridge — so it reports back here for the tray menu's label.
+ */
+let menuBarCollapsed = false
 
-// Start the local server (random available port)
-const server = startServer({ port: 0 })
-const port = server.port
+const app = createMenuBarApp<BaristaPreferences>({
+  name: 'Barista',
+  template: resolve(import.meta.dir, 'src/barista.stx'),
+  preferences: DEFAULT_PREFERENCES,
+  launchAtLogin: 'autoLaunch',
 
-// Enable caffeinate on startup if configured
-if (prefs.get('caffeinateOnStartup')) {
-  enableCaffeinate()
-  console.log('Caffeinate enabled on startup')
-}
-
-// Sync auto-launch state
-const autoLaunchEnabled = prefs.get('autoLaunch')
-setAutoLaunch(autoLaunchEnabled, {
-  appName: 'Barista',
-  isHidden: true,
-}).catch(() => {})
-
-// Watch for auto-launch preference changes
-prefs.onChange('autoLaunch', (enabled) => {
-  setAutoLaunch(enabled as boolean, {
-    appName: 'Barista',
-    isHidden: true,
-  }).catch(() => {})
-})
-
-// Create the native Craft app
-const app = createApp({
-  craftPath,
-  url: `http://127.0.0.1:${port}`,
   window: {
-    title: '☕️',
     width: 320,
     height: 740,
-    systemTray: true,
-    hideDockIcon: !prefs.get('showInDock'),
-    titlebarHidden: true,
-    resizable: false,
-    alwaysOnTop: true,
-    darkMode: true,
+    hideDockIcon: !DEFAULT_PREFERENCES.showInDock,
+  },
+
+  context: prefs => ({
+    ...prefs.getAll(),
+    ...caffeinateSnapshot(),
+    durations: DURATIONS,
+    collapseDelays: COLLAPSE_DELAYS,
+    version: pkg.version,
+    // The popup seeds its signals from this rather than waiting a round trip
+    // and painting a stale panel first.
+    initialState: JSON.stringify({ ...prefs.getAll(), ...caffeinateSnapshot() }),
+  }),
+
+  menu: prefs => buildTrayMenu({
+    caffeinated: isCaffeinated(),
+    menuBarCollapsed,
+    isAutoCollapse: prefs.get('isAutoCollapse'),
+    alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
+    durationMinutes: prefs.get('caffeinateDurationMinutes'),
+  }),
+
+  routes: {
+    '/api/status': (_request, prefs) => ({
+      ...prefs.getAll(),
+      ...caffeinateSnapshot(),
+    }),
+
+    'POST /api/caffeinate/toggle': (_request, prefs) => {
+      toggleCaffeinate(prefs.get('caffeinateDurationMinutes'))
+      return caffeinateSnapshot()
+    },
+
+    // Picking a duration also starts a session — choosing "4 hours" while
+    // asleep is a request to stay awake for four hours, not a bare preference.
+    'POST /api/caffeinate/duration': async (request, prefs) => {
+      const { minutes } = await request.json() as { minutes: number }
+      prefs.set('caffeinateDurationMinutes', minutes)
+      enableCaffeinate(minutes)
+      return caffeinateSnapshot()
+    },
+
+    'POST /api/caffeinate/disable': () => {
+      disableCaffeinate()
+      return caffeinateSnapshot()
+    },
+
+    'POST /api/menu-bar/state': async (request) => {
+      const { collapsed } = await request.json() as { collapsed: boolean }
+      menuBarCollapsed = collapsed
+      return { collapsed: menuBarCollapsed }
+    },
   },
 })
 
-console.log('Starting Barista...')
-console.log(`  Server: http://127.0.0.1:${port}`)
-console.log(`  Caffeinate on startup: ${prefs.get('caffeinateOnStartup')}`)
+if (app.preferences.get('caffeinateOnStartup'))
+  enableCaffeinate(app.preferences.get('caffeinateDurationMinutes'))
 
-// Launch the native window
-await app.show()
+await app.start()
+
+console.log(`Barista ${pkg.version} — ${app.url}`)

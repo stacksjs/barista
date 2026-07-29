@@ -1,3 +1,10 @@
+/**
+ * Keeping the Mac awake.
+ *
+ * A thin, named layer over the desktop power API so the rest of the app talks
+ * about caffeinating rather than about `caffeinate(1)` flags.
+ */
+import type { CaffeinateInstance } from '@stacksjs/stx/desktop'
 import {
   caffeinate,
   decaffeinate,
@@ -5,88 +12,61 @@ import {
   formatRemainingTime,
   getCaffeinateStatus,
   isCaffeinated,
-} from '@stacksjs/desktop'
-import type { CaffeinateInstance } from '@stacksjs/desktop'
-import { prefs } from './preferences'
+} from '@stacksjs/stx/desktop'
 
-let onChangeCallbacks: Array<() => void> = []
-
-function notifyChange(): void {
-  for (const cb of onChangeCallbacks) {
-    try {
-      cb()
-    }
-    catch {}
-  }
+/** A snapshot of the caffeinate state, ready to render or serialize. */
+export interface CaffeinateSnapshot {
+  active: boolean
+  /** Minutes the current session runs for. `null` means indefinitely. */
+  durationMinutes: number | null
+  /** Countdown to wake, e.g. "1:23:45" */
+  remainingFormatted: string
+  /** Human-readable duration, e.g. "4 hours" */
+  durationFormatted: string
+  endsAt: Date | null
 }
 
-export function enableCaffeinate(durationMinutes?: number): CaffeinateInstance {
-  const duration = durationMinutes ?? prefs.get('caffeinateDurationMinutes')
-
-  const instance = caffeinate({
-    duration: duration > 0 ? duration : undefined,
+/**
+ * Stay awake for `durationMinutes`, or indefinitely when it is `-1`.
+ *
+ * Display, idle and system sleep are all held off — a Mac that dims its screen
+ * mid-presentation has not really stayed awake.
+ */
+export function enableCaffeinate(durationMinutes: number): CaffeinateInstance {
+  return caffeinate({
+    duration: durationMinutes > 0 ? durationMinutes : undefined,
     preventDisplaySleep: true,
     preventIdleSleep: true,
     preventSystemSleep: true,
     assertUserActivity: true,
   })
-
-  // Save duration preference
-  if (durationMinutes !== undefined) {
-    prefs.set('caffeinateDurationMinutes', durationMinutes)
-  }
-
-  // Notify on expiration
-  instance.onExpire(() => {
-    notifyChange()
-  })
-
-  notifyChange()
-  return instance
 }
 
 export function disableCaffeinate(): void {
   decaffeinate()
-  notifyChange()
 }
 
-export function toggleCaffeinate(): boolean {
+/** Flip the current state, and report what it became. */
+export function toggleCaffeinate(durationMinutes: number): boolean {
   if (isCaffeinated()) {
     disableCaffeinate()
     return false
   }
 
-  enableCaffeinate()
+  enableCaffeinate(durationMinutes)
   return true
 }
 
-export function getStatus(): {
-  active: boolean
-  durationMinutes: number | null
-  remainingFormatted: string
-  durationFormatted: string
-  startedAt: Date | null
-  endsAt: Date | null
-} {
+export function caffeinateSnapshot(): CaffeinateSnapshot {
   const status = getCaffeinateStatus()
 
   return {
     active: status.active,
     durationMinutes: status.durationMinutes,
     remainingFormatted: formatRemainingTime(status.instance),
-    durationFormatted: status.durationMinutes
-      ? formatDuration(status.durationMinutes)
-      : 'Off',
-    startedAt: status.startedAt,
+    durationFormatted: status.durationMinutes ? formatDuration(status.durationMinutes) : 'Off',
     endsAt: status.endsAt,
   }
 }
 
-export function onChange(callback: () => void): () => void {
-  onChangeCallbacks.push(callback)
-  return () => {
-    onChangeCallbacks = onChangeCallbacks.filter(cb => cb !== callback)
-  }
-}
-
-export { isCaffeinated, formatDuration, formatRemainingTime }
+export { isCaffeinated }

@@ -1,23 +1,22 @@
-export interface MenuItem {
-  label?: string
-  type?: 'normal' | 'separator' | 'checkbox' | 'radio' | 'submenu'
-  checked?: boolean
-  enabled?: boolean
-  icon?: string
-  shortcut?: string
-  action?: string
-  submenu?: MenuItem[]
-}
+/**
+ * The tray menu.
+ *
+ * Rebuilt on every open so checkmarks and labels reflect the live state, and
+ * it is the app's only menu definition — the popup asks for it over
+ * `GET /api/menu` rather than describing its own.
+ */
+import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
+import { DURATIONS } from './durations'
 
-export interface AppState {
+export interface MenuState {
   caffeinated: boolean
+  menuBarCollapsed: boolean
   isAutoCollapse: boolean
-  isMenubarCollapsed: boolean
+  alwaysHiddenEnabled: boolean
   durationMinutes: number
-  alwaysHiddenEnabled?: boolean
 }
 
-export function buildBaristaMenu(state: AppState): MenuItem[] {
+export function buildTrayMenu(state: MenuState): MenuBarMenuItem[] {
   return [
     {
       label: state.caffeinated ? 'Disable Caffeinate' : 'Enable Caffeinate',
@@ -27,21 +26,17 @@ export function buildBaristaMenu(state: AppState): MenuItem[] {
     {
       label: 'Duration',
       type: 'submenu',
-      submenu: [
-        { label: '15 minutes', action: 'duration:15', type: 'radio', checked: state.durationMinutes === 15 },
-        { label: '30 minutes', action: 'duration:30', type: 'radio', checked: state.durationMinutes === 30 },
-        { label: '1 hour', action: 'duration:60', type: 'radio', checked: state.durationMinutes === 60 },
-        { label: '4 hours', action: 'duration:240', type: 'radio', checked: state.durationMinutes === 240 },
-        { label: '8 hours', action: 'duration:480', type: 'radio', checked: state.durationMinutes === 480 },
-        { label: '12 hours', action: 'duration:720', type: 'radio', checked: state.durationMinutes === 720 },
-        { type: 'separator' },
-        { label: 'Indefinitely', action: 'duration:-1', type: 'radio', checked: state.durationMinutes === -1 },
-      ],
+      submenu: DURATIONS.map(duration => ({
+        label: duration.label,
+        action: `duration:${duration.minutes}`,
+        type: 'radio' as const,
+        checked: state.durationMinutes === duration.minutes,
+      })),
     },
     { type: 'separator' },
     {
-      label: state.isMenubarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
-      action: 'toggleMenubar',
+      label: state.menuBarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
+      action: 'toggleMenuBar',
       shortcut: 'Cmd+Shift+B',
     },
     {
@@ -54,12 +49,12 @@ export function buildBaristaMenu(state: AppState): MenuItem[] {
       label: 'Always-Hidden Section',
       action: 'toggleAlwaysHidden',
       type: 'checkbox',
-      checked: state.alwaysHiddenEnabled ?? false,
+      checked: state.alwaysHiddenEnabled,
     },
     { type: 'separator' },
     { label: 'Preferences...', action: 'preferences', shortcut: 'Cmd+,' },
     { label: 'About Barista', action: 'about' },
     { type: 'separator' },
-    { label: 'Quit', action: 'quit', shortcut: 'Cmd+Q' },
+    { label: 'Quit Barista', action: 'quit', shortcut: 'Cmd+Q' },
   ]
 }
