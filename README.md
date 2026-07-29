@@ -49,26 +49,33 @@ bun run dev
 bun run lint
 bun run lint:fix
 
-# Build for production
+# Build a distributable .app + .dmg (and a signed .pkg when signing is configured)
 bun run build
 ```
 
 ## Architecture
 
-Barista is built as a native macOS menubar app using:
+Barista is a [stx](https://github.com/stacksjs/stx) menu bar app. `@stacksjs/stx`
+is the only dependency — it wraps [Craft](https://github.com/stacksjs/craft), the
+Zig-powered native webview, and the desktop APIs (power management, preferences,
+system tray) behind one package.
 
-- **[stx](https://github.com/stacksjs/stx)** — Template engine for the UI (`.stx` files)
-- **[Craft](https://github.com/stacksjs/craft)** — Native webview framework (Zig-powered, Electron alternative)
-- **[@stacksjs/desktop](https://github.com/stacksjs/stx/tree/main/packages/desktop)** — Desktop APIs (power management, preferences, system tray)
+`createMenuBarApp` from `@stacksjs/stx/menubar` owns the local server, the
+preference store and the login item, so the app is a declaration rather than a
+runtime:
 
 ```
-app.ts                 Entry point: starts server + Craft window
-src/barista.stx        UI template (popup window)
-src/server.ts          Local HTTP server (API + template rendering)
-src/caffeinate.ts      Caffeinate process management
-src/menu.ts            System tray menu builder
-src/preferences.ts     App preferences (JSON storage)
+app.ts                 createMenuBarApp: context, routes, tray menu
+build.ts               Compile + package (DMG, and App Store .pkg when signed)
+src/barista.stx        The popup — signals-driven, no vanilla DOM code
+src/caffeinate.ts      Named wrapper over the desktop power API
+src/menu.ts            The tray menu, rebuilt from live state
+src/durations.ts       The durations the popup and tray both offer
+src/preferences.ts     Preference shape and defaults
 ```
+
+See the stx guide, [Menu Bar Apps](https://github.com/stacksjs/stx/blob/main/docs/guide/menubar.md),
+for the pattern.
 
 ## Contributing
 
