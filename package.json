@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "better-dx": "^0.2.15",
-    "bumpp": "^10.1.0"
+    "bumpp": "^12.1.1"
   },
   "git-hooks": {
     "pre-commit": {
