@@ -30,7 +30,7 @@ jobs:
       # into a temporary keychain, exporting the identities the build reads.
       - name: Set up pantry and signing
         id: pantry
-        uses: pantry-pm/pantry/packages/action@v0.11.0
+        uses: pantry-pm/pantry/packages/action@main
         with:
           apple-signing: 'true'
           apple-signing-application-certificate: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
@@ -44,7 +44,7 @@ jobs:
       # Uploads the signed .pkg to App Store Connect, then publishes the GitHub
       # release with the .dmg and .pkg attached and notes from the changelog.
       - name: Publish
-        uses: pantry-pm/pantry/packages/action@v0.11.0
+        uses: pantry-pm/pantry/packages/action@main
         with:
           install: 'false'
           release: 'true'
