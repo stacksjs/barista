@@ -51,7 +51,8 @@ jobs:
           release-files: |
             dist/Barista-${{ steps.version.outputs.version }}.dmg
             dist/Barista-${{ steps.version.outputs.version }}.pkg
-          release-changelog: CHANGELOG.md
+          # Generate notes from git history — no committed CHANGELOG to maintain.
+          release-changelog: auto
           release-app-store: 'true'
           release-app-store-bundle-id: org.stacksjs.barista
           release-app-store-version: ${{ steps.version.outputs.version }}
