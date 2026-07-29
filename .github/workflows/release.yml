@@ -1,101 +1,63 @@
-name: Releaser
+name: Release
 
+# `bun run release:minor` (or :patch / :major) bumps the version, tags it and
+# pushes. That tag drives everything below: build the signed app, then let the
+# pantry action publish it to the GitHub release and the Mac App Store.
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: macos-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Read version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Install Dependencies
-        run: bun install
-
-      - name: Get version from tag
-        id: get_version
-        run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-          echo "BUILD=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-
-      - name: Build macOS App
-        run: |
-          cd src
-          xcodebuild -project Barista.xcodeproj -scheme Barista -configuration Release -derivedDataPath ../build
-          cd ..
-          mkdir -p artifacts
-          ditto -c -k --keepParent build/Build/Products/Release/Barista.app artifacts/Barista-${{ env.VERSION }}.zip
-
-      - name: Setup Sparkle signing key
-        run: |
-          mkdir -p keys
-          echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > keys/sparkle_private.pem
-          chmod 600 keys/sparkle_private.pem
-
-      - name: Sign update and generate appcast
-        id: sign_update
-        run: |
-          FILE_SIZE=$(wc -c < artifacts/Barista-${{ env.VERSION }}.zip | tr -d ' ')
-          SIGNATURE=$(openssl dgst -sha256 -sign keys/sparkle_private.pem artifacts/Barista-${{ env.VERSION }}.zip | openssl base64 -A)
-          echo "SIGNATURE=$SIGNATURE" >> $GITHUB_ENV
-          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
-
-          cat > appcast.xml << EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
-            <channel>
-              <title>Barista Updates</title>
-              <description>Most recent changes with links to updates.</description>
-              <language>en</language>
-              <item>
-                <title>Version ${{ env.VERSION }}</title>
-                <description>
-                  <![CDATA[
-                    <h2>Changes in Barista ${{ env.VERSION }}</h2>
-                    <ul>
-                      <li>See release notes on GitHub</li>
-                    </ul>
-                  ]]>
-                </description>
-                <pubDate>$(date -R)</pubDate>
-                <enclosure
-                  url="https://github.com/stacksjs/barista/releases/download/v${{ env.VERSION }}/Barista-${{ env.VERSION }}.zip"
-                  sparkle:version="${{ env.BUILD }}"
-                  sparkle:shortVersionString="${{ env.VERSION }}"
-                  length="${{ env.FILE_SIZE }}"
-                  type="application/octet-stream"
-                  sparkle:edSignature="${{ env.SIGNATURE }}" />
-                <sparkle:minimumSystemVersion>13.5</sparkle:minimumSystemVersion>
-              </item>
-            </channel>
-          </rss>
-          EOF
-
-      - name: Create GitHub Release
-        uses: stacksjs/action-releaser@v1.2.9
+      # Installs bun (from deps.yaml) and imports the Apple signing certificates
+      # into a temporary keychain, exporting the identities the build reads.
+      - name: Set up pantry and signing
+        id: pantry
+        uses: pantry-pm/pantry/packages/action@v0.11.0
         with:
-          files: |
-            artifacts/Barista-${{ env.VERSION }}.zip
-            appcast.xml
+          apple-signing: 'true'
+          apple-signing-application-certificate: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
+          apple-signing-installer-certificate: ${{ secrets.APPLE_INSTALLER_CERTIFICATE }}
+          apple-signing-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          apple-signing-provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+
+      - name: Build and sign
+        run: bun run build
+
+      # Uploads the signed .pkg to App Store Connect, then publishes the GitHub
+      # release with the .dmg and .pkg attached and notes from the changelog.
+      - name: Publish
+        uses: pantry-pm/pantry/packages/action@v0.11.0
+        with:
+          install: 'false'
+          release: 'true'
+          release-files: |
+            dist/Barista-${{ steps.version.outputs.version }}.dmg
+            dist/Barista-${{ steps.version.outputs.version }}.pkg
+          release-changelog: CHANGELOG.md
+          release-app-store: 'true'
+          release-app-store-bundle-id: org.stacksjs.barista
+          release-app-store-version: ${{ steps.version.outputs.version }}
+          release-app-store-build-number: ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit updated appcast.xml
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add appcast.xml
-          git commit -m "chore: update appcast.xml for version ${{ env.VERSION }}" || echo "No changes to commit"
-          git push
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
