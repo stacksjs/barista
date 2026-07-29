@@ -29,13 +29,18 @@
     "mac"
   ],
   "scripts": {
+    "dev": "bun --bun run app.ts",
+    "build": "bun --bun run build.ts",
     "lint": "bunx --bun pickier .",
     "lint:fix": "bunx --bun pickier . --fix",
     "format": "bunx --bun pickier . --format",
     "format:fix": "bunx --bun pickier . --format --write",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx changelogen --output CHANGELOG.md",
-    "release": "bun --bun run changelog && bunx --bun bumpp package.json --all",
+    "changelog": "bunx --bun logsmith --output CHANGELOG.md",
+    "release": "bunx --bun bumpx prompt --recursive",
+    "release:patch": "bunx --bun bumpx patch --recursive --commit --tag --push --yes",
+    "release:minor": "bunx --bun bumpx minor --recursive --commit --tag --push --yes",
+    "release:major": "bunx --bun bumpx major --recursive --commit --tag --push --yes",
     "test": "bun test",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
@@ -43,13 +48,11 @@
     "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
-    "@stacksjs/desktop": "^0.2.82",
-    "@stacksjs/stx": "^0.2.82",
-    "@stacksjs/ts-craft": "^0.0.2"
+    "@stacksjs/stx": "^0.2.114"
   },
   "devDependencies": {
     "better-dx": "^0.2.15",
-    "bumpp": "^10.1.0"
+    "@stacksjs/bumpx": "^0.2.14"
   },
   "git-hooks": {
     "pre-commit": {
