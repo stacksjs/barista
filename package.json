@@ -48,7 +48,7 @@
     "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.114"
+    "@stacksjs/stx": "^0.2.118"
   },
   "devDependencies": {
     "better-dx": "^0.2.15",

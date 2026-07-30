@@ -8,6 +8,9 @@ import type { BaristaPreferences } from './src/preferences'
 import { resolve } from 'node:path'
 import { createMenuBarApp } from '@stacksjs/stx/menubar'
 import pkg from './package.json' with { type: 'json' }
+// Embedded at build time so the compiled binary carries the popup with it —
+// a shipped .app has no src/barista.stx on disk to read.
+import templateSource from './src/barista.stx' with { type: 'text' }
 import { caffeinateSnapshot, disableCaffeinate, enableCaffeinate, isCaffeinated, toggleCaffeinate } from './src/caffeinate'
 import { COLLAPSE_DELAYS, DURATIONS } from './src/durations'
 import { buildTrayMenu } from './src/menu'
@@ -22,6 +25,7 @@ let menuBarCollapsed = false
 const app = createMenuBarApp<BaristaPreferences>({
   name: 'Barista',
   template: resolve(import.meta.dir, 'src/barista.stx'),
+  templateSource,
   preferences: DEFAULT_PREFERENCES,
   launchAtLogin: 'autoLaunch',
 
@@ -31,16 +35,21 @@ const app = createMenuBarApp<BaristaPreferences>({
     hideDockIcon: !DEFAULT_PREFERENCES.showInDock,
   },
 
-  context: prefs => ({
-    ...prefs.getAll(),
-    ...caffeinateSnapshot(),
-    durations: DURATIONS,
-    collapseDelays: COLLAPSE_DELAYS,
-    version: pkg.version,
-    // The popup seeds its signals from this rather than waiting a round trip
-    // and painting a stale panel first.
-    initialState: JSON.stringify({ ...prefs.getAll(), ...caffeinateSnapshot() }),
-  }),
+  context: (prefs) => {
+    // Exactly what GET /api/status returns, so the popup's signals and its
+    // first paint agree by construction.
+    const state = { ...prefs.getAll(), ...caffeinateSnapshot() }
+
+    return {
+      ...state,
+      durations: DURATIONS,
+      collapseDelays: COLLAPSE_DELAYS,
+      version: pkg.version,
+      // The popup seeds its signals from this rather than waiting a round trip
+      // and painting a stale panel first.
+      initialState: JSON.stringify(state),
+    }
+  },
 
   menu: prefs => buildTrayMenu({
     caffeinated: isCaffeinated(),
