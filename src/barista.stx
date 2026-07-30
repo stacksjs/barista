@@ -630,12 +630,17 @@
     if (!menubar) return
 
     await menubar.init()
-    if (isAutoCollapse()) await menubar.setAutoCollapse(autoCollapseDelay())
     if (alwaysHiddenEnabled()) await menubar.enableAlwaysHidden()
     if (separatorHidden()) await menubar.setSeparatorHidden(true)
 
-    await menubar.collapse()
-    await reportMenuBarState(true)
+    // Only tidy the menu bar if that was asked for. Collapsing unconditionally
+    // hid Barista's own icon on every launch.
+    if (isAutoCollapse()) {
+      await menubar.setAutoCollapse(autoCollapseDelay())
+      await menubar.collapse()
+    }
+
+    await reportMenuBarState(isAutoCollapse())
   }
 
   // ===== Tray =====

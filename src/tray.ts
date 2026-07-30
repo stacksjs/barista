@@ -42,7 +42,7 @@ export const TRAY_GLYPHS = {
 export const TRAY_ICON_MIN_CRAFT = '0.0.52'
 
 /** First Craft release that tells left and right tray clicks apart. */
-export const TRAY_CLICK_MIN_CRAFT = '0.0.53'
+export const TRAY_CLICK_MIN_CRAFT = '0.0.54'
 
 /**
  * Whether this Craft binary can draw a tray icon.
