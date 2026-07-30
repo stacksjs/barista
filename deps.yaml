@@ -1,2 +1,5 @@
 dependencies:
   bun.sh: ^1.3.14
+  # The native webview Barista renders in, and which `bun run build` bundles into
+  # the .app. Resolved from PATH — never a hardcoded path.
+  craft: '>=0.0.37'

@@ -13,13 +13,16 @@
  *   APPLE_PROVISIONING_PROFILE_PATH   .provisionprofile embedded in the bundle
  *   APPLE_NOTARIZE_*                  Apple ID, app-specific password and team ID
  */
-import { packageApp } from 'craft-native'
+import { packageApp, resolveCraftBinary } from '@stacksjs/stx/desktop'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
+import { which } from 'bun'
 import pkg from './package.json' with { type: 'json' }
 
 const BUNDLE_ID = 'org.stacksjs.barista'
+/** Apple Developer team that signs Barista. Not a secret — it appears in every identity name. */
+const TEAM_ID = '3JJRNQW6B7'
 const OUT_DIR = resolve(import.meta.dir, 'dist')
 
 const signIdentity = process.env.APPLE_SIGNING_IDENTITY
@@ -31,6 +34,15 @@ const provisioningProfile = process.env.APPLE_PROVISIONING_PROFILE_PATH
 const appStore = Boolean(signIdentity && installerIdentity)
 
 const binaryPath = join(OUT_DIR, 'barista')
+
+// Barista spawns the Craft webview at runtime, so the .app has to ship it or an
+// installed copy would have nothing to render with. Craft resolves to PATH (it
+// installs via pantry), so turn that into the absolute path packaging needs.
+const craftBinary = resolveCraftBinary(process.env.CRAFT_BINARY_PATH)
+const bundledCraft = craftBinary.includes('/') ? craftBinary : which(craftBinary)
+
+if (!bundledCraft)
+  throw new Error('Craft binary not found on PATH. Install it with `pantry install craft`, or point CRAFT_BIN at a local build.')
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({
@@ -67,6 +79,9 @@ const results = await packageApp({
     installerIdentity,
     provisioningProfile,
     entitlements: existsSync(entitlements) ? entitlements : undefined,
+    // Ship the webview runtime inside the bundle so the installed app is
+    // self-contained; the desktop runtime finds it beside its own executable.
+    additionalExecutables: [bundledCraft],
     // Barista lives in the menu bar; a Dock icon would be noise.
     menuBarOnly: true,
     category: 'public.app-category.utilities',
@@ -77,7 +92,7 @@ const results = await packageApp({
     notarize: !appStore && Boolean(process.env.APPLE_NOTARIZE_APPLE_ID),
     appleId: process.env.APPLE_NOTARIZE_APPLE_ID,
     applePassword: process.env.APPLE_NOTARIZE_PASSWORD,
-    teamId: process.env.APPLE_NOTARIZE_TEAM_ID,
+    teamId: process.env.APPLE_NOTARIZE_TEAM_ID || TEAM_ID,
   },
 })
 
