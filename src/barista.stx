@@ -6,18 +6,26 @@
 --}}
 
 <style>
+  /*
+    A native macOS panel, so it borrows the system's own language: system font,
+    a single neutral surface, one accent, and grouping by hairline rather than by
+    card. One radius scale (8px, pill for switches), no gradients, no glows.
+  */
   :root {
-    --bg: #1a1a2e;
-    --bg-secondary: #16213e;
-    --bg-card: #1f2b47;
-    --text: #e0e0e0;
-    --text-muted: #8892a4;
-    --accent: #e2b659;
-    --accent-hover: #f0c96e;
-    --danger: #e74c3c;
-    --success: #2ecc71;
-    --border: #2a3a5c;
-    --radius: 10px;
+    /* One palette: warm-neutral stone, so the amber accent sits in the same
+       family instead of fighting a blue-grey base. */
+    --surface: #17161a;
+    --surface-raised: #201e24;
+    --hairline: #2e2b33;
+    --hairline-lit: #453f4a;
+    --text: #f2f0ee;
+    --text-dim: #a8a29b;
+    --text-faint: #6f6a64;
+    --accent: #d9a441;
+    --accent-lit: #e5b055;
+    --accent-wash: rgba(217, 164, 65, 0.14);
+    --positive: #6fbf8b;
+    --radius: 8px;
   }
 
   * {
@@ -26,415 +34,408 @@
     box-sizing: border-box;
   }
 
+  html,
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    background: var(--bg);
+    height: 100%;
+    background: var(--surface);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    font-size: 13px;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     user-select: none;
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* The panel scrolls, but a scrollbar track over a translucent window reads as
+     a stray grey bar down the edge. Scroll without a visible gutter. */
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 
   .app {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    padding: 16px;
-    padding-top: 36px;
+    min-height: 100%;
+    padding: 34px 18px 16px;
   }
+
+  /* Header */
 
   .header {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 16px;
   }
 
-  .header-icon {
-    font-size: 28px;
-    line-height: 1;
-  }
-
-  .header-text h1 {
-    font-size: 16px;
+  .header h1 {
+    font-size: 15px;
     font-weight: 600;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.01em;
   }
 
-  .header-text span {
+  .version {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
   }
 
-  .status-section {
-    padding: 16px 0;
-    text-align: center;
+  /* Status */
+
+  .status {
+    padding: 8px 0 20px;
   }
 
-  .status-indicator {
-    display: inline-flex;
+  .status-line {
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--text-dim);
   }
 
-  .status-indicator.active {
-    background: rgba(46, 204, 113, 0.15);
-    color: var(--success);
-  }
-
-  .status-indicator.inactive {
-    background: rgba(136, 146, 164, 0.15);
-    color: var(--text-muted);
+  .status-line.awake {
+    color: var(--positive);
   }
 
   .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: currentColor;
   }
 
-  .status-indicator.active .status-dot {
-    animation: pulse 2s ease-in-out infinite;
+  .status-line.awake .status-dot {
+    animation: breathe 2.4s ease-in-out infinite;
   }
 
-  @keyframes pulse {
+  @keyframes breathe {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    50% { opacity: 0.35; }
   }
 
-  .timer-display {
-    font-size: 36px;
-    font-weight: 300;
+  .countdown {
+    margin-top: 10px;
+    font-size: 40px;
+    font-weight: 250;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 2px;
-    margin-top: 8px;
-    color: var(--text);
+    line-height: 1;
   }
 
-  .timer-label {
+  .countdown.idle {
+    font-size: 20px;
+    color: var(--text-dim);
+  }
+
+  .countdown-note {
+    margin-top: 6px;
     font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 4px;
+    color: var(--text-faint);
   }
 
-  .toggle-btn {
-    display: block;
+  /* Primary action */
+
+  .action {
     width: 100%;
-    padding: 14px 16px;
-    margin: 14px 0;
-    border: none;
+    padding: 11px 14px;
+    border: 1px solid transparent;
     border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 550;
     cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: -0.2px;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
     -webkit-app-region: no-drag;
   }
 
-  .toggle-btn.enable {
-    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-    color: #1a1a2e;
-    box-shadow: 0 2px 12px rgba(226, 182, 89, 0.3);
+  .action:active {
+    transform: scale(0.985);
   }
 
-  .toggle-btn.enable:hover {
-    background: linear-gradient(135deg, var(--accent-hover), #f7d77c);
-    box-shadow: 0 4px 16px rgba(226, 182, 89, 0.45);
-    transform: translateY(-1px);
+  .action.start {
+    background: var(--accent);
+    color: #241b09;
   }
 
-  .toggle-btn.enable:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 6px rgba(226, 182, 89, 0.3);
+  .action.start:hover {
+    background: var(--accent-lit);
   }
 
-  .toggle-btn.disable {
-    background: rgba(231, 76, 60, 0.15);
-    color: var(--danger);
-    border: 1px solid rgba(231, 76, 60, 0.25);
+  .action.stop {
+    background: transparent;
+    border-color: var(--hairline);
+    color: var(--text);
   }
 
-  .toggle-btn.disable:hover {
-    background: rgba(231, 76, 60, 0.25);
-    border-color: rgba(231, 76, 60, 0.4);
+  .action.stop:hover {
+    border-color: var(--hairline-lit);
+    background: var(--surface-raised);
   }
 
-  .toggle-btn.disable:active {
-    background: rgba(231, 76, 60, 0.35);
+  /* Groups, separated by hairline rather than boxed in cards */
+
+  .group {
+    margin-top: 22px;
+    border-top: 1px solid var(--hairline);
+    padding-top: 14px;
   }
 
-  .section {
-    padding: 12px 0;
-  }
-
-  .section-title {
-    font-size: 11px;
+  .group-title {
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
+    letter-spacing: 0.07em;
+    color: var(--text-faint);
+    margin-bottom: 10px;
   }
 
-  .duration-grid {
+  /* Durations */
+
+  .durations {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    gap: 5px;
   }
 
-  .duration-btn {
-    padding: 10px 4px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    color: var(--text-muted);
+  .chip {
+    padding: 8px 4px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
     font-size: 12px;
-    font-weight: 500;
+    font-variant-numeric: tabular-nums;
     cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease, transform 0.06s ease;
     -webkit-app-region: no-drag;
   }
 
-  .duration-btn:hover {
-    border-color: var(--accent);
+  .chip:hover {
     color: var(--text);
-    background: var(--bg-card);
+    border-color: var(--hairline-lit);
   }
 
-  .duration-btn:active {
-    transform: scale(0.96);
+  .chip:active {
+    transform: scale(0.97);
   }
 
-  .duration-btn.selected {
+  .chip.selected {
     border-color: var(--accent);
-    background: rgba(226, 182, 89, 0.15);
+    background: var(--accent-wash);
     color: var(--accent);
-    font-weight: 600;
-    box-shadow: 0 0 8px rgba(226, 182, 89, 0.15);
   }
 
-  .pref-row {
+  /* Rows */
+
+  .row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
+    gap: 12px;
+    padding: 9px 0;
   }
 
-  .pref-label {
+  .row + .row {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .row-label {
     font-size: 13px;
     color: var(--text);
   }
 
-  .pref-sublabel {
+  .row-note {
     font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 1px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    line-height: 1.35;
   }
 
-  .toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    background: var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
-    -webkit-app-region: no-drag;
-    flex-shrink: 0;
+  .row-value {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    padding: 3px 7px;
+    border: 1px solid var(--hairline);
+    border-radius: 5px;
+    white-space: nowrap;
   }
 
-  .toggle-switch.on {
-    background: var(--accent);
-  }
-
-  .toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: white;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  .toggle-switch.on::after {
-    transform: translateX(20px);
-  }
-
-  .toggle-switch:active::after {
-    width: 24px;
-  }
-
-  .toggle-switch.on:active::after {
-    transform: translateX(16px);
-    width: 24px;
-  }
-
-  .menubar-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  /* Menu bar control */
 
   .menubar-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-secondary);
+    padding: 9px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: transparent;
     color: var(--text);
+    font-family: inherit;
     font-size: 13px;
-    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.06s ease;
     -webkit-app-region: no-drag;
   }
 
   .menubar-btn:hover {
-    border-color: var(--accent);
-    background: var(--bg-card);
+    border-color: var(--hairline-lit);
+    background: var(--surface-raised);
   }
 
   .menubar-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
 
   .menubar-btn.collapsed {
     border-color: var(--accent);
-    background: rgba(226, 182, 89, 0.1);
+    color: var(--accent);
   }
 
-  .menubar-btn span:first-child {
-    font-size: 18px;
-    font-weight: 300;
-    width: 20px;
+  .caret {
+    width: 14px;
     text-align: center;
-    opacity: 0.7;
+    font-size: 15px;
+    color: var(--text-faint);
   }
 
-  .menubar-hint {
+  .menubar-btn.collapsed .caret {
+    color: var(--accent);
+  }
+
+  .hint {
+    display: block;
+    margin-top: 8px;
     font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-    padding: 0 4px;
+    color: var(--text-faint);
+    line-height: 1.4;
   }
 
-  .pref-value {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
+  /* Switch */
 
-  .delay-picker {
-    display: flex;
-    gap: 4px;
-  }
-
-  .delay-btn {
-    padding: 4px 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg-secondary);
-    color: var(--text-muted);
-    font-size: 11px;
+  .switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: #35313b;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.16s ease;
     -webkit-app-region: no-drag;
   }
 
-  .delay-btn:hover {
-    border-color: var(--accent);
-    color: var(--text);
+  .switch.on {
+    background: var(--accent);
   }
 
-  .delay-btn.selected {
-    border-color: var(--accent);
-    background: rgba(226, 182, 89, 0.15);
-    color: var(--accent);
-    font-weight: 600;
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.16s ease;
   }
 
-  .hotkey-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 8px;
-    border-radius: 5px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+  .switch.on::after {
+    transform: translateX(16px);
+  }
+
+  /* Small button */
+
+  .mini {
+    padding: 5px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
     font-size: 11px;
-    font-family: -apple-system, monospace;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.12s ease, color 0.12s ease;
+    -webkit-app-region: no-drag;
   }
+
+  .mini:hover {
+    color: var(--text);
+    border-color: var(--hairline-lit);
+  }
+
+  .mini.primary {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+    color: var(--accent);
+  }
+
+  /* Footer */
 
   .footer {
     margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    text-align: center;
+    padding-top: 18px;
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--text-faint);
   }
 
   .footer a {
-    color: var(--accent);
+    color: var(--text-dim);
     text-decoration: none;
+  }
+
+  .footer a:hover {
+    color: var(--text);
   }
 </style>
 
 <div class="app" x-ref="root" data-initial-state="{{ initialState }}">
   <div class="header">
-    <div class="header-icon">&#9749;&#65038;</div>
-    <div class="header-text">
-      <h1>Barista</h1>
-      <span>v{{ version }}</span>
-    </div>
+    <h1>Barista</h1>
+    <span class="version">{{ version }}</span>
   </div>
 
-  <div class="status-section">
+  <div class="status">
     @if(caffeinated)
-      <div class="status-indicator active">
+      <div class="status-line awake">
         <span class="status-dot"></span>
-        Caffeinated
+        <span>Keeping your Mac awake</span>
       </div>
-      <div class="timer-display" x-text="remainingTime"></div>
-      <div class="timer-label" x-text="durationLabel"></div>
+      <div class="countdown" x-text="remainingTime"></div>
+      <div class="countdown-note" x-text="durationLabel"></div>
     @else
-      <div class="status-indicator inactive">
+      <div class="status-line">
         <span class="status-dot"></span>
-        Sleeping
+        <span>Your Mac can sleep</span>
       </div>
-      <div class="timer-display" style="font-size: 20px; margin-top: 12px;">Ready to brew</div>
+      <div class="countdown idle">Ready to brew</div>
     @endif
   </div>
 
   <button
-    class="toggle-btn"
-    :class="{ disable: caffeinated, enable: !caffeinated }"
-    x-text="caffeinated ? 'Disable Caffeinate' : 'Enable Caffeinate'"
+    class="action"
+    :class="{ stop: caffeinated, start: !caffeinated }"
+    x-text="caffeinated ? 'Turn Off' : 'Keep Awake'"
     @click="toggleCaffeinate()"
   ></button>
 
-  <div class="section">
-    <div class="section-title">Duration</div>
-    <div class="duration-grid">
+  <div class="group">
+    <div class="group-title">For how long</div>
+    <div class="durations">
       @foreach(durations as duration)
         <button
-          class="duration-btn"
+          class="chip"
           :class="{ selected: durationMinutes === {{ duration.minutes }} }"
           @click="setDuration({{ duration.minutes }})"
         >{{ duration.short }}</button>
@@ -442,35 +443,29 @@
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Menu Bar</div>
-    <div class="menubar-controls">
-      <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" @click="toggleMenuBar()">
-        <span x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
-        <span x-text="menuBarCollapsed ? 'Expand Items' : 'Collapse Items'"></span>
-      </button>
-      <span class="menubar-hint">Cmd+drag icons left of &#8249; to manage them</span>
-    </div>
-  </div>
+  <div class="group">
+    <div class="group-title">Menu bar</div>
+    <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" @click="toggleMenuBar()">
+      <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
+      <span x-text="menuBarCollapsed ? 'Show hidden items' : 'Hide items'"></span>
+    </button>
+    <span class="hint">Cmd-drag icons to the left of &#8249; to tuck them away.</span>
 
-  <div class="section">
-    <div class="section-title">Settings</div>
-
-    <div class="pref-row">
+    <div class="row">
       <div>
-        <div class="pref-label">Auto Collapse</div>
-        <div class="pref-sublabel">Hide items after a delay</div>
+        <div class="row-label">Auto collapse</div>
+        <div class="row-note">Tidy up again after a pause</div>
       </div>
-      <div class="toggle-switch" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)"></div>
+      <div class="switch" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)"></div>
     </div>
 
     @if(isAutoCollapse)
-      <div class="pref-row">
-        <span class="pref-label">Collapse Delay</span>
-        <div class="delay-picker">
+      <div class="row">
+        <span class="row-label">After</span>
+        <div class="durations" style="grid-template-columns: repeat(5, 1fr); flex: 1;">
           @foreach(collapseDelays as seconds)
             <button
-              class="delay-btn"
+              class="chip"
               :class="{ selected: autoCollapseDelay === {{ seconds }} }"
               @click="setCollapseDelay({{ seconds }})"
             >{{ seconds }}s</button>
@@ -479,61 +474,64 @@
       </div>
     @endif
 
-    <div class="pref-row">
+    <div class="row">
       <div>
-        <div class="pref-label">Always-Hidden Section</div>
-        <div class="pref-sublabel">Keep some items permanently hidden</div>
+        <div class="row-label">Always-hidden section</div>
+        <div class="row-note">A second group that stays tucked away</div>
       </div>
-      <div class="toggle-switch" :class="{ on: alwaysHiddenEnabled }" @click="setAlwaysHidden(!alwaysHiddenEnabled)"></div>
+      <div class="switch" :class="{ on: alwaysHiddenEnabled }" @click="setAlwaysHidden(!alwaysHiddenEnabled)"></div>
     </div>
 
-    <div class="pref-row">
+    <div class="row">
       <div>
-        <div class="pref-label">Hide Separator</div>
-        <div class="pref-sublabel">Make the &#8249; indicator invisible</div>
+        <div class="row-label">Hide the divider</div>
+        <div class="row-note">Make the &#8249; marker invisible</div>
       </div>
-      <div class="toggle-switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
-    </div>
-
-    <div class="pref-row">
-      <span class="pref-label">Global Hotkey</span>
-      <span class="hotkey-badge" x-text="globalHotkey"></span>
-    </div>
-
-    <div class="pref-row">
-      <div>
-        <div class="pref-label">Caffeinate on Startup</div>
-        <div class="pref-sublabel">Start caffeinated when launched</div>
-      </div>
-      <div class="toggle-switch" :class="{ on: caffeinateOnStartup }" @click="savePreference('caffeinateOnStartup', !caffeinateOnStartup)"></div>
-    </div>
-
-    <div class="pref-row">
-      <span class="pref-label">Launch at Login</span>
-      <div class="toggle-switch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)"></div>
+      <div class="switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Updates</div>
-    <div class="pref-row">
+  <div class="group">
+    <div class="group-title">Behaviour</div>
+
+    <div class="row">
       <div>
-        <div class="pref-label">Version {{ version }}</div>
-        <div class="pref-sublabel" x-text="updateMessage || 'Updates come from GitHub releases'"></div>
+        <div class="row-label">Start awake</div>
+        <div class="row-note">Keep the Mac awake as soon as Barista opens</div>
       </div>
-      <button class="delay-btn" @click="checkForUpdates()">Check</button>
+      <div class="switch" :class="{ on: caffeinateOnStartup }" @click="savePreference('caffeinateOnStartup', !caffeinateOnStartup)"></div>
     </div>
-    <div class="pref-row" :if="updateAvailable">
-      <span class="pref-label">Ready to install</span>
-      <button class="delay-btn selected" @click="installUpdate()">Install &amp; Restart</button>
+
+    <div class="row">
+      <span class="row-label">Open at login</span>
+      <div class="switch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)"></div>
+    </div>
+
+    <div class="row">
+      <span class="row-label">Shortcut</span>
+      <span class="row-value" x-text="globalHotkey"></span>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Updates</div>
+    <div class="row">
+      <div>
+        <div class="row-label">Version {{ version }}</div>
+        <div class="row-note" x-text="updateMessage || 'Barista updates itself from GitHub releases'"></div>
+      </div>
+      <button class="mini" @click="checkForUpdates()">Check</button>
+    </div>
+    <div class="row" :if="updateAvailable">
+      <span class="row-label">Ready to install</span>
+      <button class="mini primary" @click="installUpdate()">Install and restart</button>
     </div>
   </div>
 
   <div class="footer">
-    Barista &mdash; powered by <a href="https://github.com/stacksjs/stx">stx</a> + <a href="https://github.com/stacksjs/craft">Craft</a>
+    Built with <a href="https://github.com/stacksjs/stx">stx</a> and <a href="https://github.com/stacksjs/craft">Craft</a>
   </div>
 </div>
-
 <script client>
   // Craft's native bridge owns the tray and the menu bar, and there is no stx
   // primitive for it — this is the one place the popup reaches for a browser
