@@ -37,6 +37,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      # Catches drift against the stx/craft APIs the app builds on. Types only,
+      # so this needs no craft binary and runs on Linux.
+      - name: Typecheck
+        run: bun run typecheck
+
   test:
     runs-on: ubuntu-latest
 
