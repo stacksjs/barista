@@ -12,17 +12,27 @@
  * rather than describing a second one.
  */
 import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
-import { DURATIONS } from './durations'
+import brewingIcon from './assets/tray-brewing.pdf' with { type: 'file' }
+import idleIcon from './assets/tray-idle.pdf' with { type: 'file' }
+import type { Duration } from './durations'
+import { DURATIONS, QUICK_DURATIONS } from './durations'
 
 /**
- * SF Symbols, which Craft renders as template images at menu bar metrics — so
- * macOS tints them for light mode, dark mode and the highlighted menu bar, at
- * the same size as the system's own glyphs.
+ * The cup Barista draws in the menu bar: a mug, no saucer, steaming while your
+ * Mac is being kept awake.
+ *
+ * These are our own vector artwork rather than SF Symbols, because the system
+ * set has no steaming mug — `cup.and.saucer` carries a saucer and `mug` has no
+ * steam. Craft renders them as template images, so macOS still tints them for
+ * light mode, dark mode and the highlighted menu bar.
+ *
+ * Imported as files so Bun embeds them in the compiled binary and hands back a
+ * real path at runtime, in a bundle as well as from source.
  */
-export const TRAY_ICONS = {
-  awake: 'cup.and.saucer.fill',
-  asleep: 'cup.and.saucer',
-} as const
+export const TRAY_ICONS: { awake: string, asleep: string } = {
+  awake: brewingIcon,
+  asleep: idleIcon,
+}
 
 /**
  * Text fallback for a Craft binary older than the setIcon fix, where an icon
@@ -35,11 +45,10 @@ export const TRAY_GLYPHS = {
 } as const
 
 /**
- * First Craft release whose `setIcon` actually draws: earlier binaries left the
- * status item button on `NSNoImage`, passed the JSON payload through as the
- * symbol name, and never sized the glyph.
+ * First Craft release that draws a tray icon from a file. Earlier binaries only
+ * understood SF Symbol names, and before 0.0.52 drew nothing at all.
  */
-export const TRAY_ICON_MIN_CRAFT = '0.0.52'
+export const TRAY_ICON_MIN_CRAFT = '0.0.55'
 
 /** First Craft release that tells left and right tray clicks apart. */
 export const TRAY_CLICK_MIN_CRAFT = '0.0.54'
@@ -89,13 +98,13 @@ export function trayGlyph(caffeinated: boolean): string {
   return caffeinated ? TRAY_GLYPHS.awake : TRAY_GLYPHS.asleep
 }
 
-/** Hover text — the only place the remaining time is spelled out. */
+/** Hover text, the only place the remaining time is spelled out. */
 export function trayTooltip(state: TrayState): string {
   if (!state.caffeinated)
-    return 'Barista — your Mac can sleep'
+    return 'Barista: your Mac can sleep'
   return state.durationMinutes > 0
-    ? `Barista — awake for another ${state.remaining}`
-    : 'Barista — awake indefinitely'
+    ? `Barista: awake for another ${state.remaining}`
+    : 'Barista: awake indefinitely'
 }
 
 /** First line of the menu: what Barista is currently doing. Never clickable. */
@@ -103,8 +112,15 @@ export function trayStatusLabel(state: TrayState): string {
   if (!state.caffeinated)
     return 'Barista is off'
   return state.durationMinutes > 0
-    ? `Awake — ${state.remaining} left`
+    ? `Awake for ${state.remaining}`
     : 'Awake indefinitely'
+}
+
+/** What a duration promises when nothing is running yet. */
+function quickStartLabel(duration: Duration): string {
+  return duration.minutes > 0
+    ? `Keep awake for ${duration.label.toLowerCase()}`
+    : 'Keep awake indefinitely'
 }
 
 export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
@@ -115,10 +131,19 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
     ...(state.caffeinated
       ? [{ label: 'Turn Off', action: 'disableCaffeinate', shortcut: 'Cmd+Shift+C' } as MenuBarMenuItem]
       : []),
+
+    // The common durations sit at the top level so starting a session is one
+    // click, not a hover and a click. Everything else lives under "More".
+    ...QUICK_DURATIONS.map(duration => ({
+      label: state.caffeinated ? duration.label : quickStartLabel(duration),
+      action: `duration:${duration.minutes}`,
+      type: 'radio' as const,
+      checked: state.caffeinated && state.durationMinutes === duration.minutes,
+    })),
     {
-      label: state.caffeinated ? 'Change to' : 'Activate for',
+      label: 'More durations',
       type: 'submenu',
-      submenu: DURATIONS.map(duration => ({
+      submenu: DURATIONS.filter(duration => !QUICK_DURATIONS.includes(duration)).map(duration => ({
         label: duration.label,
         action: `duration:${duration.minutes}`,
         type: 'radio' as const,
