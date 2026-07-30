@@ -20,7 +20,7 @@ import process from 'node:process'
 import { which } from 'bun'
 import pkg from './package.json' with { type: 'json' }
 
-const BUNDLE_ID = 'org.stacksjs.barista'
+const BUNDLE_ID = 'com.stacksjs.barista'
 /** Apple Developer team that signs Barista. Not a secret — it appears in every identity name. */
 const TEAM_ID = '3JJRNQW6B7'
 const OUT_DIR = resolve(import.meta.dir, 'dist')

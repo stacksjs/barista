@@ -55,7 +55,7 @@ jobs:
           # Generate notes from git history — no committed CHANGELOG to maintain.
           release-changelog: auto
           release-app-store: 'true'
-          release-app-store-bundle-id: org.stacksjs.barista
+          release-app-store-bundle-id: com.stacksjs.barista
           release-app-store-version: ${{ steps.version.outputs.version }}
           release-app-store-build-number: ${{ github.run_number }}
         env:

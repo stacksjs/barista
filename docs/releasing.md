@@ -18,10 +18,10 @@ Steps 2 and 4 are pantry's; nothing about signing or delivery lives in this repo
 
 ## One-time Apple setup
 
-Barista's bundle id is `org.stacksjs.barista` and it signs under team
+Barista's bundle id is `com.stacksjs.barista` and it signs under team
 `3JJRNQW6B7`. Before the first release the Apple side needs:
 
-- an **App ID** for `org.stacksjs.barista`
+- an **App ID** for `com.stacksjs.barista`
 - an **app record** in App Store Connect for it
 - a **Mac App Store provisioning profile** for that App ID
 - **Mac App Distribution** and **Mac Installer Distribution** certificates
@@ -31,7 +31,7 @@ pantry automates the identifier, certificates and profile:
 ```bash
 pantry app-store:csr --name Barista
 pantry app-store:provision \
-  --bundle-id org.stacksjs.barista \
+  --bundle-id com.stacksjs.barista \
   --name Barista \
   --app-certificate-csr .pantry/apple/mac-app-distribution.csr \
   --installer-certificate-csr .pantry/apple/mac-installer-distribution.csr \
