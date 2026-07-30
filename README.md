@@ -7,7 +7,7 @@
 
 > Keep your Mac awake. One click from the menu bar.
 
-Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free, modern replacement for [Caffeine](https://lightheadsw.com/caffeine/), [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) and [KeepingYouAwake](https://github.com/newmarcel/KeepingYouAwake). One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefinite), and your Mac stays awake until you say otherwise. Built with [stx](https://github.com/stacksjs/stx) + [Craft](https://github.com/stacksjs/craft) so it stays out of the way: 1.4MB binary, under 100ms startup, no Electron.
+Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free, modern replacement for [Caffeine](https://lightheadsw.com/caffeine/), [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) and [KeepingYouAwake](https://github.com/newmarcel/KeepingYouAwake). One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefinite), and your Mac stays awake until you say otherwise. Built with [stx](https://github.com/stacksjs/stx) + [Craft](https://github.com/stacksjs/craft) so it stays out of the way: a 1.4MB native webview instead of a bundled browser, and under 100ms to a visible menu bar icon.
 
 As a bonus, Barista also tidies up your menu bar.
 
@@ -16,7 +16,7 @@ As a bonus, Barista also tidies up your menu bar.
 |                  | Barista        | Caffeine.app | Amphetamine     | KeepingYouAwake |
 | ---------------- | -------------- | ------------ | --------------- | --------------- |
 | Price            | Free, MIT      | Paid         | Free (Mac App Store) | Free, MIT  |
-| Binary size      | ~1.4 MB        | ~3 MB        | ~15 MB          | ~5 MB           |
+| Download         | ~20 MB         | ~3 MB        | ~15 MB          | ~5 MB           |
 | Cold start       | <100 ms        | ~150 ms      | ~300 ms         | ~150 ms         |
 | Runtime          | Native (Zig)   | Native       | Native          | Native          |
 | Bonus: menu bar tidying | Yes     | No           | No              | No              |
@@ -31,7 +31,7 @@ As a bonus, Barista also tidies up your menu bar.
 - **Menu bar management** *(bonus)* — Collapse and organize menu bar items, with optional auto-collapse and an always-hidden section.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
-- **Native performance** — Built with Craft's native webview (1.4MB binary, <100ms startup, no Electron).
+- **Native performance** — Craft's native webview does the rendering, so there is no bundled browser. Startup is under 100ms.
 - **Beautiful UI** — Dark-themed popup window with intuitive controls.
 
 ## Get Started

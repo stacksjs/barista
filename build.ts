@@ -50,6 +50,9 @@ const compiled = await Bun.build({
   entrypoints: [resolve(import.meta.dir, 'app.ts')],
   outdir: OUT_DIR,
   target: 'bun',
+  // Most of the binary is Bun's own runtime, which is a fixed cost; minifying
+  // still trims roughly a megabyte of app and dependency code.
+  minify: true,
   compile: { outfile: binaryPath },
 })
 

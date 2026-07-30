@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DURATIONS, isKnownDuration } from '../src/durations'
+import { DURATIONS as ALL_DURATIONS, QUICK_DURATIONS } from '../src/durations'
 import { buildTrayMenu, parseCraftVersion, supportsTrayIcon, TRAY_GLYPHS, TRAY_ICONS, trayGlyph, trayIcon, trayStatusLabel, trayTooltip } from '../src/tray'
 import { bundlePath } from '../src/updates'
 
@@ -32,9 +33,10 @@ describe('tray icon', () => {
     expect(trayIcon(false)).toBe(TRAY_ICONS.asleep)
   })
 
-  it('uses SF Symbols, which Craft renders as tintable template images', () => {
-    expect(TRAY_ICONS.asleep).toBe('cup.and.saucer')
-    expect(TRAY_ICONS.awake).toBe('cup.and.saucer.fill')
+  it('ships its own mug artwork rather than a system symbol', () => {
+    // The system set has no steaming mug, so these are files Craft templates.
+    expect(TRAY_ICONS.asleep).toMatch(/tray-idle\.pdf$/)
+    expect(TRAY_ICONS.awake).toMatch(/tray-brewing\.pdf$/)
   })
 })
 
@@ -43,11 +45,13 @@ describe('tray tooltip and status', () => {
     expect(trayTooltip(awakeForAnHour)).toContain('0:59:12')
     expect(trayTooltip(awakeIndefinitely)).toContain('indefinitely')
     expect(trayTooltip(asleep)).toContain('can sleep')
+    // The design language keeps em-dashes out of anything user-facing.
+    expect(trayTooltip(awakeForAnHour)).not.toContain('—')
   })
 
   it('heads the menu with what Barista is doing', () => {
     expect(trayStatusLabel(asleep)).toBe('Barista is off')
-    expect(trayStatusLabel(awakeForAnHour)).toBe('Awake — 0:59:12 left')
+    expect(trayStatusLabel(awakeForAnHour)).toBe('Awake for 0:59:12')
     expect(trayStatusLabel(awakeIndefinitely)).toBe('Awake indefinitely')
   })
 })
@@ -65,21 +69,37 @@ describe('tray menu', () => {
     expect(buildTrayMenu(awakeForAnHour).some(i => i.action === 'disableCaffeinate')).toBe(true)
   })
 
-  it('names the duration submenu for what it will do', () => {
-    expect(buildTrayMenu(asleep).find(i => i.type === 'submenu')?.label).toBe('Activate for')
-    expect(buildTrayMenu(awakeForAnHour).find(i => i.type === 'submenu')?.label).toBe('Change to')
+  it('puts the common durations one click away, not behind a submenu', () => {
+    const menu = buildTrayMenu(asleep)
+    for (const duration of QUICK_DURATIONS)
+      expect(menu.some(i => i.action === `duration:${duration.minutes}`)).toBe(true)
   })
 
-  it('offers every duration and checks the running one', () => {
-    const submenu = buildTrayMenu(awakeForAnHour).find(i => i.type === 'submenu')?.submenu ?? []
-    expect(submenu).toHaveLength(DURATIONS.length)
-    expect(submenu.filter(i => i.checked)).toHaveLength(1)
-    expect(submenu.find(i => i.checked)?.action).toBe('duration:60')
+  it('says what a quick start will do before anything is running', () => {
+    const menu = buildTrayMenu(asleep)
+    expect(menu.find(i => i.action === 'duration:60')?.label).toBe('Keep awake for 1 hour')
+    expect(menu.find(i => i.action === 'duration:-1')?.label).toBe('Keep awake indefinitely')
+  })
+
+  it('keeps the rest under More durations, with no duplicates', () => {
+    const submenu = buildTrayMenu(asleep).find(i => i.type === 'submenu')?.submenu ?? []
+    expect(submenu).toHaveLength(ALL_DURATIONS.length - QUICK_DURATIONS.length)
+    const quick = new Set(QUICK_DURATIONS.map(d => `duration:${d.minutes}`))
+    expect(submenu.some(i => quick.has(i.action ?? ''))).toBe(false)
+  })
+
+  it('checks the running duration exactly once across the whole menu', () => {
+    const menu = buildTrayMenu(awakeForAnHour)
+    const all = [...menu, ...(menu.find(i => i.type === 'submenu')?.submenu ?? [])]
+    const checked = all.filter(i => i.checked)
+    expect(checked).toHaveLength(1)
+    expect(checked[0].action).toBe('duration:60')
   })
 
   it('checks no duration while asleep, since none is running', () => {
-    const submenu = buildTrayMenu(asleep).find(i => i.type === 'submenu')?.submenu ?? []
-    expect(submenu.filter(i => i.checked)).toHaveLength(0)
+    const menu = buildTrayMenu(asleep)
+    const all = [...menu, ...(menu.find(i => i.type === 'submenu')?.submenu ?? [])]
+    expect(all.filter(i => i.checked)).toHaveLength(0)
   })
 
   it('labels the menu bar toggle by the collapse state', () => {
@@ -106,15 +126,15 @@ describe('tray menu', () => {
 
 describe('tray icon capability', () => {
   it('reads the version out of craft --version output', () => {
-    expect(parseCraftVersion('craft version 0.0.52\nBuilt with Zig 0.17.0-dev')).toBe('0.0.52')
+    expect(parseCraftVersion('craft version 0.0.55\nBuilt with Zig 0.17.0-dev')).toBe('0.0.55')
     expect(parseCraftVersion('nonsense')).toBeNull()
   })
 
   it('needs the release that made setIcon draw', () => {
-    expect(supportsTrayIcon('0.0.52')).toBe(true)
-    expect(supportsTrayIcon('0.0.53')).toBe(true)
+    expect(supportsTrayIcon('0.0.55')).toBe(true)
+    expect(supportsTrayIcon('0.0.56')).toBe(true)
     expect(supportsTrayIcon('0.1.0')).toBe(true)
-    expect(supportsTrayIcon('0.0.51')).toBe(false)
+    expect(supportsTrayIcon('0.0.54')).toBe(false)
     expect(supportsTrayIcon('0.0.37')).toBe(false)
   })
 
