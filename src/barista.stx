@@ -449,7 +449,7 @@
       <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
       <span x-text="menuBarCollapsed ? 'Show hidden items' : 'Hide items'"></span>
     </button>
-    <span class="hint">Cmd-drag icons to the left of &#8249; to tuck them away.</span>
+    <span class="hint">Cmd-drag icons to the left of the &#183; marker to tuck them away.</span>
 
     <div class="row">
       <div>
@@ -485,7 +485,7 @@
     <div class="row">
       <div>
         <div class="row-label">Hide the divider</div>
-        <div class="row-note">Make the &#8249; marker invisible</div>
+        <div class="row-note">Make the &#183; marker invisible</div>
       </div>
       <div class="switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
     </div>
