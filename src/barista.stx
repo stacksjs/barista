@@ -514,6 +514,21 @@
     </div>
   </div>
 
+  <div class="section">
+    <div class="section-title">Updates</div>
+    <div class="pref-row">
+      <div>
+        <div class="pref-label">Version {{ version }}</div>
+        <div class="pref-sublabel" x-text="updateMessage || 'Updates come from GitHub releases'"></div>
+      </div>
+      <button class="delay-btn" @click="checkForUpdates()">Check</button>
+    </div>
+    <div class="pref-row" :if="updateAvailable">
+      <span class="pref-label">Ready to install</span>
+      <button class="delay-btn selected" @click="installUpdate()">Install &amp; Restart</button>
+    </div>
+  </div>
+
   <div class="footer">
     Barista &mdash; powered by <a href="https://github.com/stacksjs/stx">stx</a> + <a href="https://github.com/stacksjs/craft">Craft</a>
   </div>
@@ -625,33 +640,41 @@
 
   // ===== Tray =====
 
-  /** The tray menu is built on the server, so the popup never defines a second one. */
-  async function syncTrayMenu() {
+  /**
+   * Push the icon, tooltip and menu the server describes.
+   *
+   * Barista shows a cup and no label, like the other caffeinate apps, so the
+   * title is cleared once and the icon carries the state. Only changes are sent —
+   * this runs every second and macOS need not redraw an identical menu bar.
+   */
+  let lastTray = ''
+
+  async function syncTray() {
     const tray = bridge()?.tray
     if (!tray) return
-    await tray.setMenu(await fetch('/api/menu').then(response => response.json()))
-  }
 
-  let lastTrayTitle = ''
+    const next = await fetch('/api/tray').then(response => response.json())
+    const fingerprint = JSON.stringify(next)
+    if (fingerprint === lastTray) return
+    lastTray = fingerprint
 
-  async function syncTrayTitle() {
-    const tray = bridge()?.tray
-    if (!tray) return
-
-    const title = caffeinated() ? `☕️ ${remainingTime()}` : '☕️'
-    if (title === lastTrayTitle) return
-
-    lastTrayTitle = title
-    await tray.setTitle(title)
+    // The cup lives in the title: setIcon draws nothing on the published Craft
+    // binary (see TRAY_ICONS in src/tray.ts), so a title glyph is what actually
+    // reaches the menu bar. Swap to setIcon(next.icon) once a fixed binary ships.
+    await tray.setTitle(next.glyph)
+    await tray.setTooltip(next.tooltip)
+    await tray.setMenu(next.menu)
   }
 
   const TRAY_ACTIONS = {
     toggleCaffeinate,
+    disableCaffeinate: () => post('/api/caffeinate/disable'),
     toggleMenuBar,
     toggleAutoCollapse: () => setAutoCollapse(!isAutoCollapse()),
     toggleAlwaysHidden: () => setAlwaysHidden(!alwaysHiddenEnabled()),
     preferences: () => bridge()?.window?.show(),
     about: () => bridge()?.window?.show(),
+    checkForUpdates: checkForUpdates,
     quit: () => bridge()?.app?.quit(),
   }
 
@@ -662,29 +685,54 @@
     }
 
     await TRAY_ACTIONS[action]?.()
+    // The menu's labels and checkmarks describe state the action just changed.
+    await syncTray()
+  }
+
+  // ===== Updates =====
+
+  const updateMessage = state('')
+  const updateAvailable = state(false)
+
+  async function checkForUpdates() {
+    updateMessage.set('Checking for updates…')
+    const result = await fetch('/api/updates/check', { method: 'POST' }).then(r => r.json())
+    updateAvailable.set(Boolean(result.available))
+
+    if (!result.supported) updateMessage.set('Updates apply to the installed app only')
+    else if (result.error) updateMessage.set('Could not check: ' + result.error)
+    else if (result.available) updateMessage.set('Version ' + result.available + ' is ready to install')
+    else updateMessage.set('Barista is up to date')
+  }
+
+  async function installUpdate() {
+    updateMessage.set('Installing…')
+    await fetch('/api/updates/install', { method: 'POST' })
   }
 
   // ===== Wiring =====
 
   useEventListener('craft:menubar:stateChange', event => reportMenuBarState(event.detail.collapsed))
   useEventListener('craft:tray:menuAction', event => runTrayAction(event.detail.action))
-  useEventListener('craft:ready', initMenuBar)
+
+  // The bridge may already be up by the time this script runs, so set the tray
+  // up now *and* on craft:ready — whichever comes first wins, and syncTray
+  // no-ops when nothing changed.
+  useEventListener('craft:ready', () => { initMenuBar(); syncTray() })
 
   onMount(async () => {
     // The server already rendered this state, so read it rather than waiting a
     // round trip and painting a stale panel first.
-    status.set(JSON.parse(root.value.dataset.initialState))
+    status.set(JSON.parse(root().dataset.initialState))
 
-    await syncTrayMenu()
-    await syncTrayTitle()
+    await syncTray()
     await bridge()?.app?.registerShortcut(globalHotkey(), toggleMenuBar)
   })
 
-  // The countdown ticks in the tray as well as the popup, and the tray menu's
-  // labels follow whatever the state became.
+  // The countdown ticks in the tray as well as the popup, and the menu's labels
+  // follow whatever the state became.
   useInterval(async () => {
     await refresh()
-    await syncTrayTitle()
-    await syncTrayMenu()
+    await syncTray()
   }, 1000)
 </script>
