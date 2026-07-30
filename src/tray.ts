@@ -6,9 +6,10 @@
  * filled while awake and outlined while asleep. macOS then tints it correctly
  * in light mode, dark mode and when the menu bar is highlighted.
  *
- * The menu is rebuilt on every open so its labels and checkmarks reflect live
- * state, and this is the app's only menu definition — the popup asks for it over
- * `GET /api/menu` rather than describing a second one.
+ * Left click brews or stops the coffee; right click opens this menu, which is
+ * rebuilt on every open so its labels and checkmarks reflect live state. It is
+ * the app's only menu definition — the popup asks for it over `GET /api/tray`
+ * rather than describing a second one.
  */
 import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
 import { DURATIONS } from './durations'
@@ -39,6 +40,9 @@ export const TRAY_GLYPHS = {
  * symbol name, and never sized the glyph.
  */
 export const TRAY_ICON_MIN_CRAFT = '0.0.52'
+
+/** First Craft release that tells left and right tray clicks apart. */
+export const TRAY_CLICK_MIN_CRAFT = '0.0.53'
 
 /**
  * Whether this Craft binary can draw a tray icon.

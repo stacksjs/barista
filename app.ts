@@ -5,7 +5,8 @@
  * turns those into a native window.
  */
 import type { BaristaPreferences } from './src/preferences'
-import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { createMenuBarApp } from '@stacksjs/stx/menubar'
 import pkg from './package.json' with { type: 'json' }
 // Embedded at build time so the compiled binary carries the popup with it —
@@ -27,18 +28,34 @@ let menuBarCollapsed = false
 const updates = createUpdateChecker(pkg.version)
 
 /**
- * Whether the Craft binary rendering this app can draw a tray icon. Asked once —
- * an older binary silently ignores setIcon, which would leave an invisible menu
- * bar item, so the tray falls back to a text cup in that case.
+ * Whether the Craft binary rendering this app can draw a tray icon.
+ *
+ * Asked once, on first use rather than at import: probing spawns a subprocess,
+ * and doing that while the module graph is still evaluating is a poor place for
+ * something that can fail. An older binary silently ignores setIcon, which would
+ * leave an invisible menu bar item, so the tray falls back to a text cup then.
  */
 const trayIconSupported = (() => {
-  try {
-    const probe = Bun.spawnSync([resolveCraftBinary(process.env.CRAFT_BINARY_PATH), '--version'])
-    // Craft prints its banner on stderr, so read both streams.
-    return supportsTrayIcon(parseCraftVersion(`${probe.stdout}${probe.stderr}`))
-  }
-  catch {
-    return false
+  let cached: boolean | null = null
+
+  return () => {
+    if (cached !== null)
+      return cached
+
+    cached = false
+    try {
+      // A packaged app carries its own copy beside the executable; otherwise ask
+      // Craft where it would look.
+      const bundled = join(dirname(process.execPath), 'craft')
+      const binary = existsSync(bundled) ? bundled : resolveCraftBinary(process.env.CRAFT_BINARY_PATH)
+      const probe = Bun.spawnSync([binary, '--version'])
+      // Craft prints its banner on stderr, so read both streams.
+      cached = supportsTrayIcon(parseCraftVersion(`${probe.stdout}${probe.stderr}`))
+    }
+    catch {
+      cached = false
+    }
+    return cached
   }
 })()
 
@@ -114,7 +131,7 @@ const app = createMenuBarApp<BaristaPreferences>({
 
       return {
         // An icon when the binary can draw one, a text cup when it cannot.
-        useIcon: trayIconSupported,
+        useIcon: trayIconSupported(),
         icon: trayIcon(state.caffeinated),
         glyph: trayGlyph(state.caffeinated),
         tooltip: trayTooltip(state),

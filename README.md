@@ -24,11 +24,13 @@ As a bonus, Barista also tidies up your menu bar.
 
 ## Features
 
-- **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (15m, 30m, 1h, 4h, 8h, 12h, indefinite). One click from the menu bar to toggle, with a live countdown in the tray.
+- **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (15m, 30m, 1h, 4h, 8h, 12h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
+- **Right-click for everything else** — A native menu with the current status, the durations, the menu bar controls, preferences and updates.
 - **Caffeinate on startup** — Optional: start the app already caffeinated, so your Mac is awake the moment you log in.
 - **Global hotkey** — Toggle caffeinate (or the menu bar) without reaching for the mouse.
 - **Menu bar management** *(bonus)* — Collapse and organize menu bar items, with optional auto-collapse and an always-hidden section.
 - **Launch at login** — Start Barista when you log in.
+- **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
 - **Native performance** — Built with Craft's native webview (1.4MB binary, <100ms startup, no Electron).
 - **Beautiful UI** — Dark-themed popup window with intuitive controls.
 
@@ -69,9 +71,10 @@ app.ts                 createMenuBarApp: context, routes, tray menu
 build.ts               Compile + package (DMG, and App Store .pkg when signed)
 src/barista.stx        The popup — signals-driven, no vanilla DOM code
 src/caffeinate.ts      Named wrapper over the desktop power API
-src/menu.ts            The tray menu, rebuilt from live state
+src/tray.ts            The menu bar item: its cup icon and its menu
 src/durations.ts       The durations the popup and tray both offer
 src/preferences.ts     Preference shape and defaults
+src/updates.ts         Self-update from GitHub releases
 ```
 
 See the stx guide, [Menu Bar Apps](https://github.com/stacksjs/stx/blob/main/docs/guide/menubar.md),

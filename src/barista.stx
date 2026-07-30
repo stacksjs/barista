@@ -715,6 +715,13 @@
   useEventListener('craft:menubar:stateChange', event => reportMenuBarState(event.detail.collapsed))
   useEventListener('craft:tray:menuAction', event => runTrayAction(event.detail.action))
 
+  // Left click brews or stops the coffee, the way the other caffeinate apps
+  // behave; right click opens the menu natively and never reaches here.
+  useEventListener('craft:tray:click', async () => {
+    await toggleCaffeinate()
+    await syncTray()
+  })
+
   // The bridge may already be up by the time this script runs, so set the tray
   // up now *and* on craft:ready — whichever comes first wins, and syncTray
   // no-ops when nothing changed.
