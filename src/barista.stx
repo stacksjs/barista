@@ -658,10 +658,10 @@
     if (fingerprint === lastTray) return
     lastTray = fingerprint
 
-    // The cup lives in the title: setIcon draws nothing on the published Craft
-    // binary (see TRAY_ICONS in src/tray.ts), so a title glyph is what actually
-    // reaches the menu bar. Swap to setIcon(next.icon) once a fixed binary ships.
-    await tray.setTitle(next.glyph)
+    // A template image when this Craft binary can draw one — the title stays
+    // empty so the cup is the whole item — and a text cup when it cannot.
+    if (next.useIcon) await tray.setIcon(next.icon)
+    await tray.setTitle(next.useIcon ? '' : next.glyph)
     await tray.setTooltip(next.tooltip)
     await tray.setMenu(next.menu)
   }

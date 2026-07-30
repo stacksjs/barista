@@ -14,12 +14,9 @@ import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
 import { DURATIONS } from './durations'
 
 /**
- * SF Symbols, rendered as template images so macOS tints them.
- *
- * Not in use yet: `craft.tray.setIcon` draws nothing on the currently published
- * Craft binary, because the status item button's `imagePosition` is left at
- * `NSNoImage`. Fixed in Craft (`bridge_tray.zig`); once a binary carrying that
- * fix ships, the tray can set these instead of a title glyph.
+ * SF Symbols, which Craft renders as template images at menu bar metrics — so
+ * macOS tints them for light mode, dark mode and the highlighted menu bar, at
+ * the same size as the system's own glyphs.
  */
 export const TRAY_ICONS = {
   awake: 'cup.and.saucer.fill',
@@ -27,18 +24,47 @@ export const TRAY_ICONS = {
 } as const
 
 /**
- * The cup Barista shows in the menu bar. No app name beside it — the glyph is
- * the whole item, the way the other caffeinate apps do it.
- *
- * The two differ by Unicode presentation selector rather than by shape: U+FE0F
- * asks for the colour emoji while awake, U+FE0E for the flat monochrome glyph
- * while asleep. Same cup, clearly different state, and both are just text — so
- * this works on any Craft binary.
+ * Text fallback for a Craft binary older than the setIcon fix, where an icon
+ * would draw nothing and the item would be invisible. The two differ by Unicode
+ * presentation selector: colour emoji while awake, flat glyph while asleep.
  */
 export const TRAY_GLYPHS = {
   awake: '☕️',
   asleep: '☕︎',
 } as const
+
+/**
+ * First Craft release whose `setIcon` actually draws: earlier binaries left the
+ * status item button on `NSNoImage`, passed the JSON payload through as the
+ * symbol name, and never sized the glyph.
+ */
+export const TRAY_ICON_MIN_CRAFT = '0.0.52'
+
+/**
+ * Whether this Craft binary can draw a tray icon.
+ *
+ * A version Craft reports as `0.0.0` is a local development build, which is
+ * built from source and therefore has the fix.
+ */
+export function supportsTrayIcon(craftVersion: string | null): boolean {
+  if (!craftVersion)
+    return false
+  if (craftVersion === '0.0.0')
+    return true
+
+  const parse = (version: string) => version.split('.').map(part => Number.parseInt(part, 10) || 0)
+  const [major, minor, patch] = parse(craftVersion)
+  const [minMajor, minMinor, minPatch] = parse(TRAY_ICON_MIN_CRAFT)
+
+  if (major !== minMajor) return major > minMajor
+  if (minor !== minMinor) return minor > minMinor
+  return patch >= minPatch
+}
+
+/** Pull the version out of `craft --version` output. */
+export function parseCraftVersion(output: string): string | null {
+  return output.match(/craft version (\d+\.\d+\.\d+)/i)?.[1] ?? null
+}
 
 export interface TrayState {
   caffeinated: boolean

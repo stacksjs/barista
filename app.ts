@@ -14,8 +14,9 @@ import templateSource from './src/barista.stx' with { type: 'text' }
 import { caffeinateSnapshot, disableCaffeinate, enableCaffeinate, isCaffeinated, toggleCaffeinate } from './src/caffeinate'
 import { COLLAPSE_DELAYS, DURATIONS } from './src/durations'
 import { DEFAULT_PREFERENCES } from './src/preferences'
-import { buildTrayMenu, trayGlyph, trayIcon, trayTooltip } from './src/tray'
+import { buildTrayMenu, parseCraftVersion, supportsTrayIcon, trayGlyph, trayIcon, trayTooltip } from './src/tray'
 import { createUpdateChecker } from './src/updates'
+import { resolveCraftBinary } from '@stacksjs/stx/desktop'
 
 /**
  * Whether the menu bar is currently collapsed. Only the webview knows — it owns
@@ -24,6 +25,22 @@ import { createUpdateChecker } from './src/updates'
 let menuBarCollapsed = false
 
 const updates = createUpdateChecker(pkg.version)
+
+/**
+ * Whether the Craft binary rendering this app can draw a tray icon. Asked once —
+ * an older binary silently ignores setIcon, which would leave an invisible menu
+ * bar item, so the tray falls back to a text cup in that case.
+ */
+const trayIconSupported = (() => {
+  try {
+    const probe = Bun.spawnSync([resolveCraftBinary(process.env.CRAFT_BINARY_PATH), '--version'])
+    // Craft prints its banner on stderr, so read both streams.
+    return supportsTrayIcon(parseCraftVersion(`${probe.stdout}${probe.stderr}`))
+  }
+  catch {
+    return false
+  }
+})()
 
 /** The shape both the popup and the tray read from. */
 function baristaState(prefs: { getAll: () => BaristaPreferences }) {
@@ -96,8 +113,10 @@ const app = createMenuBarApp<BaristaPreferences>({
       }
 
       return {
-        glyph: trayGlyph(state.caffeinated),
+        // An icon when the binary can draw one, a text cup when it cannot.
+        useIcon: trayIconSupported,
         icon: trayIcon(state.caffeinated),
+        glyph: trayGlyph(state.caffeinated),
         tooltip: trayTooltip(state),
         menu: buildTrayMenu(state),
       }
