@@ -52,6 +52,7 @@ jobs:
           release-files: |
             dist/Barista-${{ steps.version.outputs.version }}.dmg
             dist/Barista-${{ steps.version.outputs.version }}.pkg
+            dist/update.json
           # Generate notes from git history — no committed CHANGELOG to maintain.
           release-changelog: auto
           release-app-store: 'true'

@@ -48,7 +48,8 @@
     "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.118"
+    "@stacksjs/stx": "^0.2.118",
+    "craft-native": "0.0.51"
   },
   "devDependencies": {
     "better-dx": "^0.2.15",

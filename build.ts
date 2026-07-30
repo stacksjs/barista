@@ -13,12 +13,13 @@
  *   APPLE_PROVISIONING_PROFILE_PATH   .provisionprofile embedded in the bundle
  *   APPLE_NOTARIZE_*                  Apple ID, app-specific password and team ID
  */
-import { packageApp, resolveCraftBinary } from '@stacksjs/stx/desktop'
-import { existsSync } from 'node:fs'
+import { createGitHubUpdateManifest, packageApp, resolveCraftBinary, UPDATE_MANIFEST_ASSET } from '@stacksjs/stx/desktop'
+import { existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { which } from 'bun'
 import pkg from './package.json' with { type: 'json' }
+import { REPOSITORY } from './src/updates'
 
 const BUNDLE_ID = 'com.stacksjs.barista'
 /** Apple Developer team that signs Barista. Not a secret — it appears in every identity name. */
@@ -105,3 +106,19 @@ for (const result of results) {
 
 if (results.some(result => !result.success))
   process.exit(1)
+
+// The manifest an installed Barista polls to find its next version. It records
+// the DMG's SHA-256, so a download that doesn't match is refused rather than
+// installed, and its URL points at this release's own tag.
+const dmg = results.find(result => result.format === 'dmg')?.outputPath
+if (dmg) {
+  const manifestPath = join(OUT_DIR, UPDATE_MANIFEST_ASSET)
+  const manifest = createGitHubUpdateManifest({
+    repository: REPOSITORY,
+    version: pkg.version,
+    artifacts: { darwin: dmg },
+  })
+
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+  console.log(`  ✓ update manifest: ${manifestPath}`)
+}

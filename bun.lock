@@ -6,6 +6,7 @@
       "name": "barista",
       "dependencies": {
         "@stacksjs/stx": "^0.2.118",
+        "craft-native": "0.0.51",
       },
       "devDependencies": {
         "@stacksjs/bumpx": "^0.2.14",
@@ -120,7 +121,7 @@
 
     "bunfig": ["bunfig@0.15.15", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/clarity": "^0.3.24" }, "bin": { "bunfig": "./bin/cli.js" } }, "sha512-LEBk4M2WqwsJs7U9N5ZnEV6C9Oq74yhcF0VQj/dFBLWyxhDozH3xn4zxrJOFyTwYzYPn6AyDGtSnq2B05HrWZA=="],
 
-    "craft-native": ["craft-native@0.0.50", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-pgLoTvptsQDzqtBPQM5F7WLe+nry3gIbc7UoJpM2vlSk+s5raIA6mqCNXIfcoC58hUoR+WEgfp8jiIaRnvWPEQ=="],
+    "craft-native": ["craft-native@0.0.51", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-mDeR2f8VnbI4mkLTkK2wgG5cKS/l90xJJTqJ0dbGGNymLzA//UXNeY6HhZFjMac3bIBVTi5j7laaqKe5yiamcA=="],
 
     "data-uri-to-buffer": ["data-uri-to-buffer@6.0.2", "", {}, "sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw=="],
 
@@ -156,6 +157,8 @@
 
     "@stacksjs/bunpress/@stacksjs/stx": ["@stacksjs/stx@0.2.116", "", { "dependencies": { "@cwcss/crosswind": "^0.2.12", "@stacksjs/clapp": "^0.2.0", "@stacksjs/desktop": "0.2.116", "@stacksjs/sanitizer": "0.2.116", "@stacksjs/ts-i18n": "^0.1.11", "bun-plugin-stx": "0.2.116", "bunfig": "^0.15.15", "stx-router": "0.2.116", "ts-broadcasting": "^0.0.9", "ts-images": "^0.1.9", "ts-syntax-highlighter": "^0.2.1" }, "bin": { "stx": "./dist/cli.js" } }, "sha512-zfbu4AJ4OYnFAsAVQZY82KOSobaHTyGjGOYERvgfikwCfgvDKTT5Ebekgo0YhzIgKEa5W01jZERRBAhYALqzhg=="],
 
+    "@stacksjs/desktop/craft-native": ["craft-native@0.0.50", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-pgLoTvptsQDzqtBPQM5F7WLe+nry3gIbc7UoJpM2vlSk+s5raIA6mqCNXIfcoC58hUoR+WEgfp8jiIaRnvWPEQ=="],
+
     "@stacksjs/bunpress/@stacksjs/stx/@stacksjs/desktop": ["@stacksjs/desktop@0.2.116", "", { "dependencies": { "craft-native": ">=0.0.50" } }, "sha512-bMmpIPyxnDzXlw9Zoa7N4867kQJIpTGuJhgqUGWAy3MmjudJ+gnbe0BtR2pRYKeQL4KKXB72nIREK1Qb8FUWbw=="],
 
     "@stacksjs/bunpress/@stacksjs/stx/@stacksjs/sanitizer": ["@stacksjs/sanitizer@0.2.116", "", {}, "sha512-IGxl/JZ7dCKOvbdbZX8QMEZF+O+UKyn6SnSsGVIxhOeVE31NaqbBLqrE6NyrvjA21tJ7tFuEjOsPei3smQNSiw=="],
@@ -163,5 +166,7 @@
     "@stacksjs/bunpress/@stacksjs/stx/bun-plugin-stx": ["bun-plugin-stx@0.2.116", "", { "dependencies": { "@stacksjs/stx": "^0.2.72", "stx-router": "^0.2.72" }, "bin": { "serve": "./dist/serve.js", "stx-serve": "./dist/serve.js" } }, "sha512-8a9UttygFSTnRMdeeTb3ZNyW67Ps/7yGoNWQ7cEUXx1qoUMwIk9nKnyQtLVUTkNIV+0ddx78UDnC2ACpXfnHXQ=="],
 
     "@stacksjs/bunpress/@stacksjs/stx/stx-router": ["stx-router@0.2.116", "", {}, "sha512-w4rUhEerFCMnYz+zCF42Io4yb9cbAipSX8i1d/jKZcaZTjrOEfyMKhVElvbTCRZsieEYe4kLvmimKtR6A5k0kg=="],
+
+    "@stacksjs/bunpress/@stacksjs/stx/@stacksjs/desktop/craft-native": ["craft-native@0.0.50", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-pgLoTvptsQDzqtBPQM5F7WLe+nry3gIbc7UoJpM2vlSk+s5raIA6mqCNXIfcoC58hUoR+WEgfp8jiIaRnvWPEQ=="],
   }
 }
