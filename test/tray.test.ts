@@ -13,7 +13,6 @@ const asleep = {
   durationMinutes: -1,
   menuBarCollapsed: false,
   isAutoCollapse: false,
-  alwaysHiddenEnabled: false,
 }
 
 const awakeForAnHour = { ...asleep, caffeinated: true, remaining: '0:59:12', durationMinutes: 60 }
@@ -118,9 +117,8 @@ describe('tray menu', () => {
   })
 
   it('reflects the checkbox preferences', () => {
-    const menu = buildTrayMenu({ ...asleep, isAutoCollapse: true, alwaysHiddenEnabled: true })
+    const menu = buildTrayMenu({ ...asleep, isAutoCollapse: true })
     expect(menu.find(i => i.action === 'toggleAutoCollapse')?.checked).toBe(true)
-    expect(menu.find(i => i.action === 'toggleAlwaysHidden')?.checked).toBe(true)
   })
 })
 

@@ -110,7 +110,6 @@ const app = createMenuBarApp<BaristaPreferences>({
       durationMinutes: prefs.get('caffeinateDurationMinutes'),
       menuBarCollapsed,
       isAutoCollapse: prefs.get('isAutoCollapse'),
-      alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
     })
   },
 
@@ -126,8 +125,7 @@ const app = createMenuBarApp<BaristaPreferences>({
         durationMinutes: prefs.get('caffeinateDurationMinutes'),
         menuBarCollapsed,
         isAutoCollapse: prefs.get('isAutoCollapse'),
-        alwaysHiddenEnabled: prefs.get('alwaysHiddenEnabled'),
-      }
+        }
 
       return {
         // An icon when the binary can draw one, a text cup when it cannot.

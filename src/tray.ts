@@ -87,7 +87,6 @@ export interface TrayState {
   durationMinutes: number
   menuBarCollapsed: boolean
   isAutoCollapse: boolean
-  alwaysHiddenEnabled: boolean
 }
 
 export function trayIcon(caffeinated: boolean): string {
@@ -162,12 +161,6 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
       action: 'toggleAutoCollapse',
       type: 'checkbox',
       checked: state.isAutoCollapse,
-    },
-    {
-      label: 'Always-Hidden Section',
-      action: 'toggleAlwaysHidden',
-      type: 'checkbox',
-      checked: state.alwaysHiddenEnabled,
     },
 
     { type: 'separator' },

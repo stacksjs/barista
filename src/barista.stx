@@ -476,14 +476,6 @@
 
     <div class="row">
       <div>
-        <div class="row-label">Always-hidden section</div>
-        <div class="row-note">A second group that stays tucked away</div>
-      </div>
-      <div class="switch" :class="{ on: alwaysHiddenEnabled }" @click="setAlwaysHidden(!alwaysHiddenEnabled)"></div>
-    </div>
-
-    <div class="row">
-      <div>
         <div class="row-label">Hide the divider</div>
         <div class="row-note">Make the | divider invisible</div>
       </div>
@@ -549,7 +541,6 @@
   const durationMinutes = derived(() => status().caffeinateDurationMinutes ?? -1)
   const isAutoCollapse = derived(() => status().isAutoCollapse === true)
   const autoCollapseDelay = derived(() => status().autoCollapseDelay ?? 10)
-  const alwaysHiddenEnabled = derived(() => status().alwaysHiddenEnabled === true)
   const separatorHidden = derived(() => status().separatorHidden === true)
   const caffeinateOnStartup = derived(() => status().caffeinateOnStartup === true)
   const autoLaunch = derived(() => status().autoLaunch === true)
@@ -596,11 +587,7 @@
     await bridge()?.menubar?.setAutoCollapse(seconds)
   }
 
-  async function setAlwaysHidden(enabled) {
-    await savePreference('alwaysHiddenEnabled', enabled)
-    const menubar = bridge()?.menubar
-    await (enabled ? menubar?.enableAlwaysHidden() : menubar?.disableAlwaysHidden())
-  }
+
 
   async function setSeparatorHidden(hidden) {
     await savePreference('separatorHidden', hidden)
@@ -640,7 +627,6 @@
     loadInitialState()
 
     await menubar.init()
-    if (alwaysHiddenEnabled()) await menubar.enableAlwaysHidden()
     if (separatorHidden()) await menubar.setSeparatorHidden(true)
 
     // Only tidy the menu bar if that was asked for. Collapsing unconditionally
@@ -686,7 +672,6 @@
     disableCaffeinate: () => post('/api/caffeinate/disable'),
     toggleMenuBar,
     toggleAutoCollapse: () => setAutoCollapse(!isAutoCollapse()),
-    toggleAlwaysHidden: () => setAlwaysHidden(!alwaysHiddenEnabled()),
     preferences: () => bridge()?.window?.show(),
     about: () => bridge()?.window?.show(),
     checkForUpdates: checkForUpdates,
