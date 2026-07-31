@@ -449,7 +449,7 @@
       <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
       <span x-text="menuBarCollapsed ? 'Show hidden items' : 'Hide items'"></span>
     </button>
-    <span class="hint">Cmd-drag icons to the left of the &#183; marker to tuck them away.</span>
+    <span class="hint">Cmd-drag icons to the left of the &#171; marker to tuck them away.</span>
 
     <div class="row">
       <div>
@@ -485,7 +485,7 @@
     <div class="row">
       <div>
         <div class="row-label">Hide the divider</div>
-        <div class="row-note">Make the &#183; marker invisible</div>
+        <div class="row-note">Make the &#171; marker invisible</div>
       </div>
       <div class="switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
     </div>
@@ -623,9 +623,21 @@
     })
   }
 
+  // The server rendered this panel's starting state into the markup. Read it
+  // straight out rather than waiting a round trip and painting a stale panel —
+  // and read it here rather than only on mount, because `initMenuBar` runs
+  // whenever the bridge comes up, which may be first. It once did, and read an
+  // empty state: auto collapse was silently off on every launch.
+  function loadInitialState() {
+    if (Object.keys(status()).length) return
+    status.set(JSON.parse(root().dataset.initialState))
+  }
+
   async function initMenuBar() {
     const menubar = bridge()?.menubar
     if (!menubar) return
+
+    loadInitialState()
 
     await menubar.init()
     if (alwaysHiddenEnabled()) await menubar.enableAlwaysHidden()
@@ -720,7 +732,17 @@
 
   // Left click brews or stops the coffee, the way the other caffeinate apps
   // behave; right click opens the menu natively and never reaches here.
+  //
+  // While the bar is tucked away, though, this icon is the way back. A widened
+  // marker draws nothing and so cannot be aimed at, and a separate always-there
+  // toggle would be a third icon in a bar Barista exists to empty — so the one
+  // icon that is guaranteed to survive a collapse takes the job.
   useEventListener('craft:tray:click', async () => {
+    if (menuBarCollapsed()) {
+      await toggleMenuBar()
+      return
+    }
+
     await toggleCaffeinate()
     await syncTray()
   })
@@ -731,10 +753,9 @@
   useEventListener('craft:ready', () => { initMenuBar(); syncTray() })
 
   onMount(async () => {
-    // The server already rendered this state, so read it rather than waiting a
-    // round trip and painting a stale panel first.
-    status.set(JSON.parse(root().dataset.initialState))
+    loadInitialState()
 
+    await initMenuBar()
     await syncTray()
     await bridge()?.app?.registerShortcut(globalHotkey(), toggleMenuBar)
   })
