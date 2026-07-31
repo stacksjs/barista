@@ -12,6 +12,9 @@
  * rather than describing a second one.
  */
 import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
+import { existsSync, mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { basename, join } from 'node:path'
 import brewingIcon from './assets/tray-brewing.pdf' with { type: 'file' }
 import idleIcon from './assets/tray-idle.pdf' with { type: 'file' }
 import type { Duration } from './durations'
@@ -26,12 +29,41 @@ import { DURATIONS, QUICK_DURATIONS } from './durations'
  * steam. Craft renders them as template images, so macOS still tints them for
  * light mode, dark mode and the highlighted menu bar.
  *
- * Imported as files so Bun embeds them in the compiled binary and hands back a
- * real path at runtime, in a bundle as well as from source.
+ * Imported as files so Bun embeds them in the compiled binary, then handed to
+ * Craft by path — see `onDisk`, because the path Bun hands back is not one
+ * Craft can open.
  */
 export const TRAY_ICONS: { awake: string, asleep: string } = {
-  awake: brewingIcon,
-  asleep: idleIcon,
+  awake: await onDisk(brewingIcon),
+  asleep: await onDisk(idleIcon),
+}
+
+/**
+ * A path the Craft process can actually open.
+ *
+ * Assets embedded in a compiled binary live in Bun's virtual filesystem, under
+ * paths like `/$bunfs/root/tray-idle.pdf`. Those resolve inside this process
+ * and nowhere else, so handing one to Craft asks it to open a file that, as far
+ * as the rest of the system is concerned, does not exist — and the menu bar
+ * item draws nothing at all. Copy the asset somewhere real, once, and hand over
+ * that path instead. Running from source the path is already a real one and
+ * this does nothing.
+ */
+async function onDisk(embedded: string): Promise<string> {
+  if (!embedded.startsWith('/$bunfs/'))
+    return embedded
+
+  const dir = join(tmpdir(), 'barista-assets')
+  const copy = join(dir, basename(embedded))
+
+  if (!existsSync(copy)) {
+    mkdirSync(dir, { recursive: true })
+    // Through `Bun.file`, which knows how to read the virtual filesystem —
+    // `copyFileSync` and friends go straight to the kernel and find nothing.
+    await Bun.write(copy, Bun.file(embedded))
+  }
+
+  return copy
 }
 
 /**
