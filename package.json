@@ -36,7 +36,7 @@
     "format": "bunx --bun pickier . --format",
     "format:fix": "bunx --bun pickier . --format --write",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx --bun logsmith --output CHANGELOG.md",
+    "changelog": "bunx --bun @stacksjs/logsmith --output CHANGELOG.md",
     "release": "bunx --bun @stacksjs/bumpx prompt --recursive",
     "release:patch": "bunx --bun @stacksjs/bumpx patch --recursive --commit --tag --push --yes",
     "release:minor": "bunx --bun @stacksjs/bumpx minor --recursive --commit --tag --push --yes",
