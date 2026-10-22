@@ -38,12 +38,12 @@ const binaryPath = join(OUT_DIR, 'barista')
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// Embedded tray artwork requires Craft's native image-data bridge.
+// The native grouping control needs Craft's overflow-aware layout.
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version
-  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 278))
-throw new Error('Barista requires Craft 0.0.278 or newer. Run `pantry update` before building.')
+  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 293))
+throw new Error('Barista requires Craft 0.0.293 or newer. Run `pantry update` before building.')
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({

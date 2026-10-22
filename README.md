@@ -31,7 +31,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Get Started
 
 Requires macOS 15 or newer, matching the bundled Craft runtime.
-Building requires Pantry 0.11.114 or newer and Craft 0.0.292 or newer for native menu bar grouping.
+Building requires Pantry 0.11.114 or newer and Craft 0.0.293 or newer for native menu bar grouping.
 
 ```bash
 pantry install
