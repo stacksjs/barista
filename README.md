@@ -31,13 +31,19 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Get Started
 
 Requires macOS 15 or newer, matching the bundled Craft runtime.
-Building requires Pantry 0.11.114 or newer to resolve the native runtime for packaging.
+Building requires Pantry 0.11.114 or newer and Craft 0.0.292 or newer for native menu bar grouping.
 
 ```bash
 pantry install
 bun install
 pantry run dev
 ```
+
+To group menu bar icons, hold ⌘ and drag them left of Barista's `|` divider.
+Click the divider to hide the group, then its `›` control to reveal it again;
+⌘⇧B works from any app. These controls are separate from macOS's double-chevron
+overflow control. Barista releases its reserved space when native overflow moves
+the group, keeping the empty divider out of the application menus.
 
 ## Development
 
