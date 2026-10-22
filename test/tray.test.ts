@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DURATIONS, isKnownDuration } from '../src/durations'
 import { DURATIONS as ALL_DURATIONS, QUICK_DURATIONS } from '../src/durations'
-import { buildTrayMenu, parseCraftVersion, supportsTrayIcon, TRAY_GLYPHS, TRAY_ICONS, trayGlyph, trayIcon, trayStatusLabel, trayTooltip } from '../src/tray'
+import { buildTrayMenu, TRAY_ICONS, trayIcon, trayStatusLabel, trayTooltip } from '../src/tray'
 import { bundlePath } from '../src/updates'
 
 const asleep = {
@@ -34,8 +34,9 @@ describe('tray icon', () => {
 
   it('ships its own mug artwork rather than a system symbol', () => {
     // The system set has no steaming mug, so these are files Craft templates.
-    expect(TRAY_ICONS.asleep).toMatch(/tray-idle\.pdf$/)
-    expect(TRAY_ICONS.awake).toMatch(/tray-brewing\.pdf$/)
+    expect(TRAY_ICONS.asleep).toStartWith('data:application/pdf;base64,')
+    expect(TRAY_ICONS.awake).toStartWith('data:application/pdf;base64,')
+    expect(TRAY_ICONS.awake).not.toBe(TRAY_ICONS.asleep)
   })
 })
 
@@ -110,6 +111,7 @@ describe('tray menu', () => {
 
   it('carries the standard app items, including a way to update', () => {
     const actions = buildTrayMenu(asleep).map(i => i.action)
+    expect(actions).toContain('arrangeMenuBar')
     expect(actions).toContain('preferences')
     expect(actions).toContain('about')
     expect(actions).toContain('checkForUpdates')
@@ -119,36 +121,6 @@ describe('tray menu', () => {
   it('reflects the checkbox preferences', () => {
     const menu = buildTrayMenu({ ...asleep, isAutoCollapse: true })
     expect(menu.find(i => i.action === 'toggleAutoCollapse')?.checked).toBe(true)
-  })
-})
-
-describe('tray icon capability', () => {
-  it('reads the version out of craft --version output', () => {
-    expect(parseCraftVersion('craft version 0.0.55\nBuilt with Zig 0.17.0-dev')).toBe('0.0.55')
-    expect(parseCraftVersion('nonsense')).toBeNull()
-  })
-
-  it('needs the release that made setIcon draw', () => {
-    expect(supportsTrayIcon('0.0.55')).toBe(true)
-    expect(supportsTrayIcon('0.0.56')).toBe(true)
-    expect(supportsTrayIcon('0.1.0')).toBe(true)
-    expect(supportsTrayIcon('0.0.54')).toBe(false)
-    expect(supportsTrayIcon('0.0.37')).toBe(false)
-  })
-
-  it('treats a local development build as capable, since it is built from source', () => {
-    expect(supportsTrayIcon('0.0.0')).toBe(true)
-  })
-
-  it('falls back when the version cannot be determined', () => {
-    expect(supportsTrayIcon(null)).toBe(false)
-  })
-
-  it('offers a visible cup either way', () => {
-    expect(trayIcon(true)).toBe(TRAY_ICONS.awake)
-    expect(trayGlyph(true)).toBe(TRAY_GLYPHS.awake)
-    expect(trayGlyph(false)).toBe(TRAY_GLYPHS.asleep)
-    expect(trayGlyph(true)).not.toBe(trayGlyph(false))
   })
 })
 

@@ -17,7 +17,6 @@ export interface BaristaPreferences extends Record<string, unknown> {
   autoCollapseDelay: number
   /** Keep a Dock icon. Off by default — Barista lives in the menu bar. */
   showInDock: boolean
-  /** Offer a second, permanently hidden menu bar section */
   /** Hide the separator marking the collapsible section */
   separatorHidden: boolean
   /** Shortcut that toggles the menu bar */

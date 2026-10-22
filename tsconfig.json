@@ -1,12 +1,18 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
     "moduleDetection": "force",
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["bun"],
+    "types": [
+      "bun"
+    ],
     "allowImportingTsExtensions": true,
     "strict": true,
     "strictNullChecks": true,
@@ -21,5 +27,7 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "exclude": ["pickier.config.ts"]
+  "exclude": [
+    "pickier.config.ts"
+  ]
 }

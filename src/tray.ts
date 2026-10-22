@@ -2,7 +2,7 @@
  * The menu bar item: its icon and its menu.
  *
  * Barista looks like the other caffeinate apps — a cup in the menu bar, no
- * label — so the icon is an SF Symbol that Craft renders as a template image,
+ * label — so Craft renders our cup artwork as a native template image,
  * filled while awake and outlined while asleep. macOS then tints it correctly
  * in light mode, dark mode and when the menu bar is highlighted.
  *
@@ -12,9 +12,6 @@
  * rather than describing a second one.
  */
 import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
-import { existsSync, mkdirSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { basename, join } from 'node:path'
 import brewingIcon from './assets/tray-brewing.pdf' with { type: 'file' }
 import idleIcon from './assets/tray-idle.pdf' with { type: 'file' }
 import type { Duration } from './durations'
@@ -29,86 +26,12 @@ import { DURATIONS, QUICK_DURATIONS } from './durations'
  * steam. Craft renders them as template images, so macOS still tints them for
  * light mode, dark mode and the highlighted menu bar.
  *
- * Imported as files so Bun embeds them in the compiled binary, then handed to
- * Craft by path — see `onDisk`, because the path Bun hands back is not one
- * Craft can open.
+ * Bun embeds the artwork; Craft decodes the data directly into NSImage.
+ * No extracted temporary files are needed by the installed application.
  */
 export const TRAY_ICONS: { awake: string, asleep: string } = {
-  awake: await onDisk(brewingIcon),
-  asleep: await onDisk(idleIcon),
-}
-
-/**
- * A path the Craft process can actually open.
- *
- * Assets embedded in a compiled binary live in Bun's virtual filesystem, under
- * paths like `/$bunfs/root/tray-idle.pdf`. Those resolve inside this process
- * and nowhere else, so handing one to Craft asks it to open a file that, as far
- * as the rest of the system is concerned, does not exist — and the menu bar
- * item draws nothing at all. Copy the asset somewhere real, once, and hand over
- * that path instead. Running from source the path is already a real one and
- * this does nothing.
- */
-async function onDisk(embedded: string): Promise<string> {
-  if (!embedded.startsWith('/$bunfs/'))
-    return embedded
-
-  const dir = join(tmpdir(), 'barista-assets')
-  const copy = join(dir, basename(embedded))
-
-  if (!existsSync(copy)) {
-    mkdirSync(dir, { recursive: true })
-    // Through `Bun.file`, which knows how to read the virtual filesystem —
-    // `copyFileSync` and friends go straight to the kernel and find nothing.
-    await Bun.write(copy, Bun.file(embedded))
-  }
-
-  return copy
-}
-
-/**
- * Text fallback for a Craft binary older than the setIcon fix, where an icon
- * would draw nothing and the item would be invisible. The two differ by Unicode
- * presentation selector: colour emoji while awake, flat glyph while asleep.
- */
-export const TRAY_GLYPHS = {
-  awake: '☕️',
-  asleep: '☕︎',
-} as const
-
-/**
- * First Craft release that draws a tray icon from a file. Earlier binaries only
- * understood SF Symbol names, and before 0.0.52 drew nothing at all.
- */
-export const TRAY_ICON_MIN_CRAFT = '0.0.55'
-
-/** First Craft release that tells left and right tray clicks apart. */
-export const TRAY_CLICK_MIN_CRAFT = '0.0.54'
-
-/**
- * Whether this Craft binary can draw a tray icon.
- *
- * A version Craft reports as `0.0.0` is a local development build, which is
- * built from source and therefore has the fix.
- */
-export function supportsTrayIcon(craftVersion: string | null): boolean {
-  if (!craftVersion)
-    return false
-  if (craftVersion === '0.0.0')
-    return true
-
-  const parse = (version: string) => version.split('.').map(part => Number.parseInt(part, 10) || 0)
-  const [major, minor, patch] = parse(craftVersion)
-  const [minMajor, minMinor, minPatch] = parse(TRAY_ICON_MIN_CRAFT)
-
-  if (major !== minMajor) return major > minMajor
-  if (minor !== minMinor) return minor > minMinor
-  return patch >= minPatch
-}
-
-/** Pull the version out of `craft --version` output. */
-export function parseCraftVersion(output: string): string | null {
-  return output.match(/craft version (\d+\.\d+\.\d+)/i)?.[1] ?? null
+  awake: `data:application/pdf;base64,${Buffer.from(await Bun.file(brewingIcon).arrayBuffer()).toString('base64')}`,
+  asleep: `data:application/pdf;base64,${Buffer.from(await Bun.file(idleIcon).arrayBuffer()).toString('base64')}`,
 }
 
 export interface TrayState {
@@ -123,10 +46,6 @@ export interface TrayState {
 
 export function trayIcon(caffeinated: boolean): string {
   return caffeinated ? TRAY_ICONS.awake : TRAY_ICONS.asleep
-}
-
-export function trayGlyph(caffeinated: boolean): string {
-  return caffeinated ? TRAY_GLYPHS.awake : TRAY_GLYPHS.asleep
 }
 
 /** Hover text, the only place the remaining time is spelled out. */
@@ -183,6 +102,7 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
     },
 
     { type: 'separator' },
+    { label: 'Arrange Menu Bar Items...', action: 'arrangeMenuBar' },
     {
       label: state.menuBarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
       action: 'toggleMenuBar',

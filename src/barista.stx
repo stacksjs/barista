@@ -323,6 +323,8 @@
   /* Switch */
 
   .switch {
+    border: 0;
+    padding: 0;
     position: relative;
     width: 38px;
     height: 22px;
@@ -430,6 +432,8 @@
     @click="toggleCaffeinate()"
   ></button>
 
+  <p class="hint" role="alert" x-show="errorMessage" x-text="errorMessage"></p>
+
   <div class="group">
     <div class="group-title">For how long</div>
     <div class="durations">
@@ -449,14 +453,14 @@
       <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
       <span x-text="menuBarCollapsed ? 'Show hidden items' : 'Hide items'"></span>
     </button>
-    <span class="hint">Cmd-drag icons to the left of the | divider to tuck them away.</span>
+    <span class="hint">Hold ⌘ and drag menu bar icons to rearrange them. Move icons left of | to hide them; use ⌘⇧B to show them again.</span>
 
     <div class="row">
       <div>
         <div class="row-label">Auto collapse</div>
         <div class="row-note">Tidy up again after a pause</div>
       </div>
-      <div class="switch" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)"></div>
+      <button type="button" class="switch" role="switch" :aria-checked="isAutoCollapse" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)" aria-label="Auto collapse"></button>
     </div>
 
     @if(isAutoCollapse)
@@ -479,7 +483,7 @@
         <div class="row-label">Hide the divider</div>
         <div class="row-note">Make the | divider invisible</div>
       </div>
-      <div class="switch" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)"></div>
+      <button type="button" class="switch" role="switch" :aria-checked="separatorHidden" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)" aria-label="Hide divider"></button>
     </div>
   </div>
 
@@ -491,17 +495,21 @@
         <div class="row-label">Start awake</div>
         <div class="row-note">Keep the Mac awake as soon as Barista opens</div>
       </div>
-      <div class="switch" :class="{ on: caffeinateOnStartup }" @click="savePreference('caffeinateOnStartup', !caffeinateOnStartup)"></div>
+      <button type="button" class="switch" role="switch" :aria-checked="caffeinateOnStartup" :class="{ on: caffeinateOnStartup }" @click="savePreference('caffeinateOnStartup', !caffeinateOnStartup)" aria-label="Start awake"></button>
     </div>
 
     <div class="row">
       <span class="row-label">Open at login</span>
-      <div class="switch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)"></div>
+      <button type="button" class="switch" role="switch" :aria-checked="autoLaunch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)" aria-label="Open at login"></button>
     </div>
 
     <div class="row">
-      <span class="row-label">Shortcut</span>
+      <span class="row-label">Menu bar shortcut</span>
       <span class="row-value" x-text="globalHotkey"></span>
+    </div>
+    <div class="row">
+      <span class="row-label">Keep awake shortcut</span>
+      <span class="row-value">Cmd+Shift+C</span>
     </div>
   </div>
 
@@ -521,19 +529,25 @@
   </div>
 
   <div class="footer">
-    Built with <a href="https://github.com/stacksjs/stx">stx</a> and <a href="https://github.com/stacksjs/craft">Craft</a>
+    Built with <a href="https://github.com/stacksjs/stx">stx</a> and <a href="https://github.com/craft-native/craft">Craft</a>
   </div>
 </div>
-<script client>
-  // Craft's native bridge owns the tray and the menu bar, and there is no stx
-  // primitive for it — this is the one place the popup reaches for a browser
-  // global. Everything else below is signals.
-  const bridge = () => window.craft
+<script client lang="ts">
+  import type { BaristaPreferences } from './preferences'
+  import type { CaffeinateSnapshot } from './caffeinate'
 
-  const root = ref()
+  type BaristaState = BaristaPreferences & Omit<CaffeinateSnapshot, 'endsAt'> & {
+    endsAt: string | null
+    menuBarCollapsed: boolean
+    menuBarInitialized: boolean
+    shortcutRegistered: boolean
+  }
+  const bridge = useNativeDesktop()
+
+  const root = useRef<HTMLElement>('root')
 
   /** Server state, refreshed from /api/status. Seeded so the panel never paints a wrong value. */
-  const status = state({})
+  const status = state<Partial<BaristaState>>({})
 
   const caffeinated = derived(() => status().active === true)
   const remainingTime = derived(() => status().remainingFormatted || '0:00')
@@ -547,18 +561,26 @@
   const globalHotkey = derived(() => status().globalHotkey || 'Cmd+Shift+B')
 
   const menuBarCollapsed = state(false)
+  const errorMessage = state('')
 
   async function refresh() {
     status.set(await fetch('/api/status').then(response => response.json()))
   }
 
-  async function post(path, body) {
+  async function post(path: string, body?: unknown) {
     const response = await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     })
-    status.set({ ...status(), ...await response.json() })
+    const result = await response.json()
+    if (!response.ok) {
+      errorMessage.set(result.error || 'Could not apply this change')
+      throw new Error(result.error || 'Request failed')
+    }
+    errorMessage.set('')
+    status.set({ ...status(), ...result })
+    await syncTray()
   }
 
   // ===== Caffeinate =====
@@ -567,29 +589,29 @@
     await post('/api/caffeinate/toggle')
   }
 
-  async function setDuration(minutes) {
+  async function setDuration(minutes: number) {
     await post('/api/caffeinate/duration', { minutes })
   }
 
   // ===== Preferences =====
 
-  async function savePreference(key, value) {
+  async function savePreference<K extends keyof BaristaPreferences>(key: K, value: BaristaPreferences[K]) {
     await post('/api/preferences', { [key]: value })
   }
 
-  async function setAutoCollapse(enabled) {
+  async function setAutoCollapse(enabled: boolean) {
     await savePreference('isAutoCollapse', enabled)
     await bridge()?.menubar?.setAutoCollapse(enabled ? autoCollapseDelay() : 0)
   }
 
-  async function setCollapseDelay(seconds) {
+  async function setCollapseDelay(seconds: number) {
     await savePreference('autoCollapseDelay', seconds)
     await bridge()?.menubar?.setAutoCollapse(seconds)
   }
 
 
 
-  async function setSeparatorHidden(hidden) {
+  async function setSeparatorHidden(hidden: boolean) {
     await savePreference('separatorHidden', hidden)
     await bridge()?.menubar?.setSeparatorHidden(hidden)
   }
@@ -601,12 +623,12 @@
   }
 
   /** The tray menu labels the collapse state, so tell the server when it flips. */
-  async function reportMenuBarState(collapsed) {
+  async function reportMenuBarState(collapsed: boolean, shortcutRegistered?: boolean) {
     menuBarCollapsed.set(collapsed)
     await fetch('/api/menu-bar/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collapsed }),
+      body: JSON.stringify({ collapsed, shortcutRegistered }),
     })
   }
 
@@ -617,7 +639,9 @@
   // empty state: auto collapse was silently off on every launch.
   function loadInitialState() {
     if (Object.keys(status()).length) return
-    status.set(JSON.parse(root().dataset.initialState))
+    const initial = root()?.dataset.initialState
+    if (!initial) throw new Error('Missing initial Barista state')
+    status.set(JSON.parse(initial))
   }
 
   async function initMenuBar() {
@@ -627,16 +651,13 @@
     loadInitialState()
 
     await menubar.init()
-    if (separatorHidden()) await menubar.setSeparatorHidden(true)
+    await menubar.setSeparatorHidden(separatorHidden())
 
-    // Only tidy the menu bar if that was asked for. Collapsing unconditionally
-    // hid Barista's own icon on every launch.
-    if (isAutoCollapse()) {
-      await menubar.setAutoCollapse(autoCollapseDelay())
-      await menubar.collapse()
-    }
+    // Craft owns the delay and preserves native collapse state across reloads.
+    await menubar.setAutoCollapse(isAutoCollapse() ? autoCollapseDelay() : 0)
 
-    await reportMenuBarState(isAutoCollapse())
+    const state = await menubar.getState()
+    await reportMenuBarState(state.collapsed)
   }
 
   // ===== Tray =====
@@ -657,20 +678,23 @@
     const next = await fetch('/api/tray').then(response => response.json())
     const fingerprint = JSON.stringify(next)
     if (fingerprint === lastTray) return
-    lastTray = fingerprint
 
-    // A template image when this Craft binary can draw one — the title stays
-    // empty so the cup is the whole item — and a text cup when it cannot.
-    if (next.useIcon) await tray.setIcon(next.icon)
-    await tray.setTitle(next.useIcon ? '' : next.glyph)
+    // The native template image is the whole item; macOS supplies its tint.
+    await tray.setIcon(next.icon)
+    await tray.setTitle('')
     await tray.setTooltip(next.tooltip)
     await tray.setMenu(next.menu)
+    lastTray = fingerprint
   }
 
-  const TRAY_ACTIONS = {
+  const TRAY_ACTIONS: Record<string, () => unknown | Promise<unknown>> = {
     toggleCaffeinate,
     disableCaffeinate: () => post('/api/caffeinate/disable'),
     toggleMenuBar,
+    arrangeMenuBar: async () => {
+      await bridge()?.menubar?.expand()
+      await bridge()?.window?.show()
+    },
     toggleAutoCollapse: () => setAutoCollapse(!isAutoCollapse()),
     preferences: () => bridge()?.window?.show(),
     about: () => bridge()?.window?.show(),
@@ -678,7 +702,7 @@
     quit: () => bridge()?.app?.quit(),
   }
 
-  async function runTrayAction(action) {
+  async function runTrayAction(action: string) {
     if (action.startsWith('duration:')) {
       await setDuration(Number.parseInt(action.slice('duration:'.length), 10))
       return
@@ -712,37 +736,34 @@
 
   // ===== Wiring =====
 
-  useEventListener('craft:menubar:stateChange', event => reportMenuBarState(event.detail.collapsed))
-  useEventListener('craft:tray:menuAction', event => runTrayAction(event.detail.action))
+  useEventListener('craft:menubar:stateChange', event => reportMenuBarState((event as CustomEvent<{ collapsed: boolean }>).detail.collapsed))
+  useEventListener('craft:tray:menuAction', event => runTrayAction((event as CustomEvent<{ action: string }>).detail.action))
+  useEventListener('craft:shortcut', event => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    if (id === 'barista.menu-bar') toggleMenuBar()
+    if (id === 'barista.caffeinate') toggleCaffeinate()
+  })
+  useEventListener('craft:shortcut:error', () => errorMessage.set('Could not reserve a global shortcut'))
 
-  // Left click brews or stops the coffee, the way the other caffeinate apps
-  // behave; right click opens the menu natively and never reaches here.
-  //
-  // While the bar is tucked away, though, this icon is the way back. A widened
-  // marker draws nothing and so cannot be aimed at, and a separate always-there
-  // toggle would be a third icon in a bar Barista exists to empty — so the one
-  // icon that is guaranteed to survive a collapse takes the job.
+  // The cup always toggles awake; click the divider to reveal hidden items.
   useEventListener('craft:tray:click', async () => {
-    if (menuBarCollapsed()) {
-      await toggleMenuBar()
-      return
-    }
-
     await toggleCaffeinate()
-    await syncTray()
   })
 
-  // The bridge may already be up by the time this script runs, so set the tray
-  // up now *and* on craft:ready — whichever comes first wins, and syncTray
-  // no-ops when nothing changed.
-  useEventListener('craft:ready', () => { initMenuBar(); syncTray() })
-
-  onMount(async () => {
+  // The framework delivers readiness once, after mount, even if the bridge
+  // arrived before the page. Reloading the popup preserves native collapse state.
+  bridge.onReady(async native => {
     loadInitialState()
-
     await initMenuBar()
     await syncTray()
-    await bridge()?.app?.registerShortcut(globalHotkey(), toggleMenuBar)
+    const shortcuts = native.shortcuts
+    if (!shortcuts) throw new Error('Native shortcuts are unavailable')
+    await shortcuts.register('barista.menu-bar', globalHotkey())
+    await shortcuts.register('barista.caffeinate', 'Cmd+Shift+C')
+    const registered = await shortcuts.isRegistered('barista.menu-bar')
+      && await shortcuts.isRegistered('barista.caffeinate')
+    await reportMenuBarState(menuBarCollapsed(), registered)
+    if (!registered) errorMessage.set('A shortcut is already in use by another app')
   })
 
   // The countdown ticks in the tray as well as the popup, and the menu's labels

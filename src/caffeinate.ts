@@ -5,19 +5,12 @@
  * about caffeinating rather than about `caffeinate(1)` flags.
  */
 import type { CaffeinateInstance } from '@stacksjs/stx/desktop'
-import {
-  caffeinate,
-  decaffeinate,
-  formatDuration,
-  formatRemainingTime,
-  getCaffeinateStatus,
-  isCaffeinated,
-} from '@stacksjs/stx/desktop'
+import { caffeinate, decaffeinate, formatDuration, formatRemainingTime, getCaffeinateStatus, isCaffeinated } from '@stacksjs/stx/desktop'
 
 /** A snapshot of the caffeinate state, ready to render or serialize. */
 export interface CaffeinateSnapshot {
   active: boolean
-  /** Minutes the current session runs for. `null` means indefinitely. */
+  /** Session minutes: `-1` is indefinite; `null` means inactive. */
   durationMinutes: number | null
   /** Countdown to wake, e.g. "1:23:45" */
   remainingFormatted: string
@@ -34,6 +27,7 @@ export interface CaffeinateSnapshot {
  */
 export function enableCaffeinate(durationMinutes: number): CaffeinateInstance {
   return caffeinate({
+    reason: 'Barista: keeping your Mac awake',
     duration: durationMinutes > 0 ? durationMinutes : undefined,
     preventDisplaySleep: true,
     preventIdleSleep: true,

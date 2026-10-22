@@ -13,11 +13,10 @@
  *   APPLE_PROVISIONING_PROFILE_PATH   .provisionprofile embedded in the bundle
  *   APPLE_NOTARIZE_*                  Apple ID, app-specific password and team ID
  */
-import { createGitHubUpdateManifest, packageApp, resolveCraftBinary, UPDATE_MANIFEST_ASSET } from '@stacksjs/stx/desktop'
+import { createGitHubUpdateManifest, packageApp, resolveCraftExecutablePath, UPDATE_MANIFEST_ASSET } from '@stacksjs/stx/desktop'
 import { existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { which } from 'bun'
 import pkg from './package.json' with { type: 'json' }
 import { REPOSITORY } from './src/updates'
 
@@ -36,14 +35,15 @@ const appStore = Boolean(signIdentity && installerIdentity)
 
 const binaryPath = join(OUT_DIR, 'barista')
 
-// Barista spawns the Craft webview at runtime, so the .app has to ship it or an
-// installed copy would have nothing to render with. Craft resolves to PATH (it
-// installs via pantry), so turn that into the absolute path packaging needs.
-const craftBinary = resolveCraftBinary(process.env.CRAFT_BINARY_PATH)
-const bundledCraft = craftBinary.includes('/') ? craftBinary : which(craftBinary)
+// stx resolves Pantry's native provider, which can be embedded in the bundle.
+const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-if (!bundledCraft)
-  throw new Error('Craft binary not found on PATH. Install it with `pantry install craft`, or point CRAFT_BIN at a local build.')
+// Embedded tray artwork requires Craft's native image-data bridge.
+const probe = Bun.spawnSync([bundledCraft, '--version'])
+const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
+if (probe.exitCode !== 0 || !version
+  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 278))
+throw new Error('Barista requires Craft 0.0.278 or newer. Run `pantry update` before building.')
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({
@@ -89,7 +89,7 @@ const results = await packageApp({
     // Barista lives in the menu bar; a Dock icon would be noise.
     menuBarOnly: true,
     category: 'public.app-category.utilities',
-    minimumSystemVersion: '13.0',
+    minimumSystemVersion: '15.0',
     // The App Store rejects a repeat upload of the same build number, and CI
     // run numbers increase monotonically.
     buildNumber: process.env.GITHUB_RUN_NUMBER,
