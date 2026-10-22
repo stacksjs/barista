@@ -449,11 +449,11 @@
 
   <div class="group">
     <div class="group-title">Menu bar</div>
-    <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" @click="toggleMenuBar()">
+    <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" :aria-expanded="!menuBarCollapsed" @click="toggleMenuBar()">
       <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
-      <span x-text="menuBarCollapsed ? 'Show hidden items' : 'Hide items'"></span>
+      <span x-text="menuBarCollapsed ? 'Show grouped icons' : 'Hide grouped icons'"></span>
     </button>
-    <span class="hint">Hold ⌘ and drag menu bar icons to rearrange them. Move icons left of | to hide them; use ⌘⇧B to show them again.</span>
+    <span class="hint">Hold ⌘ and drag icons left of | to group them. Click the divider or press ⌘⇧B to show or hide the group.</span>
 
     <div class="row">
       <div>
@@ -480,8 +480,8 @@
 
     <div class="row">
       <div>
-        <div class="row-label">Hide the divider</div>
-        <div class="row-note">Make the | divider invisible</div>
+        <div class="row-label">Hide arrangement divider</div>
+        <div class="row-note">The reveal button stays available</div>
       </div>
       <button type="button" class="switch" role="switch" :aria-checked="separatorHidden" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)" aria-label="Hide divider"></button>
     </div>
