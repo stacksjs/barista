@@ -59,6 +59,10 @@ bun run lint:fix
 pantry run build
 ```
 
+Set `APPLE_SIGNING_IDENTITY` for a signed direct build. Direct builds use
+`barista.direct.entitlements` for the Bun host; App Store builds use the separate
+sandboxed `barista.entitlements` and require both signing identities.
+
 ## Verification
 
 ```bash
@@ -70,7 +74,7 @@ bun run test:native
 The native E2E suite launches the packaged `.app` with an isolated preference
 profile and only system tools on PATH, waits for its real WebKit view to initialize the menu bar, checks
 macOS power assertions, switches timed/indefinite sessions, validates rejected
-inputs, and verifies shutdown, native auto-collapse and Start Awake after relaunch. CI runs it
+inputs, and verifies shutdown, native auto-collapse and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
 against both the packaged app and its read-only DMG before release publishing. Timed expiry is covered in stx's native
 power tests. Physical ⌘-drag placement still requires a macOS desktop check.
 

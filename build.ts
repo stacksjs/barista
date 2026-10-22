@@ -61,10 +61,12 @@ if (!compiled.success) {
   process.exit(1)
 }
 
-const entitlements = resolve(import.meta.dir, 'barista.entitlements')
+const entitlements = resolve(import.meta.dir, appStore ? 'barista.entitlements' : 'barista.direct.entitlements')
 const icon = resolve(import.meta.dir, 'src/assets/icon.icns')
 
-console.log(appStore ? 'Packaging for the Mac App Store...' : 'Packaging (unsigned local build)...')
+console.log(appStore
+  ? 'Packaging for the Mac App Store...'
+  : signIdentity ? 'Packaging signed direct build...' : 'Packaging unsigned local build...')
 const results = await packageApp({
   name: 'Barista',
   version: pkg.version,

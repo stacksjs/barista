@@ -75,8 +75,12 @@ jobs:
         with:
           version: '0.11.114'
       - run: bun install --frozen-lockfile
-      - name: Build the self-contained app
-        run: bun run build
+      - name: Build and sign the self-contained app
+        env:
+          APPLE_SIGNING_IDENTITY: '-'
+        run: pantry run build
+      - name: Verify the app signature
+        run: codesign --verify --deep --strict dist/Barista.app
       - name: Verify native initialization, power, shutdown and relaunch
         run: bun run test:native
       - name: Verify the read-only distributable
