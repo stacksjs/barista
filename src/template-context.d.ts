@@ -2,4 +2,3 @@
 declare const version: string
 declare const initialState: string
 declare const durations: import('./durations').Duration[]
-declare const collapseDelays: number[]

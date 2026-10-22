@@ -40,8 +40,6 @@ export interface TrayState {
   remaining: string
   /** Minutes the current session runs for, or `-1` for indefinitely. */
   durationMinutes: number
-  menuBarCollapsed: boolean
-  isAutoCollapse: boolean
 }
 
 export function trayIcon(caffeinated: boolean): string {
@@ -99,20 +97,6 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
         type: 'radio' as const,
         checked: state.caffeinated && state.durationMinutes === duration.minutes,
       })),
-    },
-
-    { type: 'separator' },
-    { label: 'Arrange Menu Bar Items...', action: 'arrangeMenuBar' },
-    {
-      label: state.menuBarCollapsed ? 'Show Menu Bar Items' : 'Hide Menu Bar Items',
-      action: 'toggleMenuBar',
-      shortcut: 'Cmd+Shift+B',
-    },
-    {
-      label: 'Auto Collapse',
-      action: 'toggleAutoCollapse',
-      type: 'checkbox',
-      checked: state.isAutoCollapse,
     },
 
     { type: 'separator' },

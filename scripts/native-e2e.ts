@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, realpathSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -11,6 +11,17 @@ const runtimeType = Bun.spawnSync(['/usr/bin/file', '-b', runtime])
 assert.equal(runtimeType.exitCode, 0)
 assert.match(runtimeType.stdout.toString(), /Mach-O/, 'packaged Craft must be a native executable, not an installation launcher')
 const profile = mkdtempSync(join(tmpdir(), 'barista-e2e-'))
+const preferencesPath = join(profile, 'preferences.json')
+// An upgrade must hand overflow to macOS even when the former controller was
+// enabled. Keep user awake and login choices distinct from the retired settings.
+const retiredPreferences = {
+  isAutoCollapse: true,
+  autoCollapseDelay: 5,
+  separatorHidden: false,
+  globalHotkey: 'Cmd+Shift+B',
+  alwaysHiddenEnabled: true,
+}
+writeFileSync(preferencesPath, JSON.stringify({ ...retiredPreferences, caffeinateOnStartup: false, caffeinateDurationMinutes: -1, autoLaunch: false }))
 const steps: string[] = []
 let child: ReturnType<typeof Bun.spawn> | undefined
 let nativePid: number | undefined
@@ -32,7 +43,7 @@ async function start() {
   output = ''
   const env: Record<string, string | undefined> = {
     ...process.env,
-    BARISTA_PREFERENCES_PATH: join(profile, 'preferences.json'),
+    BARISTA_PREFERENCES_PATH: preferencesPath,
     PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
   }
   delete env.CRAFT_BINARY_PATH
@@ -49,7 +60,9 @@ async function start() {
     }
   }
   url = await until(() => output.match(/Barista [^\n]+ — (http:\/\/127\.0\.0\.1:\d+)/)?.[1] || '', Boolean)
-  await until(status, state => state.menuBarInitialized === true && state.shortcutRegistered === true)
+  const ready = await until(status, state => state.nativeReady === true && state.shortcutRegistered === true)
+  assert.equal(ready.menuBarInitialized, false, 'the native grouping controller must remain uninitialized')
+  assert.equal(ready.menuBarController, 'system')
   const children = Bun.spawnSync(['/usr/bin/pgrep', '-P', String(child.pid)])
   const pids = children.stdout.toString().trim().split(/\s+/).filter(Boolean)
   assert(pids.length > 0, 'native runtime was not spawned')
@@ -104,12 +117,23 @@ async function stop() {
 try {
   await start()
   assert.equal((await status()).active, false)
-  steps.push('hidden native webview initialized its menu bar and reserved both global shortcuts')
+  assert.equal((await status()).autoLaunch, false)
+  const saved = JSON.parse(readFileSync(preferencesPath, 'utf8'))
+  for (const key of Object.keys(retiredPreferences))
+    assert.equal(Object.hasOwn(saved, key), false, `${key} must be retired during upgrade`)
+  steps.push('hidden native webview reserves keep-awake shortcut and leaves overflow to macOS, including on upgrade')
+
+  const tray = await fetch(`${url}/api/tray`).then(response => response.json())
+  const actions = tray.menu.map((item: { action?: string }) => item.action)
+  for (const action of ['toggleMenuBar', 'arrangeMenuBar', 'toggleAutoCollapse'])
+    assert.equal(actions.includes(action), false, `${action} must not compete with macOS overflow`)
+  steps.push('native tray exposes awake controls without a competing overflow action')
 
   for (const minutes of [0, -2, 7, null, '60'])
     await post('/api/caffeinate/duration', { minutes }, 400)
-  await post('/api/preferences', { isAutoCollapse: 'yes' }, 400)
-  await post('/api/preferences', { autoCollapseDelay: 0 }, 400)
+  await post('/api/preferences', { isAutoCollapse: true }, 400)
+  await post('/api/preferences', { autoCollapseDelay: 5 }, 400)
+  await post('/api/preferences', { caffeinateOnStartup: 'yes' }, 400)
   assert.equal((await status()).active, false)
   steps.push('invalid durations and preferences leave sleep state unchanged')
 
@@ -131,17 +155,17 @@ try {
   await post('/api/caffeinate/disable')
   assert.equal((await status()).active, false)
   assert.equal(ownedAssertions().length, 0)
-  await post('/api/preferences', { caffeinateOnStartup: true, isAutoCollapse: true, autoCollapseDelay: 5 })
+  await post('/api/preferences', { caffeinateOnStartup: true })
   await stop()
   steps.push('Turn Off and process shutdown release every assertion')
 
   await start()
-  const relaunched = await until(status, state => state.menuBarCollapsed === true)
+  const relaunched = await status()
   assert.equal(relaunched.active, true)
   assert.equal(relaunched.caffeinateDurationMinutes, -1)
-  assert.equal(relaunched.menuBarCollapsed, true, JSON.stringify(relaunched))
+  assert.equal(relaunched.menuBarInitialized, false)
   assert(ownedAssertions().some(line => line.includes('PreventUserIdleSystemSleep')))
-  steps.push('hidden relaunch applies saved menu bar settings and Start Awake')
+  steps.push('hidden relaunch preserves Start Awake and continues using system overflow')
 
   assert(nativePid, 'native process was not recorded')
   process.kill(nativePid, 'SIGTERM')

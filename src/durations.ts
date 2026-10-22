@@ -31,9 +31,6 @@ export const QUICK_DURATIONS: Duration[] = DURATIONS.filter(duration =>
   [15, 60, 240, -1].includes(duration.minutes),
 )
 
-/** Delays offered for auto-collapsing the menu bar, in seconds. */
-export const COLLAPSE_DELAYS: number[] = [5, 10, 15, 30, 60]
-
 export function isKnownDuration(minutes: number): boolean {
   return DURATIONS.some(duration => duration.minutes === minutes)
 }

@@ -13,13 +13,13 @@ import pkg from './package.json' with { type: 'json' }
 // a shipped .app has no src/barista.stx on disk to read.
 import templateSource from './src/barista.stx' with { type: 'text' }
 import { caffeinateSnapshot, disableCaffeinate, enableCaffeinate, toggleCaffeinate } from './src/caffeinate'
-import { COLLAPSE_DELAYS, DURATIONS, isKnownDuration } from './src/durations'
+import { DURATIONS, isKnownDuration } from './src/durations'
 import { DEFAULT_PREFERENCES } from './src/preferences'
 import { buildTrayMenu, trayIcon, trayTooltip } from './src/tray'
 import { createUpdateChecker } from './src/updates'
 
 export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
-  let menuBarCollapsed = false
+  let nativeReady = false
   let menuBarInitialized = false
   let shortcutRegistered = false
   const updates = createUpdateChecker(pkg.version)
@@ -32,7 +32,8 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
       ...prefs.getAll(),
       ...caffeinate,
       // The tray shows a cup, and spells the time out on hover.
-      menuBarCollapsed,
+      nativeReady,
+      menuBarController: 'system',
       menuBarInitialized,
       shortcutRegistered,
     }
@@ -48,7 +49,7 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
 
     window: {
       width: 320,
-      height: 740,
+      height: 620,
       hideDockIcon: !DEFAULT_PREFERENCES.showInDock,
     },
 
@@ -60,7 +61,6 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
       return {
         ...state,
         durations: DURATIONS,
-        collapseDelays: COLLAPSE_DELAYS,
         version: pkg.version,
         // The popup seeds its signals from this rather than waiting a round trip
         // and painting a stale panel first.
@@ -75,8 +75,6 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
         caffeinated: caffeinate.active,
         remaining: caffeinate.remainingFormatted,
         durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
-        menuBarCollapsed,
-        isAutoCollapse: prefs.get('isAutoCollapse'),
       })
     },
 
@@ -93,9 +91,7 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
         for (const [key, value] of Object.entries(patch)) {
           if (!Object.hasOwn(DEFAULT_PREFERENCES, key)
             || typeof value !== typeof DEFAULT_PREFERENCES[key]
-            || (key === 'caffeinateDurationMinutes' && !isKnownDuration(value as number))
-            || (key === 'autoCollapseDelay' && !COLLAPSE_DELAYS.includes(value as number))
-            || (key === 'globalHotkey' && value !== DEFAULT_PREFERENCES.globalHotkey))
+            || (key === 'caffeinateDurationMinutes' && !isKnownDuration(value as number)))
           return Response.json({ error: `Invalid preference: ${key}` }, { status: 400 })
         }
         for (const [key, value] of Object.entries(patch)) prefs.set(key, value)
@@ -110,8 +106,6 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
           caffeinated: caffeinate.active,
           remaining: caffeinate.remainingFormatted,
           durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
-          menuBarCollapsed,
-          isAutoCollapse: prefs.get('isAutoCollapse'),
         }
 
         return {
@@ -144,15 +138,14 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
         return caffeinateSnapshot()
       },
 
-      'POST /api/menu-bar/state': async (request) => {
+      'POST /api/native/state': async (request) => {
         const body = await request.json().catch(() => null)
-        const collapsed = body?.collapsed
-        if (typeof collapsed !== 'boolean')
-          return Response.json({ error: 'collapsed must be a boolean' }, { status: 400 })
-        menuBarCollapsed = collapsed
-        menuBarInitialized = true
-        if (typeof body.shortcutRegistered === 'boolean') shortcutRegistered = body.shortcutRegistered
-        return { collapsed: menuBarCollapsed }
+        if (typeof body?.menuBarInitialized !== 'boolean' || typeof body?.shortcutRegistered !== 'boolean')
+          return Response.json({ error: 'Expected native menu bar and shortcut state' }, { status: 400 })
+        menuBarInitialized = body.menuBarInitialized
+        shortcutRegistered = body.shortcutRegistered
+        nativeReady = true
+        return { nativeReady, menuBarInitialized, shortcutRegistered }
       },
 
       '/api/updates': () => updates.status(),
@@ -163,6 +156,11 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
       },
     },
   })
+
+  // Retire settings for Barista's former grouping controller while preserving
+  // the user's awake, duration, login and Dock preferences.
+  for (const key of ['isAutoCollapse', 'autoCollapseDelay', 'separatorHidden', 'globalHotkey', 'alwaysHiddenEnabled'])
+    app.preferences.delete(key)
 
   updates.start()
   return app

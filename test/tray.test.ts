@@ -11,8 +11,6 @@ const asleep = {
   caffeinated: false,
   remaining: '0:00',
   durationMinutes: -1,
-  menuBarCollapsed: false,
-  isAutoCollapse: false,
 }
 
 const awakeForAnHour = { ...asleep, caffeinated: true, remaining: '0:59:12', durationMinutes: 60 }
@@ -102,26 +100,14 @@ describe('tray menu', () => {
     expect(all.filter(i => i.checked)).toHaveLength(0)
   })
 
-  it('labels the menu bar toggle by the collapse state', () => {
-    expect(buildTrayMenu({ ...asleep, menuBarCollapsed: true }).find(i => i.action === 'toggleMenuBar')?.label)
-      .toBe('Show Menu Bar Items')
-    expect(buildTrayMenu(asleep).find(i => i.action === 'toggleMenuBar')?.label)
-      .toBe('Hide Menu Bar Items')
-  })
-
   it('carries the standard app items, including a way to update', () => {
     const actions = buildTrayMenu(asleep).map(i => i.action)
-    expect(actions).toContain('arrangeMenuBar')
     expect(actions).toContain('preferences')
     expect(actions).toContain('about')
     expect(actions).toContain('checkForUpdates')
     expect(actions).toContain('quit')
   })
 
-  it('reflects the checkbox preferences', () => {
-    const menu = buildTrayMenu({ ...asleep, isAutoCollapse: true })
-    expect(menu.find(i => i.action === 'toggleAutoCollapse')?.checked).toBe(true)
-  })
 })
 
 describe('update target', () => {

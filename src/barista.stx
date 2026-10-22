@@ -268,50 +268,6 @@
     white-space: nowrap;
   }
 
-  /* Menu bar control */
-
-  .menubar-btn {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
-    background: transparent;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 13px;
-    cursor: pointer;
-    transition: border-color 0.12s ease, background 0.12s ease, transform 0.06s ease;
-    -webkit-app-region: no-drag;
-  }
-
-  .menubar-btn:hover {
-    border-color: var(--hairline-lit);
-    background: var(--surface-raised);
-  }
-
-  .menubar-btn:active {
-    transform: scale(0.99);
-  }
-
-  .menubar-btn.collapsed {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .caret {
-    width: 14px;
-    text-align: center;
-    font-size: 15px;
-    color: var(--text-faint);
-  }
-
-  .menubar-btn.collapsed .caret {
-    color: var(--accent);
-  }
-
   .hint {
     display: block;
     margin-top: 8px;
@@ -449,42 +405,8 @@
 
   <div class="group">
     <div class="group-title">Menu bar</div>
-    <button class="menubar-btn" :class="{ collapsed: menuBarCollapsed }" :aria-expanded="!menuBarCollapsed" @click="toggleMenuBar()">
-      <span class="caret" x-text="menuBarCollapsed ? '&#8250;' : '&#8249;'"></span>
-      <span x-text="menuBarCollapsed ? 'Show grouped icons' : 'Hide grouped icons'"></span>
-    </button>
-    <span class="hint">Hold ⌘ and drag icons left of | to group them. Click the divider or press ⌘⇧B to show or hide the group.</span>
-
-    <div class="row">
-      <div>
-        <div class="row-label">Auto collapse</div>
-        <div class="row-note">Tidy up again after a pause</div>
-      </div>
-      <button type="button" class="switch" role="switch" :aria-checked="isAutoCollapse" :class="{ on: isAutoCollapse }" @click="setAutoCollapse(!isAutoCollapse)" aria-label="Auto collapse"></button>
-    </div>
-
-    @if(isAutoCollapse)
-      <div class="row">
-        <span class="row-label">After</span>
-        <div class="durations" style="grid-template-columns: repeat(5, 1fr); flex: 1;">
-          @foreach(collapseDelays as seconds)
-            <button
-              class="chip"
-              :class="{ selected: autoCollapseDelay === {{ seconds }} }"
-              @click="setCollapseDelay({{ seconds }})"
-            >{{ seconds }}s</button>
-          @endforeach
-        </div>
-      </div>
-    @endif
-
-    <div class="row">
-      <div>
-        <div class="row-label">Hide arrangement divider</div>
-        <div class="row-note">The reveal button stays available</div>
-      </div>
-      <button type="button" class="switch" role="switch" :aria-checked="separatorHidden" :class="{ on: separatorHidden }" @click="setSeparatorHidden(!separatorHidden)" aria-label="Hide divider"></button>
-    </div>
+    <div class="row-label">Managed by macOS</div>
+    <p class="hint">Hold ⌘ and drag icons to rearrange them. When icons overflow, use macOS’s arrow to show or hide them.</p>
   </div>
 
   <div class="group">
@@ -503,10 +425,6 @@
       <button type="button" class="switch" role="switch" :aria-checked="autoLaunch" :class="{ on: autoLaunch }" @click="savePreference('autoLaunch', !autoLaunch)" aria-label="Open at login"></button>
     </div>
 
-    <div class="row">
-      <span class="row-label">Menu bar shortcut</span>
-      <span class="row-value" x-text="globalHotkey"></span>
-    </div>
     <div class="row">
       <span class="row-label">Keep awake shortcut</span>
       <span class="row-value">Cmd+Shift+C</span>
@@ -538,7 +456,7 @@
 
   type BaristaState = BaristaPreferences & Omit<CaffeinateSnapshot, 'endsAt'> & {
     endsAt: string | null
-    menuBarCollapsed: boolean
+    nativeReady: boolean
     menuBarInitialized: boolean
     shortcutRegistered: boolean
   }
@@ -553,14 +471,9 @@
   const remainingTime = derived(() => status().remainingFormatted || '0:00')
   const durationLabel = derived(() => status().durationFormatted || 'Off')
   const durationMinutes = derived(() => status().caffeinateDurationMinutes ?? -1)
-  const isAutoCollapse = derived(() => status().isAutoCollapse === true)
-  const autoCollapseDelay = derived(() => status().autoCollapseDelay ?? 10)
-  const separatorHidden = derived(() => status().separatorHidden === true)
   const caffeinateOnStartup = derived(() => status().caffeinateOnStartup === true)
   const autoLaunch = derived(() => status().autoLaunch === true)
-  const globalHotkey = derived(() => status().globalHotkey || 'Cmd+Shift+B')
 
-  const menuBarCollapsed = state(false)
   const errorMessage = state('')
 
   async function refresh() {
@@ -599,65 +512,12 @@
     await post('/api/preferences', { [key]: value })
   }
 
-  async function setAutoCollapse(enabled: boolean) {
-    await savePreference('isAutoCollapse', enabled)
-    await bridge()?.menubar?.setAutoCollapse(enabled ? autoCollapseDelay() : 0)
-  }
-
-  async function setCollapseDelay(seconds: number) {
-    await savePreference('autoCollapseDelay', seconds)
-    await bridge()?.menubar?.setAutoCollapse(seconds)
-  }
-
-
-
-  async function setSeparatorHidden(hidden: boolean) {
-    await savePreference('separatorHidden', hidden)
-    await bridge()?.menubar?.setSeparatorHidden(hidden)
-  }
-
-  // ===== Menu bar =====
-
-  async function toggleMenuBar() {
-    await bridge()?.menubar?.toggle()
-  }
-
-  /** The tray menu labels the collapse state, so tell the server when it flips. */
-  async function reportMenuBarState(collapsed: boolean, shortcutRegistered?: boolean) {
-    menuBarCollapsed.set(collapsed)
-    await fetch('/api/menu-bar/state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collapsed, shortcutRegistered }),
-    })
-  }
-
-  // The server rendered this panel's starting state into the markup. Read it
-  // straight out rather than waiting a round trip and painting a stale panel —
-  // and read it here rather than only on mount, because `initMenuBar` runs
-  // whenever the bridge comes up, which may be first. It once did, and read an
-  // empty state: auto collapse was silently off on every launch.
+  // Seed the panel before the native bridge arrives or the first refresh.
   function loadInitialState() {
     if (Object.keys(status()).length) return
     const initial = root()?.dataset.initialState
     if (!initial) throw new Error('Missing initial Barista state')
     status.set(JSON.parse(initial))
-  }
-
-  async function initMenuBar() {
-    const menubar = bridge()?.menubar
-    if (!menubar) return
-
-    loadInitialState()
-
-    await menubar.init()
-    await menubar.setSeparatorHidden(separatorHidden())
-
-    // Craft owns the delay and preserves native collapse state across reloads.
-    await menubar.setAutoCollapse(isAutoCollapse() ? autoCollapseDelay() : 0)
-
-    const state = await menubar.getState()
-    await reportMenuBarState(state.collapsed)
   }
 
   // ===== Tray =====
@@ -690,12 +550,6 @@
   const TRAY_ACTIONS: Record<string, () => unknown | Promise<unknown>> = {
     toggleCaffeinate,
     disableCaffeinate: () => post('/api/caffeinate/disable'),
-    toggleMenuBar,
-    arrangeMenuBar: async () => {
-      await bridge()?.menubar?.expand()
-      await bridge()?.window?.show()
-    },
-    toggleAutoCollapse: () => setAutoCollapse(!isAutoCollapse()),
     preferences: () => bridge()?.window?.show(),
     about: () => bridge()?.window?.show(),
     checkForUpdates: checkForUpdates,
@@ -736,33 +590,31 @@
 
   // ===== Wiring =====
 
-  useEventListener('craft:menubar:stateChange', event => reportMenuBarState((event as CustomEvent<{ collapsed: boolean }>).detail.collapsed))
   useEventListener('craft:tray:menuAction', event => runTrayAction((event as CustomEvent<{ action: string }>).detail.action))
   useEventListener('craft:shortcut', event => {
     const { id } = (event as CustomEvent<{ id: string }>).detail
-    if (id === 'barista.menu-bar') toggleMenuBar()
     if (id === 'barista.caffeinate') toggleCaffeinate()
   })
   useEventListener('craft:shortcut:error', () => errorMessage.set('Could not reserve a global shortcut'))
 
-  // The cup always toggles awake; click the divider to reveal hidden items.
+  // The cup toggles awake. macOS owns menu bar overflow and its control.
   useEventListener('craft:tray:click', async () => {
     await toggleCaffeinate()
   })
 
   // The framework delivers readiness once, after mount, even if the bridge
-  // arrived before the page. Reloading the popup preserves native collapse state.
+  // arrived before the page. Read menu bar state without creating a divider.
   bridge.onReady(async native => {
     loadInitialState()
-    await initMenuBar()
     await syncTray()
     const shortcuts = native.shortcuts
     if (!shortcuts) throw new Error('Native shortcuts are unavailable')
-    await shortcuts.register('barista.menu-bar', globalHotkey())
     await shortcuts.register('barista.caffeinate', 'Cmd+Shift+C')
-    const registered = await shortcuts.isRegistered('barista.menu-bar')
-      && await shortcuts.isRegistered('barista.caffeinate')
-    await reportMenuBarState(menuBarCollapsed(), registered)
+    const registered = await shortcuts.isRegistered('barista.caffeinate')
+    const menubar = native.menubar
+    if (!menubar) throw new Error('Native menu bar state is unavailable')
+    const menuBar = await menubar.getState()
+    await post('/api/native/state', { menuBarInitialized: menuBar.initialized, shortcutRegistered: registered })
     if (!registered) errorMessage.set('A shortcut is already in use by another app')
   })
 
