@@ -38,7 +38,7 @@ const binaryPath = join(OUT_DIR, 'barista')
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// The native grouping control needs Craft's overflow-aware layout.
+// Craft keeps grouping opt-in so an ordinary tray app adds no divider.
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version

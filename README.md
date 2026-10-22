@@ -10,7 +10,7 @@
 Barista keeps your Mac awake from the menu bar, with timed or indefinite sessions.
 Barista starts in the menu bar with its preferences hidden. Left-click the cup
 to start or stop; right-click for durations and preferences.
-It also organizes menu bar icons using macOS's native ⌘-drag gesture.
+Menu bar arrangement and overflow stay with macOS, using its native ⌘-drag gesture and overflow control.
 
 Built with [stx](https://github.com/stacksjs/stx) and
 [Craft](https://github.com/craft-native/craft), using the system WebKit view
@@ -19,10 +19,10 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Features
 
 - **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (5m, 15m, 30m, 1h, 2h, 4h, 8h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
-- **Right-click for everything else** — A native menu with the current status, the durations, the menu bar controls, preferences and updates.
+- **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Caffeinate on startup** — Optional: start the app already caffeinated, so your Mac is awake the moment you log in.
-- **Global hotkey** — ⌘⇧C toggles keep-awake; ⌘⇧B expands or collapses the menu bar.
-- **Menu bar management** *(bonus)* — Collapse and organize menu bar items, with native ⌘-drag rearrangement and optional auto-collapse. Right-click the cup and choose **Arrange Menu Bar Items** to reveal the icons and open the controls. Use ⌘⇧B or the menu to reveal hidden items.
+- **Global hotkey** — ⌘⇧C toggles keep-awake.
+- **System overflow** — macOS owns the expand/collapse control. Barista adds only its cup, with no grouping divider or wide spacer to displace app menus. Hold ⌘ and drag icons to rearrange them.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
@@ -31,7 +31,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Get Started
 
 Requires macOS 15 or newer, matching the bundled Craft runtime.
-Building requires Pantry 0.11.114 or newer and Craft 0.0.293 or newer for native menu bar grouping.
+Building requires Pantry 0.11.114 or newer and Craft 0.0.293 or newer, where custom menu bar grouping is opt-in.
 
 ```bash
 pantry install
@@ -39,11 +39,16 @@ bun install
 pantry run dev
 ```
 
-To group menu bar icons, hold ⌘ and drag them left of Barista's `|` divider.
-Click the divider to hide the group, then its `›` control to reveal it again;
-⌘⇧B works from any app. These controls are separate from macOS's double-chevron
-overflow control. Barista releases its reserved space when native overflow moves
-the group, keeping the empty divider out of the application menus.
+On macOS 27, use the system's overflow arrow when icons do not fit. Barista does
+not create a second expand/collapse control, reserve a wide status item, or drive
+the system arrow through private APIs or simulated clicks. Apple controls the
+system overflow presentation, including any temporary overlay of app menus when
+it expands. Barista cannot override that presentation through public AppKit APIs.
+Older macOS versions retain keep-awake and native ⌘-drag arrangement, without
+Barista adding a custom overflow controller.
+
+Upgrading removes the former grouping, auto-collapse, divider and ⌘⇧B preferences.
+Keep-awake, duration, login and Dock preferences are preserved.
 
 ## Development
 
@@ -72,9 +77,9 @@ bun run test:native
 ```
 
 The native E2E suite launches the packaged `.app` with an isolated preference
-profile and only system tools on PATH, waits for its real WebKit view to initialize the menu bar, checks
+profile and only system tools on PATH, waits for its real WebKit view to initialize the tray and keep-awake shortcut, checks
 macOS power assertions, switches timed/indefinite sessions, validates rejected
-inputs, and verifies shutdown, native auto-collapse and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
+inputs, upgrades saved grouping settings without creating a native divider, and verifies shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
 against both the packaged app and its read-only DMG before release publishing. Timed expiry is covered in stx's native
 power tests. Physical ⌘-drag placement still requires a macOS desktop check.
 
