@@ -7,7 +7,8 @@ This folder contains the following GitHub Actions:
   - `typecheck`s the code
   - runs test suite
   - runs on `ubuntu-latest`
+  - builds and verifies the packaged app with real native E2E on `macos-latest`
 - [Release][Release] - automates the release process & changelog generation
 
-[CI]: ./workflows/ci.yml
-[Release]: ./workflows/release.yml
+[CI]: ./ci.yml
+[Release]: ./release.yml

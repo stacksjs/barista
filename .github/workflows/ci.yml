@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
 
       - name: Use cached node_modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('**/bun.lock') }}
@@ -32,7 +32,7 @@ jobs:
             node-modules-
 
       - name: Install Dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Lint
         run: bun run lint
@@ -46,13 +46,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
 
       - name: Use cached node_modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('**/bun.lock') }}
@@ -60,7 +60,28 @@ jobs:
             node-modules-
 
       - name: Install Dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Unit Test
-        run: bun test || echo "No test files found, skipping tests"
+        run: bun test
+
+  native:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Provision native dependencies
+        uses: pantry-pm/pantry/packages/action@c654eb3112f702e4a982eb574d83c573824fa1b9 # v0.11.114
+        with:
+          version: '0.11.114'
+      - run: bun install --frozen-lockfile
+      - name: Build the self-contained app
+        run: bun run build
+      - name: Verify native initialization, power, shutdown and relaunch
+        run: bun run test:native
+      - name: Verify the read-only distributable
+        run: |
+          task_volume=$(mktemp -d)
+          hdiutil attach -readonly -nobrowse -mountpoint "$task_volume" dist/Barista-*.dmg
+          trap 'hdiutil detach "$task_volume"; rmdir "$task_volume"' EXIT
+          bun run test:native "$task_volume/Barista.app"
