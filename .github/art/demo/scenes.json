@@ -15,9 +15,9 @@
     },
     {
       "image": "grouping.jpg",
-      "title": "Arrange your\nicon group.",
-      "subtitle": "Native grouping with verification.",
-      "detail": "Arrange icons with Command-drag.\nUnexpected hiding restores the bar.\nmacOS 27 + Accessibility required."
+      "title": "Hide the\nclutter.",
+      "subtitle": "One compact native control.",
+      "detail": "Group icons with Command-drag.\nOne click to hide or reveal apps.\nApple modules may also hide."
     }
   ]
 }

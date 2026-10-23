@@ -22,7 +22,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
-- **Native icon grouping** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected icon.
+- **Native icon grouping** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected app icon. Apple modules may hide with the group.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
@@ -54,15 +54,19 @@ Barista follows [Hidden Bar’s current native visibility approach](https://gith
 Craft reads the arrangement through Accessibility and hides applications through
 the private macOS MenuBarClientCore API. Apps with several icons hide together;
 an icon kept on the visible side keeps its app visible. Craft checks the visible
-side and system controls after activation. If macOS hides an unselected icon, it
+side after activation. If macOS hides an unselected app icon, it
 releases the restriction, restores the bar and reports the failure. An empty
 group leaves everything revealed. Apps launched while collapsed may remain
 hidden until you reveal the group.
 
+If verification fails, Barista opens Preferences to explain why it restored the
+bar.
+
 The private API is not reliable for every arrangement. On macOS 27.0.1 it can
-suppress Apple modules such as Focus and Now Playing even when system items are
-allowed. Those arrangements fail verification and remain revealed; Barista does
-not report them as successfully hidden. Craft also preserves the native signing
+suppress Apple modules such as Focus, Now Playing and camera/microphone activity
+indicators even when system items are allowed. Barista explicitly accepts that
+behavior, matching Hidden Bar. Reveal the group to restore those modules.
+Craft still protects unselected app icons and preserves the native signing
 identities of visible applications and helpers. Apps sharing an identity remain
 visible together if any of their icons are on the visible side.
 
@@ -107,8 +111,9 @@ pantry run build
 bun run test:native
 ```
 
-The native E2E suite launches the packaged `.app` with an isolated preference
-profile and only system tools on PATH, waits for its real WebKit view to initialize the tray and shortcuts, checks
+The native E2E suite clones and signs the packaged `.app` with unique app and
+runtime identities, an isolated preference profile and an empty working directory.
+It uses only system tools on PATH, waits for its real WebKit view to initialize the tray and shortcuts, checks
 macOS power assertions, switches timed/indefinite sessions, validates rejected
 inputs, verifies the selected native backend and compact control, and checks shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
 against both the packaged app and its read-only DMG before release publishing. Timed expiry is covered in stx's native
