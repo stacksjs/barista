@@ -1,74 +1,38 @@
 # Releasing
 
-A release is one command:
+Barista’s native icon-hiding backend uses a private macOS API. Distribute the
+signed direct app and DMG; the build refuses the former App Store path.
 
-```bash
-bun run release:minor   # or release:patch / release:major
+```sh
+bun run check
+pantry run build
+bun run test:native
+bun run release:patch
 ```
 
-That bumps the version, writes the changelog, tags, and pushes. The tag push runs
-[`.github/workflows/release.yml`](../.github/workflows/release.yml), which:
+A tag runs the release workflow. It installs the locked Pantry runtime, installs
+Bun dependencies, checks the source, signs and notarizes the app, and verifies
+the packaged app and read-only DMG before publishing the DMG and update manifest.
+The manifest records the release artifact’s SHA-256.
 
-1. installs `deps.yaml` (bun, and the `craft` binary the build bundles),
-2. imports the Apple signing certificates into a temporary keychain,
-3. runs `bun run build` — a signed `.app`, a `.dmg`, and an App Store `.pkg`,
-4. uploads the `.pkg` to App Store Connect and publishes the GitHub release.
+## Signing configuration
 
-Steps 2 and 4 are pantry's; nothing about signing or delivery lives in this repo.
+The GitHub workflow needs these repository secrets:
 
-## One-time Apple setup
-
-Barista's bundle id is `com.stacksjs.barista` and it signs under team
-`3JJRNQW6B7`. Before the first release the Apple side needs:
-
-- an **App ID** for `com.stacksjs.barista`
-- an **app record** in App Store Connect for it
-- a **Mac App Store provisioning profile** for that App ID
-- **Mac App Distribution** and **Mac Installer Distribution** certificates
-
-pantry automates the identifier, certificates and profile:
-
-```bash
-pantry app-store:csr --name Barista
-pantry app-store:provision \
-  --bundle-id com.stacksjs.barista \
-  --name Barista \
-  --app-certificate-csr .pantry/apple/mac-app-distribution.csr \
-  --installer-certificate-csr .pantry/apple/mac-installer-distribution.csr \
-  --p12-password "$P12_PASSWORD" \
-  --apply
-```
-
-Run it without `--apply` first to see what's missing.
-
-## Repository secrets
-
-The workflow reads these from GitHub Actions secrets. Certificates are base64 —
-`base64 -i cert.p12 | pbcopy`.
-
-| Secret | What it is |
+| Secret | Purpose |
 | --- | --- |
-| `APPLE_APPLICATION_CERTIFICATE` | Mac App Distribution `.p12`, base64 |
-| `APPLE_INSTALLER_CERTIFICATE` | Mac Installer Distribution `.p12`, base64 |
-| `APPLE_CERTIFICATE_PASSWORD` | Password protecting both `.p12` files |
-| `APPLE_PROVISIONING_PROFILE` | `.provisionprofile`, base64 |
-| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API key id |
-| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect issuer id |
-| `APP_STORE_CONNECT_PRIVATE_KEY` | The key's `.p8` contents |
+| `APPLE_APPLICATION_CERTIFICATE` | Developer ID Application `.p12`, encoded as base64. |
+| `APPLE_CERTIFICATE_PASSWORD` | Password for that certificate. |
+| `APPLE_NOTARIZE_APPLE_ID` | Apple ID used for notarization. |
+| `APPLE_NOTARIZE_PASSWORD` | Its app-specific notarization password. |
 
-Every upload needs a build number higher than the last; the workflow uses the
-run number, so this takes care of itself.
+The bundle ID is `com.stacksjs.barista` and the signing team is `3JJRNQW6B7`.
+Use a Developer ID Application certificate for direct distribution. Installer
+certificates, provisioning profiles and App Store Connect credentials are not
+used by this workflow. Missing signing/notarization configuration stops release
+before publication.
 
-## Building locally
-
-```bash
-bun run build
-```
-
-Unsigned, and the App Store `.pkg` is skipped — the `.app` and `.dmg` are still
-produced, so you can check the bundle. Set the `APPLE_*` identities to sign
-locally. The build needs `craft` on `PATH`:
-
-```bash
-pantry install
-```
+For local native verification, `APPLE_SIGNING_IDENTITY=- pantry run build`
+produces an ad hoc signed bundle. Set a Developer ID Application identity for a
+signed local direct build. The normal build embeds the Craft executable resolved
+from Pantry; local source runtime overrides are for development verification.

@@ -1,75 +1,45 @@
 # Configuration
 
-_This is just an example of the ts-starter docs._
+Right-click Barista’s cup and choose **Preferences…**. Left-click the cup or
+press **⌘⇧C** to start or stop keep-awake.
 
-The Reverse Proxy can be configured using a `reverse-proxy.config.ts` _(or `reverse-proxy.config.js`)_ file and it will be automatically loaded when running the `reverse-proxy` command.
+| Setting | Behavior |
+| --- | --- |
+| For how long | 5m, 15m, 30m, 1h, 2h, 4h, 8h or ∞. Choosing one starts or replaces the session. |
+| Start awake | Starts a session with the saved duration whenever Barista opens. |
+| Open at login | Registers Barista to open when you sign in. |
+| Hide a group of app icons | Adds one compact group control on supported direct builds. |
 
-```ts
-// reverse-proxy.config.{ts,js}
-import type { ReverseProxyOptions } from '@stacksjs/rpx'
-import os from 'node:os'
-import path from 'node:path'
+New installs use **∞**, **Start awake** and **Open at login** by default.
+Existing saved choices are preserved. Turn Off releases the current session’s power assertions.
 
-const config: ReverseProxyOptions = {
-  /**
+## Choose which app icons to hide
 
-   _ The from URL to proxy from.
-   _ Default: localhost:5173
+Icon hiding requires **macOS 27**, the direct build and Accessibility access.
+Enable grouping and choose **Open System Settings…**, then enable Barista under **Privacy & Security → Device Control and Data Access**. This is macOS 27’s Accessibility permission and grants broad UI access; Barista uses it to read icon positions. Choose
+**Arrange…** to reveal everything, then hold ⌘ and drag app icons left of
+Barista’s arrow. Click the arrow or press **⌘⇧B** to hide/reveal that group.
 
-   */
-  from: 'localhost:5173',
+Craft implements the native visibility backend at its source. It uses the
+private MenuBarClientCore API researched by [Hidden Bar](https://github.com/dwarvesf/hidden).
+Apple can change it. If unavailable, Barista leaves icons visible and explains
+why; it does not fall back to a wide spacer. This feature cannot be used in
+App Store submissions.
 
-  /**
+Hiding applies per app. When one app owns several icons, keeping any one of them
+on the visible side keeps all of them visible. System controls and Barista are
+protected. Missing Accessibility geometry is kept visible. Apps launched while
+collapsed may remain hidden until you reveal the group again.
 
-   _ The to URL to proxy to.
-   _ Default: stacks.localhost
+The group starts revealed. Disabling grouping or quitting restores its icons.
+When revealed icons do not fit, macOS manages its own overflow presentation;
+Barista cannot pin app menus above the system overflow UI.
 
-   */
-  to: 'stacks.localhost',
+## Saved preferences
 
-  /**
+Preferences are stored in `~/Library/Application Support/barista/`. Keep-awake,
+duration, login and Dock choices survive upgrades. Old spacer, always-hidden and
+auto-collapse settings are removed during migration.
 
-   _ The HTTPS settings.
-   _ Default: true
-   _ If set to false, the proxy will use HTTP.
-   _ If set to true, the proxy will use HTTPS.
-   _ If set to an object, the proxy will use HTTPS with the provided settings.
-
-   _/
-  https: {
-    domain: 'stacks.localhost',
-    hostCertCN: 'stacks.localhost',
-    caCertPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.ca.crt`),
-    certPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt`),
-    keyPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt.key`),
-    altNameIPs: ['127.0.0.1'],
-    altNameURIs: ['localhost'],
-    organizationName: 'stacksjs.org',
-    countryName: 'US',
-    stateName: 'California',
-    localityName: 'Playa Vista',
-    commonName: 'stacks.localhost',
-    validityDays: 180,
-    verbose: false,
-  },
-
-  /**
-
-   _ The verbose setting.
-   _ Default: false
-   _ If set to true, the proxy will log more information.
-
-   _/
-  verbose: false,
-}
-
-export default config
-```
-
-_Then run:_
-
-```bash
-./rpx start
-```
-
-To learn more, head over to the [documentation](https://reverse-proxy.sh/).
+`BARISTA_PREFERENCES_PATH` selects an isolated preference file for native tests.
+An isolated profile does not register or remove the installed app’s login item.

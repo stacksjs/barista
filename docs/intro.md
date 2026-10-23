@@ -4,13 +4,13 @@
 
 > Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free replacement for Caffeine, Amphetamine and KeepingYouAwake.
 
-One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefinite), and your Mac stays awake until you say otherwise. As a bonus, Barista also tidies up your menu bar.
+One click to caffeinate, pick a duration (5m, 15m, 30m, 1h, 2h, 4h, 8h, or indefinite), and your Mac stays awake until you say otherwise. As a bonus, Barista also tidies up your menu bar.
 
 ## Why Barista
 
 - **Caffeinate-first** — the headline feature, not buried under preferences.
-- **Tiny** — 1.4 MB binary, under 100 ms cold start.
-- **Native** — built with Zig-powered [Craft](https://github.com/stacksjs/craft), no Electron, no Chromium.
+- **Self-contained** — the packaged app includes its native runtime.
+- **Native** — built with Zig-powered [Craft](https://github.com/craft-native/craft), no Electron, no Chromium.
 - **Free & open source** — MIT-licensed, no subscription, no telemetry.
 
 ## Get Started
@@ -19,11 +19,14 @@ One click to caffeinate, pick a duration (15m, 30m, 1h, 4h, 8h, 12h, or indefini
 # Clone and run
 git clone https://github.com/stacksjs/barista.git
 cd barista
+pantry install
 bun install
-bun run dev
+pantry run dev
 ```
 
-Once running, look for the ☕️ icon in your menu bar. Click it to caffeinate, choose a duration, and you're done.
+Once running, left-click the cup to toggle keep-awake. Right-click it for durations and Preferences. Enable Open at login and Start awake, then choose ∞ for an indefinite session whenever Barista starts.
+
+On macOS 27, the direct build also offers one-click icon hiding through Craft’s private native visibility backend. Grant Accessibility access, ⌘-drag app icons left of Barista’s compact arrow, then click the arrow to hide or reveal the group. System controls remain visible; no wide spacer is created. See [Configuration](./config.md) for the limits.
 
 For details on what caffeinate actually does (display sleep vs system sleep, lid-close behavior, etc.), see the [Caffeinate guide](./caffeinate.md).
 

@@ -1,16 +1,16 @@
-<p align="center"><img src=".github/art/barista.gif" alt="Barista Logo" width="100%"></p>
+<p align="center"><img src=".github/art/barista.gif" alt="Barista keep-awake and menu bar grouping demo" width="100%"></p>
 
 [![GitHub Actions][github-actions-src]][github-actions-href]
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
 
 # Barista
 
-> Keep your Mac awake. One click from the menu bar.
+> Keep your Mac awake. Keep your menu bar tidy.
 
 Barista keeps your Mac awake from the menu bar, with timed or indefinite sessions.
 Barista starts in the menu bar with its preferences hidden. Left-click the cup
 to start or stop; right-click for durations and preferences.
-Menu bar arrangement and overflow stay with macOS, using its native ⌘-drag gesture and overflow control.
+A separate compact arrow hides and reveals a group of app icons you choose with native ⌘-drag.
 
 Built with [stx](https://github.com/stacksjs/stx) and
 [Craft](https://github.com/craft-native/craft), using the system WebKit view
@@ -20,9 +20,9 @@ and native macOS power assertions. The packaged app includes its own runtime.
 
 - **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (5m, 15m, 30m, 1h, 2h, 4h, 8h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
-- **Caffeinate on startup** — Optional: start the app already caffeinated, so your Mac is awake the moment you log in.
+- **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
-- **System overflow** — macOS owns the expand/collapse control. Barista adds only its cup, with no grouping divider or wide spacer to displace app menus. Hold ⌘ and drag icons to rearrange them.
+- **One-click icon hiding** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group; system controls stay visible.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
@@ -31,7 +31,8 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Get Started
 
 Requires macOS 15 or newer, matching the bundled Craft runtime.
-Building requires Pantry 0.11.114 or newer and Craft 0.0.293 or newer, where custom menu bar grouping is opt-in.
+Icon hiding requires macOS 27, the direct build and Accessibility access.
+Install dependencies with Pantry and Buddy before building.
 
 ```bash
 pantry install
@@ -39,16 +40,30 @@ bun install
 pantry run dev
 ```
 
-On macOS 27, use the system's overflow arrow when icons do not fit. Barista does
-not create a second expand/collapse control, reserve a wide status item, or drive
-the system arrow through private APIs or simulated clicks. Apple controls the
-system overflow presentation, including any temporary overlay of app menus when
-it expands. Barista cannot override that presentation through public AppKit APIs.
-Older macOS versions retain keep-awake and native ⌘-drag arrangement, without
-Barista adding a custom overflow controller.
+## Choose your hidden group
 
-Upgrading removes the former grouping, auto-collapse, divider and ⌘⇧B preferences.
-Keep-awake, duration, login and Dock preferences are preserved.
+1. Open Preferences and enable **Hide a group of app icons**.
+2. Choose **Open System Settings…** and enable Barista under **Privacy & Security → Device Control and Data Access** (the macOS 27 Accessibility permission).
+3. Choose **Arrange…**, then hold ⌘ and drag unwanted app icons left of Barista’s arrow.
+4. Click the arrow, choose **Hide Grouped Icons**, or press ⌘⇧B. Click again to reveal.
+
+Barista follows [Hidden Bar’s current native visibility approach](https://github.com/dwarvesf/hidden).
+Craft reads the arrangement through Accessibility and hides applications through
+the private macOS MenuBarClientCore API. Apps with several icons hide together;
+an icon kept on the visible side keeps its app visible. Unknown items and system
+controls remain visible. Apps launched while collapsed may remain hidden until
+you reveal the group.
+
+The group is revealed on launch. Disabling grouping, quitting, permission loss or
+an activation error restores icons. Apple can change the private API, so this
+feature reports unavailable instead of falling back to a wide spacer. It is for
+direct distribution and cannot be used in App Store submissions.
+
+macOS still owns system overflow when the revealed icons exceed available space,
+including its presentation over app menus. Barista does not widen a status item or
+replace that system control. Keep-awake works independently on macOS 15 and newer.
+Upgrades preserve awake, duration, login and Dock choices while retiring the old
+separator, always-hidden and auto-collapse settings.
 
 ## Development
 
@@ -60,13 +75,17 @@ pantry run dev
 bun run lint
 bun run lint:fix
 
-# Build a distributable .app + .dmg (and a signed .pkg when signing is configured)
+# Build a distributable .app + .dmg
 pantry run build
 ```
 
 Set `APPLE_SIGNING_IDENTITY` for a signed direct build. Direct builds use
-`barista.direct.entitlements` for the Bun host; App Store builds use the separate
-sandboxed `barista.entitlements` and require both signing identities.
+`barista.direct.entitlements` for the Bun host. App Store packaging is refused
+because native icon hiding uses a private API.
+
+The README animation uses screenshots of the packaged native app. After
+refreshing the captures in `.github/art/demo/`, regenerate it with
+`bun scripts/generate-demo.ts` (requires FFmpeg through Pantry).
 
 ## Verification
 
@@ -77,11 +96,11 @@ bun run test:native
 ```
 
 The native E2E suite launches the packaged `.app` with an isolated preference
-profile and only system tools on PATH, waits for its real WebKit view to initialize the tray and keep-awake shortcut, checks
+profile and only system tools on PATH, waits for its real WebKit view to initialize the tray and shortcuts, checks
 macOS power assertions, switches timed/indefinite sessions, validates rejected
-inputs, upgrades saved grouping settings without creating a native divider, and verifies shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
+inputs, verifies the selected native backend and compact control, and checks shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
 against both the packaged app and its read-only DMG before release publishing. Timed expiry is covered in stx's native
-power tests. Physical ⌘-drag placement still requires a macOS desktop check.
+power tests. Craft also tests cancelled and late activations, errors, permission revocation and cleanup. Physical ⌘-drag placement still requires a macOS desktop check.
 
 ## Architecture
 
@@ -99,7 +118,7 @@ runtime:
 
 ```
 app.ts                 createMenuBarApp: context, routes, tray menu
-build.ts               Compile + package (DMG, and App Store .pkg when signed)
+build.ts               Compile + package the direct app and DMG
 src/barista.stx        The popup — signals-driven, no vanilla DOM code
 src/caffeinate.ts      Named wrapper over the desktop power API
 src/tray.ts            The menu bar item: its cup icon and its menu
@@ -117,7 +136,7 @@ We welcome contributions! Please feel free to submit a Pull Request.
 
 ## Credits
 
-- [Hidden Bar](https://github.com/dwarvesf/hidden) for being the initial code inspiration
+- [Hidden Bar](https://github.com/dwarvesf/hidden) for the grouping interaction and native visibility API research
 - [Bartender](https://www.macbartender.com)
 - [Chris Breuer](https://github.com/chrisbbreuer)
 - [All Contributors](../../contributors)

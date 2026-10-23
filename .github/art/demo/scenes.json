@@ -1,0 +1,23 @@
+{
+  "panelHeight": 660,
+  "scenes": [
+    {
+      "image": "awake.jpg",
+      "title": "Stay awake.",
+      "subtitle": "For as long as you need.",
+      "detail": "Starts awake indefinitely.\nOpens at login by default.\nOne click to let your Mac sleep."
+    },
+    {
+      "image": "timed.jpg",
+      "title": "Set a timer.",
+      "subtitle": "Five minutes to eight hours.",
+      "detail": "Change the duration in one click.\nSee exactly how long is left.\nSwitch back to indefinite anytime."
+    },
+    {
+      "image": "grouping.jpg",
+      "title": "Choose your\nvisible icons.",
+      "subtitle": "One compact hide/reveal arrow.",
+      "detail": "Arrange icons with Command-drag.\nSystem controls stay visible.\nmacOS 27 + Accessibility required."
+    }
+  ]
+}
