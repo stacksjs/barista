@@ -114,6 +114,9 @@ describe('tray menu', () => {
     expect(menuBarMessage({ initialized: false, collapsed: false, available: false })).toContain('macOS 27')
     expect(menuBarMessage({ initialized: true, collapsed: false, authorized: false })).toContain('Device Control and Data Access')
     expect(menuBarMessage({ initialized: true, collapsed: false, error: 'activationFailed' })).toContain('remain visible')
+    expect(menuBarMessage({ initialized: true, collapsed: false, error: 'emptyGroup' })).toContain('group is empty')
+    expect(menuBarMessage({ initialized: true, collapsed: false, error: 'layoutUnavailable' })).toContain('Make Barista’s arrow visible')
+    expect(menuBarMessage({ initialized: true, collapsed: false, error: 'visibilityMismatch' })).toContain('All icons were restored')
   })
 
   it('carries the standard app items, including a way to update', () => {

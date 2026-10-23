@@ -421,7 +421,7 @@
         <button class="mini" x-show="menuBarUsable" @click="arrangeMenuBar()">Arrange…</button>
         <span class="row-value">⌘⇧B</span>
       </div>
-      <p class="hint">Icons from the same app hide together. System controls stay visible.</p>
+      <p class="hint">Icons from the same app hide together. If macOS hides other icons, Barista restores the bar.</p>
     </div>
   </div>
 
