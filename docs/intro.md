@@ -26,7 +26,7 @@ pantry run dev
 
 Once running, left-click the cup to toggle keep-awake. Right-click it for durations and Preferences. Enable Open at login and Start awake, then choose ∞ for an indefinite session whenever Barista starts.
 
-On macOS 27, the direct build also offers one-click icon hiding through Craft’s private native visibility backend. Grant Accessibility access, ⌘-drag app icons left of Barista’s compact arrow, then click the arrow to hide or reveal the group. System controls remain visible; no wide spacer is created. See [Configuration](./config.md) for the limits.
+On macOS 27, the direct build also offers icon grouping through Craft’s private native visibility backend. Grant Accessibility access, ⌘-drag app icons left of Barista’s compact arrow, then click the arrow to hide or reveal the group. Craft restores the bar if macOS hides icons outside your group. No wide spacer is created. See [Configuration](./config.md) for layout limitations.
 
 For details on what caffeinate actually does (display sleep vs system sleep, lid-close behavior, etc.), see the [Caffeinate guide](./caffeinate.md).
 

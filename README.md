@@ -22,7 +22,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
-- **One-click icon hiding** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group; system controls stay visible.
+- **Native icon grouping** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected icon.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
@@ -47,12 +47,22 @@ pantry run dev
 3. Choose **Arrange…**, then hold ⌘ and drag unwanted app icons left of Barista’s arrow.
 4. Click the arrow, choose **Hide Grouped Icons**, or press ⌘⇧B. Click again to reveal.
 
+Keep Barista’s arrow visible while hiding a group. If macOS places the arrow in
+its overflow, reveal it there first so Craft can read the group boundary.
+
 Barista follows [Hidden Bar’s current native visibility approach](https://github.com/dwarvesf/hidden).
 Craft reads the arrangement through Accessibility and hides applications through
 the private macOS MenuBarClientCore API. Apps with several icons hide together;
-an icon kept on the visible side keeps its app visible. Unknown items and system
-controls remain visible. Apps launched while collapsed may remain hidden until
-you reveal the group.
+an icon kept on the visible side keeps its app visible. Craft checks the visible
+side and system controls after activation. If macOS hides an unselected icon, it
+releases the restriction, restores the bar and reports the failure. An empty
+group leaves everything revealed. Apps launched while collapsed may remain
+hidden until you reveal the group.
+
+The private API is not reliable for every arrangement. On macOS 27.0.1 it can
+suppress Focus and icons belonging to loosely packaged native helpers even when
+their applications are allowed. Those arrangements fail verification and remain
+revealed; Barista does not report them as successfully hidden.
 
 The group is revealed on launch. Disabling grouping, quitting, permission loss or
 an activation error restores icons. Apple can change the private API, so this

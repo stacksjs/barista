@@ -27,9 +27,16 @@ why; it does not fall back to a wide spacer. This feature cannot be used in
 App Store submissions.
 
 Hiding applies per app. When one app owns several icons, keeping any one of them
-on the visible side keeps all of them visible. System controls and Barista are
-protected. Missing Accessibility geometry is kept visible. Apps launched while
-collapsed may remain hidden until you reveal the group again.
+on the visible side keeps all of them visible. Craft protects Barista and checks
+that the visible side and system controls survive activation. If macOS hides
+anything outside the group, Craft releases the restriction and restores the bar.
+An empty group never activates a restriction. Missing Accessibility geometry is
+kept visible. Apps launched while collapsed may remain hidden until you reveal
+the group again.
+
+macOS 27.0.1 can suppress Focus and loosely packaged native helpers despite the
+allow-list. In such an arrangement, Barista reports that icons were restored;
+grouping is unavailable for that layout. Keep-awake continues independently.
 
 The group starts revealed. Disabling grouping or quitting restores its icons.
 When revealed icons do not fit, macOS manages its own overflow presentation;
