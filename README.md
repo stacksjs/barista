@@ -60,9 +60,11 @@ group leaves everything revealed. Apps launched while collapsed may remain
 hidden until you reveal the group.
 
 The private API is not reliable for every arrangement. On macOS 27.0.1 it can
-suppress Focus and icons belonging to loosely packaged native helpers even when
-their applications are allowed. Those arrangements fail verification and remain
-revealed; Barista does not report them as successfully hidden.
+suppress Apple modules such as Focus and Now Playing even when system items are
+allowed. Those arrangements fail verification and remain revealed; Barista does
+not report them as successfully hidden. Craft also preserves the native signing
+identities of visible applications and helpers. Apps sharing an identity remain
+visible together if any of their icons are on the visible side.
 
 The group is revealed on launch. Disabling grouping, quitting, permission loss or
 an activation error restores icons. Apple can change the private API, so this
