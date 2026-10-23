@@ -49,6 +49,7 @@ async function start() {
   delete env.CRAFT_BIN
   child = Bun.spawn([binary], {
     env,
+    cwd: profile,
     stdin: 'ignore', stdout: 'pipe', stderr: 'pipe',
   })
   for (const stream of [child.stdout, child.stderr]) {
