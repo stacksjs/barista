@@ -10,3 +10,8 @@ bun.lock
 /pantry
 .stx
 pantry
+
+/docs/.vitepress/cache
+/docs/.vitepress/dist
+
+/storage/framework/stx/

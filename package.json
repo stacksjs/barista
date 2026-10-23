@@ -51,11 +51,12 @@
     "typecheck:views": "bunx --bun stx typecheck 'src/**/*.stx' --lib src/template-context.d.ts"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.661"
+    "@stacksjs/stx": "^0.2.674"
   },
   "devDependencies": {
+    "@stacksjs/bumpx": "^0.2.26",
     "better-dx": "^0.2.38",
-    "@stacksjs/bumpx": "^0.2.25"
+    "vitepress": "^1.6.4"
   },
   "git-hooks": {
     "pre-commit": {

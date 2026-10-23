@@ -2,7 +2,7 @@ name: Release
 
 # `bun run release:minor` (or :patch / :major) bumps the version, tags it and
 # pushes. That tag drives everything below: build the signed app, then let the
-# pantry action publish it to the GitHub release and the Mac App Store.
+# pantry action publish it to the GitHub release. Private icon hiding requires direct distribution.
 on:
   push:
     tags:
@@ -24,24 +24,42 @@ jobs:
 
       - name: Read version from tag
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Select a version tag when running a release."; exit 1 ;;
+          esac
 
       # Installs deps.yaml (bun + the craft binary the build bundles into the
       # .app) and imports the Apple signing certificates into a temporary
       # keychain, exporting the identities the build reads.
       - name: Set up pantry and signing
         id: pantry
-        uses: pantry-pm/pantry/packages/action@c654eb3112f702e4a982eb574d83c573824fa1b9 # v0.11.114
+        uses: pantry-pm/pantry/packages/action@6fbf7259c2764d18a12d915bf8bc68c500cb4931 # v0.11.119
         with:
-          version: '0.11.114'
+          version: '0.11.119'
           apple-signing: 'true'
           apple-signing-application-certificate: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
-          apple-signing-installer-certificate: ${{ secrets.APPLE_INSTALLER_CERTIFICATE }}
           apple-signing-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          apple-signing-provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
 
-      - name: Build and sign
-        run: bun run build
+      - run: bun install --frozen-lockfile
+
+      - name: Verify source
+        run: |
+          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun run check
+
+      - name: Build, sign and notarize the direct app
+        env:
+          APPLE_NOTARIZE_APPLE_ID: ${{ secrets.APPLE_NOTARIZE_APPLE_ID }}
+          APPLE_NOTARIZE_PASSWORD: ${{ secrets.APPLE_NOTARIZE_PASSWORD }}
+          APPLE_NOTARIZE_TEAM_ID: '3JJRNQW6B7'
+        run: |
+          test -n "$APPLE_SIGNING_IDENTITY"
+          test -n "$APPLE_NOTARIZE_APPLE_ID"
+          test -n "$APPLE_NOTARIZE_PASSWORD"
+          pantry run build
+          codesign --verify --deep --strict dist/Barista.app
 
       - name: Verify the packaged native app
         run: bun run test:native
@@ -53,26 +71,17 @@ jobs:
           trap 'hdiutil detach "$task_volume"; rmdir "$task_volume"' EXIT
           bun run test:native "$task_volume/Barista.app"
 
-      # Uploads the signed .pkg to App Store Connect, then publishes the GitHub
-      # release with the .dmg and .pkg attached and notes from the changelog.
+      # Publish only after signed-app and read-only DMG verification.
       - name: Publish
-        uses: pantry-pm/pantry/packages/action@c654eb3112f702e4a982eb574d83c573824fa1b9 # v0.11.114
+        uses: pantry-pm/pantry/packages/action@6fbf7259c2764d18a12d915bf8bc68c500cb4931 # v0.11.119
         with:
-          version: '0.11.114'
+          version: '0.11.119'
           install: 'false'
           release: 'true'
           release-files: |
             dist/Barista-${{ steps.version.outputs.version }}.dmg
-            dist/Barista-${{ steps.version.outputs.version }}.pkg
             dist/update.json
           # Generate notes from git history — no committed CHANGELOG to maintain.
           release-changelog: auto
-          release-app-store: 'true'
-          release-app-store-bundle-id: com.stacksjs.barista
-          release-app-store-version: ${{ steps.version.outputs.version }}
-          release-app-store-build-number: ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}

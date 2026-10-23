@@ -2,18 +2,17 @@
  * Build a distributable Barista.
  *
  * Compiles the app to a single binary, then hands it to Craft's packaging,
- * which produces the `.app`, a `.dmg` for direct download, and — when signing
- * identities are present — a `.pkg` for the Mac App Store.
+ * which produces a self-contained `.app` and a `.dmg` for direct download.
+ * The private native icon-hiding backend requires direct distribution.
  *
  * Signing is driven entirely by environment variables so the same command works
  * locally (unsigned) and on CI (signed by pantry's `apple-signing` step):
  *
  *   APPLE_SIGNING_IDENTITY            application certificate
- *   APPLE_INSTALLER_SIGNING_IDENTITY  installer certificate, required for the App Store
- *   APPLE_PROVISIONING_PROFILE_PATH   .provisionprofile embedded in the bundle
  *   APPLE_NOTARIZE_*                  Apple ID, app-specific password and team ID
  */
 import { createGitHubUpdateManifest, packageApp, resolveCraftExecutablePath, UPDATE_MANIFEST_ASSET } from '@stacksjs/stx/desktop'
+import { menuBarTemplatePlugin } from '@stacksjs/stx/menubar-build'
 import { existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
@@ -26,30 +25,28 @@ const TEAM_ID = '3JJRNQW6B7'
 const OUT_DIR = resolve(import.meta.dir, 'dist')
 
 const signIdentity = process.env.APPLE_SIGNING_IDENTITY
-const installerIdentity = process.env.APPLE_INSTALLER_SIGNING_IDENTITY
-const provisioningProfile = process.env.APPLE_PROVISIONING_PROFILE_PATH
-
-// An App Store package needs both certificates; without them this is a plain
-// local build and the pkg target is skipped rather than failing late.
-const appStore = Boolean(signIdentity && installerIdentity)
+// Reject the former App Store path explicitly: this runtime uses a private API.
+if (process.env.APPLE_INSTALLER_SIGNING_IDENTITY)
+  throw new Error('Barista icon hiding requires direct distribution. Use a Developer ID Application identity without an installer identity.')
 
 const binaryPath = join(OUT_DIR, 'barista')
 
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// Craft keeps grouping opt-in so an ordinary tray app adds no divider.
+// Craft 0.0.304 provides explicit native visibility without a spacer.
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version
-  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 293))
-throw new Error('Barista requires Craft 0.0.293 or newer. Run `pantry update` before building.')
+  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 304))
+throw new Error('Barista requires Craft 0.0.304 or newer. Run `pantry update` before building.')
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({
   entrypoints: [resolve(import.meta.dir, 'app.ts')],
   outdir: OUT_DIR,
   target: 'bun',
+  plugins: [await menuBarTemplatePlugin({ templates: [resolve(import.meta.dir, 'src/barista.stx')] })],
   // Most of the binary is Bun's own runtime, which is a fixed cost; minifying
   // still trims roughly a megabyte of app and dependency code.
   minify: true,
@@ -61,12 +58,10 @@ if (!compiled.success) {
   process.exit(1)
 }
 
-const entitlements = resolve(import.meta.dir, appStore ? 'barista.entitlements' : 'barista.direct.entitlements')
+const entitlements = resolve(import.meta.dir, 'barista.direct.entitlements')
 const icon = resolve(import.meta.dir, 'src/assets/icon.icns')
 
-console.log(appStore
-  ? 'Packaging for the Mac App Store...'
-  : signIdentity ? 'Packaging signed direct build...' : 'Packaging unsigned local build...')
+console.log(signIdentity ? 'Packaging signed direct build...' : 'Packaging unsigned local build...')
 const results = await packageApp({
   name: 'Barista',
   version: pkg.version,
@@ -80,10 +75,8 @@ const results = await packageApp({
   iconPath: existsSync(icon) ? icon : undefined,
   macos: {
     dmg: true,
-    appStore,
+    appStore: false,
     signIdentity,
-    installerIdentity,
-    provisioningProfile,
     entitlements: existsSync(entitlements) ? entitlements : undefined,
     // Ship the webview runtime inside the bundle so the installed app is
     // self-contained; the desktop runtime finds it beside its own executable.
@@ -92,10 +85,9 @@ const results = await packageApp({
     menuBarOnly: true,
     category: 'public.app-category.utilities',
     minimumSystemVersion: '15.0',
-    // The App Store rejects a repeat upload of the same build number, and CI
-    // run numbers increase monotonically.
+    // CI run numbers give every distributable a distinct build number.
     buildNumber: process.env.GITHUB_RUN_NUMBER,
-    notarize: !appStore && Boolean(process.env.APPLE_NOTARIZE_APPLE_ID),
+    notarize: Boolean(process.env.APPLE_NOTARIZE_APPLE_ID),
     appleId: process.env.APPLE_NOTARIZE_APPLE_ID,
     applePassword: process.env.APPLE_NOTARIZE_PASSWORD,
     teamId: process.env.APPLE_NOTARIZE_TEAM_ID || TEAM_ID,

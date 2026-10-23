@@ -28,6 +28,10 @@
     "skipLibCheck": true
   },
   "exclude": [
-    "pickier.config.ts"
+    "pickier.config.ts",
+    "storage/framework/stx",
+    "dist",
+    "docs/.vitepress/cache",
+    "docs/.vitepress/dist"
   ]
 }
