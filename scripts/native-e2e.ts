@@ -1,16 +1,41 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import { macOSRuntimeExecutablePath } from '@stacksjs/stx/desktop'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 if (process.platform !== 'darwin') throw new Error('Native E2E requires macOS')
-const bundle = realpathSync(resolve(process.argv[2] || 'dist/Barista.app'))
+const sourceBundle = realpathSync(resolve(process.argv[2] || 'dist/Barista.app'))
+const profile = mkdtempSync(join(tmpdir(), 'barista-e2e-'))
+const bundle = join(profile, 'Barista.app')
+const workingDirectory = join(profile, 'cwd')
+// NSStatusItem saves arrangement in its native bundle's preferences. An
+// isolated JSON profile alone does not isolate those positions or TCC identity.
+const testBundleId = `org.stacksjs.barista.e2e.p${process.pid}.t${Date.now()}`
+const helper = join(bundle, 'Contents/Helpers/CraftRuntime.app')
+try {
+  mkdirSync(workingDirectory)
+  cpSync(sourceBundle, bundle, { recursive: true })
+  for (const [app, identifier] of [[bundle, testBundleId], [helper, `${testBundleId}.runtime`]]) {
+    const patched = Bun.spawnSync(['/usr/bin/plutil', '-replace', 'CFBundleIdentifier', '-string', identifier, join(app, 'Contents/Info.plist')])
+    assert.equal(patched.exitCode, 0, patched.stderr.toString())
+  }
+  const signed = Bun.spawnSync(['/usr/bin/codesign', '--force', '--deep', '--sign', '-', '--preserve-metadata=entitlements,flags', bundle])
+  assert.equal(signed.exitCode, 0, signed.stderr.toString())
+  const verified = Bun.spawnSync(['/usr/bin/codesign', '--verify', '--deep', '--strict', bundle])
+  assert.equal(verified.exitCode, 0, verified.stderr.toString())
+  const identity = Bun.spawnSync(['/usr/bin/codesign', '-dv', helper])
+  assert.match(identity.stderr.toString(), new RegExp(`Identifier=${testBundleId.replaceAll('.', '\\.')}.runtime`))
+}
+catch (error) {
+  rmSync(profile, { recursive: true, force: true })
+  throw error
+}
 const binary = join(bundle, 'Contents/MacOS/Barista')
-const runtime = join(bundle, 'Contents/MacOS/craft')
+const runtime = macOSRuntimeExecutablePath(bundle)
 const runtimeType = Bun.spawnSync(['/usr/bin/file', '-b', runtime])
 assert.equal(runtimeType.exitCode, 0)
 assert.match(runtimeType.stdout.toString(), /Mach-O/, 'packaged Craft must be a native executable, not an installation launcher')
-const profile = mkdtempSync(join(tmpdir(), 'barista-e2e-'))
 const preferencesPath = join(profile, 'preferences.json')
 // An upgrade drops spacer settings while preserving awake and login choices.
 const retiredPreferences = {
@@ -21,7 +46,7 @@ const retiredPreferences = {
   alwaysHiddenEnabled: true,
 }
 writeFileSync(preferencesPath, JSON.stringify({ ...retiredPreferences, caffeinateOnStartup: false, caffeinateDurationMinutes: -1, autoLaunch: false }))
-const steps: string[] = []
+const steps: string[] = ['packaged verification isolates native app identity and saved icon positions']
 let child: ReturnType<typeof Bun.spawn> | undefined
 let nativePid: number | undefined
 let output = ''
@@ -49,7 +74,7 @@ async function start() {
   delete env.CRAFT_BIN
   child = Bun.spawn([binary], {
     env,
-    cwd: profile,
+    cwd: workingDirectory,
     stdin: 'ignore', stdout: 'pipe', stderr: 'pipe',
   })
   for (const stream of [child.stdout, child.stderr]) {
@@ -64,6 +89,7 @@ async function start() {
   assert.equal(ready.menuBarController, 'nativeVisibility')
   const menuBar = ready.menuBar as Record<string, unknown>
   assert.equal(menuBar.backend, 'nativeVisibility', 'must never select the old spacer backend')
+  assert.equal(menuBar.preserveSystemItems, false, 'must explicitly accept native Apple-module suppression while protecting unselected apps')
   assert.equal(typeof menuBar.available, 'boolean')
   assert.equal(typeof menuBar.authorized, 'boolean')
   assert.equal(ready.menuBarInitialized, menuBar.available)
@@ -74,7 +100,7 @@ async function start() {
   const pids = children.stdout.toString().trim().split(/\s+/).filter(Boolean)
   assert(pids.length > 0, 'native runtime was not spawned')
   const processes = Bun.spawnSync(['/bin/ps', '-o', 'pid=,args=', '-p', pids.join(',')]).stdout.toString()
-  const native = processes.split('\n').find(line => line.includes(join(bundle, 'Contents/MacOS/craft')))
+  const native = processes.split('\n').find(line => line.includes(runtime))
   assert(native, 'packaged app must use its bundled native runtime')
   nativePid = Number.parseInt(native.trim(), 10)
   assert(native.includes('--headless'), 'preferences window must start hidden natively')
@@ -208,4 +234,5 @@ finally {
     await child.exited
   }
   rmSync(profile, { recursive: true, force: true })
+  Bun.spawnSync(['/usr/bin/defaults', 'delete', `${testBundleId}.runtime`])
 }
