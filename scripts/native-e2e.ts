@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -12,8 +12,7 @@ assert.equal(runtimeType.exitCode, 0)
 assert.match(runtimeType.stdout.toString(), /Mach-O/, 'packaged Craft must be a native executable, not an installation launcher')
 const profile = mkdtempSync(join(tmpdir(), 'barista-e2e-'))
 const preferencesPath = join(profile, 'preferences.json')
-// An upgrade must hand overflow to macOS even when the former controller was
-// enabled. Keep user awake and login choices distinct from the retired settings.
+// An upgrade drops spacer settings while preserving awake and login choices.
 const retiredPreferences = {
   isAutoCollapse: true,
   autoCollapseDelay: 5,
@@ -61,8 +60,15 @@ async function start() {
   }
   url = await until(() => output.match(/Barista [^\n]+ — (http:\/\/127\.0\.0\.1:\d+)/)?.[1] || '', Boolean)
   const ready = await until(status, state => state.nativeReady === true && state.shortcutRegistered === true)
-  assert.equal(ready.menuBarInitialized, false, 'the native grouping controller must remain uninitialized')
-  assert.equal(ready.menuBarController, 'system')
+  assert.equal(ready.menuBarController, 'nativeVisibility')
+  const menuBar = ready.menuBar as Record<string, unknown>
+  assert.equal(menuBar.backend, 'nativeVisibility', 'must never select the old spacer backend')
+  assert.equal(typeof menuBar.available, 'boolean')
+  assert.equal(typeof menuBar.authorized, 'boolean')
+  assert.equal(ready.menuBarInitialized, menuBar.available)
+  assert.equal(menuBar.markerWidth, menuBar.available ? 20 : 0, 'grouping must not reserve a wide spacer')
+  assert.equal(menuBar.collapsed, false)
+  assert.equal(menuBar.busy, false)
   const children = Bun.spawnSync(['/usr/bin/pgrep', '-P', String(child.pid)])
   const pids = children.stdout.toString().trim().split(/\s+/).filter(Boolean)
   assert(pids.length > 0, 'native runtime was not spawned')
@@ -121,13 +127,23 @@ try {
   const saved = JSON.parse(readFileSync(preferencesPath, 'utf8'))
   for (const key of Object.keys(retiredPreferences))
     assert.equal(Object.hasOwn(saved, key), false, `${key} must be retired during upgrade`)
-  steps.push('hidden native webview reserves keep-awake shortcut and leaves overflow to macOS, including on upgrade')
+  steps.push('hidden native webview selects native visibility explicitly, reserves shortcuts and keeps the group control compact')
 
   const tray = await fetch(`${url}/api/tray`).then(response => response.json())
   const actions = tray.menu.map((item: { action?: string }) => item.action)
-  for (const action of ['toggleMenuBar', 'arrangeMenuBar', 'toggleAutoCollapse'])
-    assert.equal(actions.includes(action), false, `${action} must not compete with macOS overflow`)
-  steps.push('native tray exposes awake controls without a competing overflow action')
+  assert.equal(actions.filter((action: string) => action === 'toggleMenuBar').length, 1)
+  assert.equal(actions.includes('arrangeMenuBar'), true)
+  assert.equal(actions.includes('toggleAutoCollapse'), false)
+  steps.push('native tray exposes exactly one hide/reveal action and no legacy spacer controls')
+
+  await post('/api/preferences', { menuBarGrouping: false })
+  await until(status, state => state.menuBarInitialized === false && (state.menuBar as Record<string, unknown>).backend === 'legacy')
+  const disabledMenu = await fetch(`${url}/api/tray`).then(response => response.json())
+  assert.equal(disabledMenu.menu.some((item: { action?: string }) => item.action === 'toggleMenuBar'), false)
+  await post('/api/preferences', { menuBarGrouping: true })
+  const enabled = await until(status, state => (state.menuBar as Record<string, unknown>).backend === 'nativeVisibility')
+  assert.equal((enabled.menuBar as Record<string, unknown>).markerWidth, (enabled.menuBar as Record<string, unknown>).available ? 20 : 0)
+  steps.push('preference changes remove and recreate the actual native group control without a spacer')
 
   for (const minutes of [0, -2, 7, null, '60'])
     await post('/api/caffeinate/duration', { minutes }, 400)
@@ -163,14 +179,25 @@ try {
   const relaunched = await status()
   assert.equal(relaunched.active, true)
   assert.equal(relaunched.caffeinateDurationMinutes, -1)
-  assert.equal(relaunched.menuBarInitialized, false)
+  assert.equal(relaunched.menuBarInitialized, (relaunched.menuBar as Record<string, unknown>).available)
   assert(ownedAssertions().some(line => line.includes('PreventUserIdleSystemSleep')))
-  steps.push('hidden relaunch preserves Start Awake and continues using system overflow')
+  steps.push('hidden relaunch preserves Start Awake and reopens with a compact, revealed group')
 
   assert(nativePid, 'native process was not recorded')
   process.kill(nativePid, 'SIGTERM')
   await waitForStop()
   steps.push('native process exit stops the host and releases its sleep assertions')
+
+  unlinkSync(preferencesPath)
+  await start()
+  const fresh = await status()
+  assert.equal(fresh.active, true)
+  assert.equal(fresh.caffeinateDurationMinutes, -1)
+  assert.equal(fresh.caffeinateOnStartup, true)
+  assert.equal(fresh.autoLaunch, true)
+  assert.equal(fresh.menuBarGrouping, true)
+  await stop()
+  steps.push('a fresh profile starts awake indefinitely with login and grouping enabled')
 
   console.log(steps.map(step => `✓ ${step}`).join('\n'))
 }

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DURATIONS, isKnownDuration } from '../src/durations'
 import { DURATIONS as ALL_DURATIONS, QUICK_DURATIONS } from '../src/durations'
+import { menuBarMessage } from '../src/menu-bar'
 import { buildTrayMenu, TRAY_ICONS, trayIcon, trayStatusLabel, trayTooltip } from '../src/tray'
 import { bundlePath } from '../src/updates'
 
@@ -98,6 +99,21 @@ describe('tray menu', () => {
     const menu = buildTrayMenu(asleep)
     const all = [...menu, ...(menu.find(i => i.type === 'submenu')?.submenu ?? [])]
     expect(all.filter(i => i.checked)).toHaveLength(0)
+  })
+
+  it('offers exactly one group toggle and shows permission setup before hiding', () => {
+    const menu = buildTrayMenu({ ...asleep, menuBarGrouping: true, menuBar: { initialized: true, collapsed: false, authorized: false } })
+    expect(menu.filter(item => item.action === 'toggleMenuBar')).toHaveLength(1)
+    expect(menu.find(item => item.action === 'toggleMenuBar')?.label).toBe('Set Up Icon Hiding...')
+    const collapsed = buildTrayMenu({ ...asleep, menuBarGrouping: true, menuBar: { initialized: true, collapsed: true, authorized: true } })
+    expect(collapsed.find(item => item.action === 'toggleMenuBar')?.label).toBe('Reveal Hidden Icons')
+    expect(buildTrayMenu(asleep).some(item => item.action === 'toggleMenuBar')).toBe(false)
+  })
+
+  it('reports unavailable or unauthorized hiding without promising a hidden group', () => {
+    expect(menuBarMessage({ initialized: false, collapsed: false, available: false })).toContain('macOS 27')
+    expect(menuBarMessage({ initialized: true, collapsed: false, authorized: false })).toContain('Device Control and Data Access')
+    expect(menuBarMessage({ initialized: true, collapsed: false, error: 'activationFailed' })).toContain('remain visible')
   })
 
   it('carries the standard app items, including a way to update', () => {

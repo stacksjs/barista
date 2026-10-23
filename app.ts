@@ -5,6 +5,7 @@
  * turns those into a native window.
  */
 import type { MenuBarApp } from '@stacksjs/stx/menubar'
+import type { MenuBarState } from './src/menu-bar'
 import type { BaristaPreferences } from './src/preferences'
 import { resolve } from 'node:path'
 import { createMenuBarApp } from '@stacksjs/stx/menubar'
@@ -20,7 +21,7 @@ import { createUpdateChecker } from './src/updates'
 
 export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
   let nativeReady = false
-  let menuBarInitialized = false
+  let menuBar: MenuBarState = { initialized: false, collapsed: false }
   let shortcutRegistered = false
   const updates = createUpdateChecker(pkg.version)
 
@@ -33,8 +34,9 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
       ...caffeinate,
       // The tray shows a cup, and spells the time out on hover.
       nativeReady,
-      menuBarController: 'system',
-      menuBarInitialized,
+      menuBarController: 'nativeVisibility',
+      menuBarInitialized: menuBar.initialized,
+      menuBar,
       shortcutRegistered,
     }
   }
@@ -45,11 +47,12 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
     templateSource,
     preferences: DEFAULT_PREFERENCES,
     preferencesPath: process.env.BARISTA_PREFERENCES_PATH,
-    launchAtLogin: 'autoLaunch',
+    // An isolated E2E profile must never remove or replace the real login item.
+    launchAtLogin: process.env.BARISTA_PREFERENCES_PATH ? undefined : 'autoLaunch',
 
     window: {
       width: 320,
-      height: 620,
+      height: 740,
       hideDockIcon: !DEFAULT_PREFERENCES.showInDock,
     },
 
@@ -75,6 +78,8 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
         caffeinated: caffeinate.active,
         remaining: caffeinate.remainingFormatted,
         durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
+        menuBarGrouping: prefs.get('menuBarGrouping'),
+        menuBar,
       })
     },
 
@@ -106,6 +111,8 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
           caffeinated: caffeinate.active,
           remaining: caffeinate.remainingFormatted,
           durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
+          menuBarGrouping: prefs.get('menuBarGrouping'),
+          menuBar,
         }
 
         return {
@@ -140,12 +147,13 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
 
       'POST /api/native/state': async (request) => {
         const body = await request.json().catch(() => null)
-        if (typeof body?.menuBarInitialized !== 'boolean' || typeof body?.shortcutRegistered !== 'boolean')
+        if (typeof body?.menuBar?.initialized !== 'boolean' || typeof body?.menuBar?.collapsed !== 'boolean'
+          || typeof body?.shortcutRegistered !== 'boolean')
           return Response.json({ error: 'Expected native menu bar and shortcut state' }, { status: 400 })
-        menuBarInitialized = body.menuBarInitialized
+        menuBar = body.menuBar
         shortcutRegistered = body.shortcutRegistered
         nativeReady = true
-        return { nativeReady, menuBarInitialized, shortcutRegistered }
+        return { nativeReady, menuBar, menuBarInitialized: menuBar.initialized, shortcutRegistered }
       },
 
       '/api/updates': () => updates.status(),
@@ -157,8 +165,7 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
     },
   })
 
-  // Retire settings for Barista's former grouping controller while preserving
-  // the user's awake, duration, login and Dock preferences.
+  // The native backend has no spacer, separator or legacy auto-collapse options.
   for (const key of ['isAutoCollapse', 'autoCollapseDelay', 'separatorHidden', 'globalHotkey', 'alwaysHiddenEnabled'])
     app.preferences.delete(key)
 

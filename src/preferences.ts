@@ -13,11 +13,14 @@ export interface BaristaPreferences extends Record<string, unknown> {
   caffeinateDurationMinutes: number
   /** Keep a Dock icon. Off by default — Barista lives in the menu bar. */
   showInDock: boolean
+  /** One compact native arrow for a manually chosen group of app icons. */
+  menuBarGrouping: boolean
 }
 
 export const DEFAULT_PREFERENCES: BaristaPreferences = {
-  autoLaunch: false,
-  caffeinateOnStartup: false,
+  autoLaunch: true,
+  caffeinateOnStartup: true,
   caffeinateDurationMinutes: -1,
   showInDock: false,
+  menuBarGrouping: true,
 }

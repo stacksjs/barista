@@ -397,6 +397,7 @@
         <button
           class="chip"
           :class="{ selected: durationMinutes === {{ duration.minutes }} }"
+          :aria-pressed="durationMinutes === {{ duration.minutes }}"
           @click="setDuration({{ duration.minutes }})"
         >{{ duration.short }}</button>
       @endforeach
@@ -405,8 +406,23 @@
 
   <div class="group">
     <div class="group-title">Menu bar</div>
-    <div class="row-label">Managed by macOS</div>
-    <p class="hint">Hold ⌘ and drag icons to rearrange them. When icons overflow, use macOS’s arrow to show or hide them.</p>
+    <div class="row">
+      <div>
+        <div class="row-label">Hide a group of app icons</div>
+        <div class="row-note">One arrow to hide and reveal your group</div>
+      </div>
+      <button type="button" class="switch" role="switch" :aria-checked="menuBarGrouping" :class="{ on: menuBarGrouping }" @click="setGrouping()" aria-label="Hide a group of app icons"></button>
+    </div>
+    <div x-show="menuBarGrouping">
+      <p class="hint" x-text="menuBarHint"></p>
+      <div class="row">
+        <button class="mini" x-show="menuBarNeedsPermission" @click="authorizeMenuBar()">Open System Settings…</button>
+        <button class="mini" x-show="menuBarUsable" @click="toggleMenuBar()" x-text="menuBarCollapsed ? 'Reveal icons' : 'Hide group'"></button>
+        <button class="mini" x-show="menuBarUsable" @click="arrangeMenuBar()">Arrange…</button>
+        <span class="row-value">⌘⇧B</span>
+      </div>
+      <p class="hint">Icons from the same app hide together. System controls stay visible.</p>
+    </div>
   </div>
 
   <div class="group">
@@ -453,11 +469,14 @@
 <script client lang="ts">
   import type { BaristaPreferences } from './preferences'
   import type { CaffeinateSnapshot } from './caffeinate'
+  import type { MenuBarState } from './menu-bar'
+  import { menuBarMessage } from './menu-bar'
 
   type BaristaState = BaristaPreferences & Omit<CaffeinateSnapshot, 'endsAt'> & {
     endsAt: string | null
     nativeReady: boolean
     menuBarInitialized: boolean
+    menuBar: MenuBarState
     shortcutRegistered: boolean
   }
   const bridge = useNativeDesktop()
@@ -473,6 +492,11 @@
   const durationMinutes = derived(() => status().caffeinateDurationMinutes ?? -1)
   const caffeinateOnStartup = derived(() => status().caffeinateOnStartup === true)
   const autoLaunch = derived(() => status().autoLaunch === true)
+  const menuBarGrouping = derived(() => status().menuBarGrouping === true)
+  const menuBarCollapsed = derived(() => status().menuBar?.collapsed === true)
+  const menuBarNeedsPermission = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === false)
+  const menuBarUsable = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === true)
+  const menuBarHint = derived(() => menuBarMessage(status().menuBar || { initialized: false, collapsed: false }))
 
   const errorMessage = state('')
 
@@ -504,6 +528,48 @@
 
   async function setDuration(minutes: number) {
     await post('/api/caffeinate/duration', { minutes })
+  }
+
+  // ===== Menu bar =====
+
+  let appliedGrouping: boolean | undefined
+
+  async function syncMenuBar() {
+    const menubar = bridge()?.menubar
+    if (!menubar) return
+    const enabled = menuBarGrouping()
+    if (appliedGrouping !== enabled) {
+      appliedGrouping = enabled
+      if (enabled) await menubar.init({ backend: 'nativeVisibility' })
+      else await menubar.destroy()
+    }
+    const menuBar = await menubar.getState()
+    await post('/api/native/state', { menuBar, shortcutRegistered: status().shortcutRegistered === true })
+  }
+
+  async function setGrouping() {
+    const menubar = bridge()?.menubar
+    if (!menubar) return
+    const enabled = !menuBarGrouping()
+    await savePreference('menuBarGrouping', enabled)
+    await syncMenuBar()
+  }
+
+  async function authorizeMenuBar() {
+    await bridge()?.menubar?.requestPermission()
+    await syncMenuBar()
+  }
+
+  async function toggleMenuBar() {
+    if (menuBarNeedsPermission()) return authorizeMenuBar()
+    await bridge()?.menubar?.toggle()
+    await syncMenuBar()
+  }
+
+  async function arrangeMenuBar() {
+    await bridge()?.menubar?.expand()
+    await bridge()?.window?.show()
+    await syncMenuBar()
   }
 
   // ===== Preferences =====
@@ -549,6 +615,8 @@
 
   const TRAY_ACTIONS: Record<string, () => unknown | Promise<unknown>> = {
     toggleCaffeinate,
+    toggleMenuBar,
+    arrangeMenuBar,
     disableCaffeinate: () => post('/api/caffeinate/disable'),
     preferences: () => bridge()?.window?.show(),
     about: () => bridge()?.window?.show(),
@@ -594,27 +662,35 @@
   useEventListener('craft:shortcut', event => {
     const { id } = (event as CustomEvent<{ id: string }>).detail
     if (id === 'barista.caffeinate') toggleCaffeinate()
+    if (id === 'barista.menubar' && menuBarGrouping()) toggleMenuBar()
   })
   useEventListener('craft:shortcut:error', () => errorMessage.set('Could not reserve a global shortcut'))
 
-  // The cup toggles awake. macOS owns menu bar overflow and its control.
+  useEventListener('craft:menubar:stateChange', async event => {
+    await syncMenuBar()
+    if ((event as CustomEvent<MenuBarState>).detail.error === 'permissionRequired')
+      await bridge()?.window?.show()
+  })
+
+  // The cup toggles awake; the native arrow toggles only the chosen group.
   useEventListener('craft:tray:click', async () => {
     await toggleCaffeinate()
   })
 
-  // The framework delivers readiness once, after mount, even if the bridge
-  // arrived before the page. Read menu bar state without creating a divider.
+  // Craft owns native grouping, permission checks, click handling and cleanup.
   bridge.onReady(async native => {
     loadInitialState()
     await syncTray()
     const shortcuts = native.shortcuts
     if (!shortcuts) throw new Error('Native shortcuts are unavailable')
     await shortcuts.register('barista.caffeinate', 'Cmd+Shift+C')
+    await shortcuts.register('barista.menubar', 'Cmd+Shift+B')
     const registered = await shortcuts.isRegistered('barista.caffeinate')
+      && await shortcuts.isRegistered('barista.menubar')
     const menubar = native.menubar
     if (!menubar) throw new Error('Native menu bar state is unavailable')
-    const menuBar = await menubar.getState()
-    await post('/api/native/state', { menuBarInitialized: menuBar.initialized, shortcutRegistered: registered })
+    status.set({ ...status(), shortcutRegistered: registered })
+    await syncMenuBar()
     if (!registered) errorMessage.set('A shortcut is already in use by another app')
   })
 
@@ -622,6 +698,7 @@
   // follow whatever the state became.
   useInterval(async () => {
     await refresh()
+    await syncMenuBar()
     await syncTray()
   }, 1000)
 </script>

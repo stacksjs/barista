@@ -11,6 +11,7 @@
  * the app's only menu definition — the popup asks for it over `GET /api/tray`
  * rather than describing a second one.
  */
+import type { MenuBarState } from './menu-bar'
 import type { MenuBarMenuItem } from '@stacksjs/stx/menubar'
 import brewingIcon from './assets/tray-brewing.pdf' with { type: 'file' }
 import idleIcon from './assets/tray-idle.pdf' with { type: 'file' }
@@ -40,6 +41,8 @@ export interface TrayState {
   remaining: string
   /** Minutes the current session runs for, or `-1` for indefinitely. */
   durationMinutes: number
+  menuBarGrouping?: boolean
+  menuBar?: MenuBarState
 }
 
 export function trayIcon(caffeinated: boolean): string {
@@ -100,6 +103,11 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
     },
 
     { type: 'separator' },
+    ...(state.menuBarGrouping ? [
+      { label: state.menuBar?.authorized === false ? 'Set Up Icon Hiding...' : state.menuBar?.collapsed ? 'Reveal Hidden Icons' : 'Hide Grouped Icons', action: 'toggleMenuBar', enabled: state.menuBar?.available !== false, shortcut: 'Cmd+Shift+B' },
+      { label: 'Arrange Icons...', action: 'arrangeMenuBar' },
+      { type: 'separator' as const },
+    ] : []),
     { label: 'Preferences...', action: 'preferences', shortcut: 'Cmd+,' },
     { label: 'About Barista', action: 'about' },
     { label: 'Check for Updates...', action: 'checkForUpdates' },
