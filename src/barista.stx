@@ -421,7 +421,7 @@
         <button class="mini" x-show="menuBarUsable" @click="arrangeMenuBar()">Arrange…</button>
         <span class="row-value">⌘⇧B</span>
       </div>
-      <p class="hint">Icons from the same app hide together. If macOS hides other icons, Barista restores the bar.</p>
+      <p class="hint">Apps hide together. Apple modules and activity indicators may also hide; reveal restores them.</p>
     </div>
   </div>
 
@@ -540,7 +540,7 @@
     const enabled = menuBarGrouping()
     if (appliedGrouping !== enabled) {
       appliedGrouping = enabled
-      if (enabled) await menubar.init({ backend: 'nativeVisibility' })
+      if (enabled) await menubar.init({ backend: 'nativeVisibility', preserveSystemItems: false })
       else await menubar.destroy()
     }
     const menuBar = await menubar.getState()
@@ -668,7 +668,8 @@
 
   useEventListener('craft:menubar:stateChange', async event => {
     await syncMenuBar()
-    if ((event as CustomEvent<MenuBarState>).detail.error === 'permissionRequired')
+    const error = (event as CustomEvent<MenuBarState>).detail.error
+    if (error === 'permissionRequired' || error === 'visibilityMismatch')
       await bridge()?.window?.show()
   })
 
