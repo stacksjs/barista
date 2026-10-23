@@ -15,9 +15,9 @@
     },
     {
       "image": "grouping.jpg",
-      "title": "Choose your\nvisible icons.",
-      "subtitle": "One compact hide/reveal arrow.",
-      "detail": "Arrange icons with Command-drag.\nSystem controls stay visible.\nmacOS 27 + Accessibility required."
+      "title": "Arrange your\nicon group.",
+      "subtitle": "Native grouping with verification.",
+      "detail": "Arrange icons with Command-drag.\nUnexpected hiding restores the bar.\nmacOS 27 + Accessibility required."
     }
   ]
 }
