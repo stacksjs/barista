@@ -6,7 +6,6 @@
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="/assets/icon.png" type="image/png">
   <link rel="stylesheet" href="/assets/site.css">
-  <link rel="preload" as="image" href="/assets/awake.jpg">
   @yield('head')
 </head>
 <body>

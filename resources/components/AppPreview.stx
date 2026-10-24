@@ -1,0 +1,43 @@
+<script server>
+import pkg from '../../package.json'
+import { DURATIONS } from '../../src/durations'
+
+export const scene = $props.scene
+export const version = pkg.version
+export const durations = DURATIONS
+export const timed = scene === 'timed'
+export const grouping = scene === 'grouping'
+</script>
+
+{{-- Static product illustrations, rendered with stx. Duration choices and the
+     version come from the app; these previews do not control the visitor's Mac. --}}
+<article class="app-preview" aria-label="{{ timed ? 'One-hour awake session' : grouping ? 'Menu bar grouping settings' : 'Indefinite awake session' }}">
+  <div class="app-preview-title"><strong>Barista</strong><span>{{ version }}</span></div>
+  <div class="app-preview-status"><span></span>Keeping your Mac awake</div>
+  <div class="app-preview-time">{{ timed ? '59:42' : '∞' }}</div>
+  <p class="app-preview-note">{{ timed ? '1 hour' : 'Indefinitely' }}</p>
+  <div class="app-preview-action">Turn Off</div>
+  <div class="app-preview-group">
+    <div class="app-preview-label">For how long</div>
+    <div class="app-preview-durations">
+      @foreach(durations as duration)
+        <span class="{{ duration.minutes === (timed ? 60 : -1) ? 'is-selected' : '' }}">{{ duration.short }}</span>
+      @endforeach
+    </div>
+  </div>
+  @if(grouping)
+    <div class="app-preview-group">
+      <div class="app-preview-label">Menu bar</div>
+      <div class="app-preview-row"><span>Hide a group of icons</span><span class="app-preview-switch"></span></div>
+      <p class="app-preview-note">Your group is hidden. Click the arrow to reveal it.</p>
+      <div class="app-preview-row"><span class="app-preview-mini">Reveal icons</span><span class="app-preview-keys">⌘⇧B</span></div>
+    </div>
+  @else
+    <div class="app-preview-group">
+      <div class="app-preview-label">Behaviour</div>
+      <div class="app-preview-row"><span>Start awake</span><span class="app-preview-switch"></span></div>
+      <div class="app-preview-row"><span>Open at login</span><span class="app-preview-switch"></span></div>
+      <div class="app-preview-row"><span>Keep awake shortcut</span><span class="app-preview-keys">⌘⇧C</span></div>
+    </div>
+  @endif
+</article>

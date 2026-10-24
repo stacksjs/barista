@@ -1,5 +1,5 @@
 /* System typography keeps the page native and avoids a font download.
- * Radius scale: 8px controls, 12px product images. No overlay layers. */
+ * Radius scale: 8px controls, 12px product images. */
 :root {
   color-scheme: light;
   --canvas: #fafafa;
@@ -58,9 +58,35 @@ h3 { font-size: 22px; line-height: 1.3; letter-spacing: -0.025em; font-weight: 5
 .site-nav a:hover, .site-footer a:hover { color: var(--accent); }
 .site-nav button { color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 7px 10px; border-radius: 8px; cursor: pointer; }
 .wordmark { font-size: 21px; font-weight: 650; letter-spacing: -0.04em; }
-.hero { min-height: 630px; padding-block: 32px 46px; }
+.hero { min-height: 610px; padding-block: 24px 40px; }
 .hero-description { max-width: 370px; margin-block: 26px 32px; font-size: 19px; }
-.hero-product { min-height: 540px; background: var(--surface); border-radius: 12px; padding: 22px; }
+.hero-product { position: relative; height: 540px; isolation: isolate; }
+.hero-product figcaption { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 12px; color: var(--muted); }
+.hero-app { position: absolute; width: 250px; left: calc(50% - 125px); top: 10px; transition: translate 220ms ease; }
+.hero-app-timed { transform: translate(-100px, 10px) rotate(-12deg) scale(.9); transform-origin: bottom center; z-index: 1; }
+.hero-app-grouping { transform: translate(110px, 0) rotate(11deg) scale(.9); transform-origin: bottom center; z-index: 2; }
+.hero-app-awake { transform: translate(0, 24px) rotate(-2deg); z-index: 3; }
+@media (hover: hover) { .hero-app:hover { translate: 0 -10px; z-index: 4; } }
+/* A stx rendering of the app's session controls, with its own native palette. */
+.app-preview { color-scheme: dark; font-size: 12px; line-height: 1.3; color: #f2f0ee; background: #17161a; border: 1px solid #453f4a; border-radius: 12px; padding: 18px 16px 14px; box-shadow: 0 18px 38px -15px #0006, 0 3px 8px #0002; }
+.app-preview-title { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+.app-preview-title strong { font-size: 15px; font-weight: 600; }
+.app-preview-title > span { font-size: 10px; color: #a8a29b; }
+.app-preview-status { display: flex; gap: 6px; align-items: center; color: #6fbf8b; font-size: 11px; white-space: nowrap; }
+.app-preview-status > span { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+.app-preview-time { font-size: 40px; font-weight: 250; letter-spacing: -.02em; line-height: 1; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.app-preview .app-preview-note { font-size: 10px; color: #a8a29b; line-height: 1.4; margin-top: 6px; }
+.app-preview-action { margin-top: 18px; border: 1px solid #453f4a; border-radius: 8px; text-align: center; padding: 10px; font-size: 12px; }
+.app-preview-group { margin-top: 16px; padding-top: 10px; border-top: 1px solid #2e2b33; }
+.app-preview-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: #a8a29b; margin-bottom: 10px; }
+.app-preview-durations { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.app-preview-durations > span { padding: 7px 3px; border: 1px solid #2e2b33; border-radius: 8px; text-align: center; font-size: 11px; color: #a8a29b; }
+.app-preview-durations > .is-selected { color: #d9a441; border-color: #d9a441; background: #d9a44124; }
+.app-preview-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; font-size: 11px; }
+.app-preview-row + .app-preview-row { border-top: 1px solid #2e2b33; }
+.app-preview-switch { width: 30px; height: 18px; border-radius: 20px; background: #d9a441; flex-shrink: 0; }
+.app-preview-switch::after { content: ''; display: block; width: 12px; height: 12px; background: #fff; border-radius: 50%; margin: 3px 3px 3px auto; }
+.app-preview-keys, .app-preview-mini { color: #a8a29b; border: 1px solid #453f4a; border-radius: 5px; padding: 3px 6px; font-size: 10px; }
 .native-frame { width: 224px; height: 478px; overflow: hidden; border-radius: 12px; border: 1px solid var(--line); }
 .native-shot { width: 100%; transform: translateY(-22px); }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 48px; padding: 12px 19px; border: 1px solid transparent; border-radius: 8px; background: var(--button); color: var(--button-text); font-size: 15px; font-weight: 550; text-decoration: none; white-space: nowrap; transition: transform 160ms ease; }
@@ -105,6 +131,10 @@ kbd { min-width: 27px; padding: 3px 6px; border: 1px solid var(--line); border-r
 .skip-link { position: absolute; top: 10px; left: 10px; transform: translateY(-150%); background: var(--canvas); padding: 12px; }
 .skip-link:focus { transform: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero { grid-template-columns: 1fr; padding-top: 44px; }
+  .hero-product { width: 540px; max-width: 100%; justify-self: center; }
+}
 @media (max-width: 767px) {
   .shell { width: calc(100% - 40px); }
   .site-nav { min-height: 68px; gap: 16px; }
@@ -112,8 +142,11 @@ kbd { min-width: 27px; padding: 3px 6px; border: 1px solid var(--line); border-r
   .site-nav nav a:first-child { display: none; }
   .hero { grid-template-columns: 1fr; min-height: auto; padding-block: 40px; gap: 36px; }
   .hero-description { font-size: 17px; margin-block: 24px; }
-  .hero-product { min-height: auto; padding: 28px; }
-  .hero-product .native-frame { width: 200px; height: 426px; }
+  .hero-product { height: 450px; }
+  .hero-app { top: 8px; width: 230px; left: calc(50% - 115px); transform-origin: top center; }
+  .hero-app-timed { transform: translate(-48px, 16px) rotate(-11deg) scale(.7); }
+  .hero-app-grouping { transform: translate(48px, 10px) rotate(10deg) scale(.7); }
+  .hero-app-awake { transform: translate(0, 22px) rotate(-2deg) scale(.84); }
   .requirements, .habits, .preview, .install-steps, .questions > div { grid-template-columns: 1fr; }
   .section-space { padding-block: 64px; }
   .section-heading { margin-bottom: 32px; }

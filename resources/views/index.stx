@@ -18,8 +18,11 @@ const preview = state('awake')
       <a class="site-link" href="#how-it-works">How it works <span aria-hidden="true">↗</span></a>
     </div>
   </div>
-  <figure class="hero-product flex items-center justify-center">
-    <NativeScreenshot source="/assets/awake.jpg" description="Barista Preferences with indefinite keep-awake active" eager="true" />
+  <figure class="hero-product" aria-labelledby="hero-preview-caption">
+    <div class="hero-app hero-app-timed"><AppPreview scene="timed" /></div>
+    <div class="hero-app hero-app-grouping"><AppPreview scene="grouping" /></div>
+    <div class="hero-app hero-app-awake"><AppPreview scene="awake" /></div>
+    <figcaption id="hero-preview-caption">A timer. A tidy menu bar. An always-awake Mac.</figcaption>
   </figure>
 </section>
 
