@@ -8,7 +8,7 @@
         "@stacksjs/stx": "^0.2.687",
       },
       "devDependencies": {
-        "@stacksjs/bumpx": "^0.2.26",
+        "@stacksjs/bumpx": "^0.2.27",
         "@stacksjs/bunpress": "^0.2.25",
         "@stacksjs/ts-cloud": "^0.16.68",
         "@stacksjs/ts-css": "^0.3.19",
@@ -21,7 +21,7 @@
 
     "@cwcss/crosswind": ["@cwcss/crosswind@0.2.19", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "bunfig": "^0.15.17" }, "bin": { "crosswind": "./dist/cli.js" } }, "sha512-NswUZPNHbdkW4rxvmwjjIM7jyfQ/rr0X1J1uwjTUwixc3BXQs1Fk7pP5cC7MxkGGnmRTFs2O9J+U9tJ36ZJ7fQ=="],
 
-    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.2.26", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/logsmith": "^0.2.6", "bunfig": "^0.15.6" }, "bin": { "bumpx": "./dist/bin/cli.js" } }, "sha512-fgoQd9bZf8u/7qY5kL2rJiHsP5wv03xu3MVb7/9c0aitTNbUu9+u/3Vk/eNUz/sKPiIuZFA0erE76Ca6nD8y/g=="],
+    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.2.27", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/logsmith": "^0.2.6", "bunfig": "^0.15.6" }, "bin": { "bumpx": "./dist/bin/cli.js" } }, "sha512-LOaqknhToQDIey7UwfG9BPZ2CQfK1TfA/mZxpPnxoPKfzTvVWaudKatpw/R3J4+8WuR0V08/olV28lBxI9S7cg=="],
 
     "@stacksjs/bunpress": ["@stacksjs/bunpress@0.2.25", "", { "dependencies": { "@cwcss/crosswind": "^0.2.16", "@stacksjs/clapp": "^0.2.0", "@stacksjs/stx": "^0.2.550", "@stacksjs/ts-i18n": "^0.1.11", "bunfig": "^0.15.17", "ts-syntax-highlighter": "^0.2.14" }, "peerDependencies": { "@stacksjs/ts-cloud": "^0.7.51" }, "optionalPeers": ["@stacksjs/ts-cloud"], "bin": { "bunpress": "./dist/bin/cli.js" } }, "sha512-4mzXXQlCgMbkFe4Re6jAcKyGE2hSevpPFBbIytBdrrpEhCDl3VR5UH0v6Ei73wh3jkPAtxWBbJu4B7f72nqrsQ=="],
 
