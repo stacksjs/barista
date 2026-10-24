@@ -1,15 +1,17 @@
 {
   "version": "1.0",
+  "lockfileVersion": 1,
   "packages": {
     "bun.sh@1.4.3": {
       "name": "bun.sh",
       "version": "1.4.3",
+      "source": "pantry",
       "resolved": "registry:bun.sh@1.4.3"
     },
-    "craft-native.org@0.0.304": {
+    "craft-native.org@0.0.319": {
       "name": "craft-native.org",
-      "version": "0.0.304",
-      "resolved": "registry:craft-native.org@0.0.304"
+      "version": "0.0.319",
+      "source": "pantry"
     }
   }
 }

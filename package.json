@@ -51,7 +51,7 @@
     "typecheck:views": "bunx --bun stx typecheck 'src/**/*.stx' --lib src/template-context.d.ts"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.674"
+    "@stacksjs/stx": "^0.2.677"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.26",
