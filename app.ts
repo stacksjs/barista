@@ -19,11 +19,11 @@ import { DEFAULT_PREFERENCES } from './src/preferences'
 import { buildTrayMenu, trayIcon, trayTooltip } from './src/tray'
 import { createUpdateChecker } from './src/updates'
 
-export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
+export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>> {
   let nativeReady = false
   let menuBar: MenuBarState = { initialized: false, collapsed: false }
   let shortcutRegistered = false
-  const updates = createUpdateChecker(pkg.version)
+  const updates = await createUpdateChecker(pkg.version, () => { app.stop(); process.exit(0) })
 
   /** The shape both the popup and the tray read from. */
   function baristaState(prefs: { getAll: () => BaristaPreferences }) {
@@ -159,8 +159,13 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
       '/api/updates': () => updates.status(),
       'POST /api/updates/check': () => updates.check(),
       'POST /api/updates/install': async () => {
-        await updates.install()
-        return { installing: true }
+        try {
+          await updates.install()
+          return { installing: true }
+        }
+        catch (error) {
+          return Response.json({ error: (error as Error).message }, { status: 409 })
+        }
       },
     },
   })
@@ -174,7 +179,7 @@ export function createBaristaApp(): MenuBarApp<BaristaPreferences> {
 }
 
 if (import.meta.main) {
-  const app = createBaristaApp()
+  const app = await createBaristaApp()
   if (app.preferences.get('caffeinateOnStartup'))
     enableCaffeinate(app.preferences.get('caffeinateDurationMinutes'))
 

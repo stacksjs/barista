@@ -454,11 +454,11 @@
         <div class="row-label">Version {{ version }}</div>
         <div class="row-note" x-text="updateMessage || 'Barista updates itself from GitHub releases'"></div>
       </div>
-      <button class="mini" @click="checkForUpdates()">Check</button>
+      <button class="mini" :disabled="updateBusy" @click="checkForUpdates()">Check</button>
     </div>
     <div class="row" :if="updateAvailable">
       <span class="row-label">Ready to install</span>
-      <button class="mini primary" @click="installUpdate()">Install and restart</button>
+      <button class="mini primary" :disabled="updateBusy" @click="installUpdate()">Install and restart</button>
     </div>
   </div>
 
@@ -639,22 +639,49 @@
 
   const updateMessage = state('')
   const updateAvailable = state(false)
+  const updateBusy = state(false)
+
+  async function syncUpdates() {
+    const result = await fetch('/api/updates').then(r => r.json())
+    updateAvailable.set(result.ready)
+    updateBusy.set(result.checking || result.installing)
+    if (!result.supported) updateMessage.set('Updates apply to the installed app only')
+    else if (result.error) updateMessage.set('Update failed: ' + result.error)
+    else if (result.installing) updateMessage.set('Installing and restarting…')
+    else if (result.checking) updateMessage.set(result.available ? 'Downloading version ' + result.available + '…' : 'Checking for updates…')
+    else if (result.ready) updateMessage.set('Version ' + result.available + ' is ready to install')
+  }
 
   async function checkForUpdates() {
+    updateBusy.set(true)
     updateMessage.set('Checking for updates…')
-    const result = await fetch('/api/updates/check', { method: 'POST' }).then(r => r.json())
-    updateAvailable.set(Boolean(result.available))
-
-    if (!result.supported) updateMessage.set('Updates apply to the installed app only')
-    else if (result.error) updateMessage.set('Could not check: ' + result.error)
-    else if (result.available) updateMessage.set('Version ' + result.available + ' is ready to install')
-    else updateMessage.set('Barista is up to date')
+    try {
+      const result = await fetch('/api/updates/check', { method: 'POST' }).then(r => r.json())
+      await syncUpdates()
+      if (result.supported && !result.error && !result.available) updateMessage.set('Barista is up to date')
+    }
+    catch (error) {
+      updateMessage.set('Could not check: ' + (error as Error).message)
+    }
+    finally {
+      updateBusy.set(false)
+    }
   }
 
   async function installUpdate() {
-    updateMessage.set('Installing…')
-    await fetch('/api/updates/install', { method: 'POST' })
+    updateBusy.set(true)
+    updateMessage.set('Installing and restarting…')
+    try {
+      const response = await fetch('/api/updates/install', { method: 'POST' })
+      if (!response.ok) throw new Error((await response.json()).error || 'Installation failed')
+    }
+    catch (error) {
+      updateBusy.set(false)
+      updateMessage.set('Could not install: ' + (error as Error).message)
+    }
   }
+
+  useInterval(() => syncUpdates(), 5000)
 
   // ===== Wiring =====
 
