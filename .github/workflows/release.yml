@@ -31,9 +31,9 @@ jobs:
           esac
 
       - name: Set up pantry
-        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
+        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
         with:
-          version: '0.11.124'
+          version: '0.11.126'
 
       - run: bun install --frozen-lockfile
 
@@ -48,9 +48,9 @@ jobs:
           bun --env-file="$RUNNER_TEMP/barista-release.env" scripts/prepare-release.ts
 
       - name: Import the Developer ID signing identity
-        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
+        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
         with:
-          version: '0.11.124'
+          version: '0.11.126'
           install: 'false'
           apple-signing: 'true'
           apple-signing-application-certificate: ${{ env.APPLE_APPLICATION_CERTIFICATE }}
@@ -84,9 +84,9 @@ jobs:
 
       # Publish only after signed-app and read-only DMG verification.
       - name: Publish
-        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
+        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
         with:
-          version: '0.11.124'
+          version: '0.11.126'
           install: 'false'
           release: 'true'
           release-files: |
