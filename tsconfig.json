@@ -30,6 +30,7 @@
   "exclude": [
     "pickier.config.ts",
     "storage/framework/stx",
+    "pantry",
     "dist",
     "docs/.vitepress/cache",
     "docs/.vitepress/dist"
