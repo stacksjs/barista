@@ -1,73 +1,48 @@
-<p align="center"><img src="https://github.com/stacksjs/barista/blob/main/.github/art/cover.jpg?raw=true" alt="Social Card of this repo"></p>
+# Get started
 
-# Keep your Mac awake
+Barista keeps your Mac awake from a cup in your menu bar. A separate compact
+arrow hides and reveals the icon group you choose.
 
-> Barista is a tiny, native macOS menu bar app that prevents your Mac from sleeping — a free replacement for Caffeine, Amphetamine and KeepingYouAwake.
+## Install
 
-One click to caffeinate, pick a duration (5m, 15m, 30m, 1h, 2h, 4h, 8h, or indefinite), and your Mac stays awake until you say otherwise. As a bonus, Barista also tidies up your menu bar.
+1. Download the DMG from [GitHub Releases](https://github.com/stacksjs/barista/releases/latest).
+2. Open the DMG and drag **Barista** into **Applications**.
+3. Launch Barista from Applications.
 
-## Why Barista
+The packaged app requires **macOS 15 or newer on Apple Silicon**. It includes
+the Craft runtime; Pantry and Bun are only needed for development.
 
-- **Caffeinate-first** — the headline feature, not buried under preferences.
-- **Self-contained** — the packaged app includes its native runtime.
-- **Native** — built with Zig-powered [Craft](https://github.com/craft-native/craft), no Electron, no Chromium.
-- **Free & open source** — MIT-licensed, no subscription, no telemetry.
+## Keep your Mac awake
 
-## Get Started
+Barista starts awake indefinitely and opens at login by default. Left-click
+the cup or press **⌘⇧C** to start or stop. Right-click the cup for durations,
+Preferences and updates. Hover over the cup for the remaining time.
 
-```bash
-# Clone and run
+Preferences offers **5m, 15m, 30m, 1h, 2h, 4h, 8h and ∞**. Picking a duration
+starts a session immediately. Turn off **Start awake** or **Open at login** if
+you prefer. Existing saved choices survive upgrades.
+
+See [Keep awake](./caffeinate.md) for manual sleep and lid-close behavior.
+
+## Choose a hidden group
+
+On macOS 27, grant Barista Accessibility access, then ⌘-drag unwanted icons to
+the left of its arrow. Click the arrow or press **⌘⇧B** to hide or reveal the
+group. The cup stays visible on either side.
+
+This feature uses a private native API. It can also suppress Apple modules and
+activity indicators. Read [Configuration](./config.md) before enabling it.
+
+## Develop from source
+
+```sh
 git clone https://github.com/stacksjs/barista.git
 cd barista
 pantry install
-bun install
+bun install --frozen-lockfile
 pantry run dev
 ```
 
-Once running, left-click the cup to toggle keep-awake. Right-click it for durations and Preferences. Enable Open at login and Start awake, then choose ∞ for an indefinite session whenever Barista starts.
-
-On macOS 27, the direct build also offers icon grouping through Craft’s private native visibility backend. Grant Accessibility access, ⌘-drag app icons left of Barista’s compact arrow, then click the arrow to hide or reveal the group. Craft restores the bar if macOS hides icons outside your group. No wide spacer is created. See [Configuration](./config.md) for layout limitations.
-
-For details on what caffeinate actually does (display sleep vs system sleep, lid-close behavior, etc.), see the [Caffeinate guide](./caffeinate.md).
-
-## What's next
-
-- [Caffeinate guide](./caffeinate.md) — durations, edge cases, and how it compares to `caffeinate(1)`.
-- [Configuration](./config.md) — preferences, hotkeys, launch-at-login.
-
-## Changelog
-
-Please see our [releases](https://github.com/stacksjs/barista/releases) page for more information on what has changed recently.
-
-## Contributing
-
-Please review the [Contributing Guide](https://github.com/stacksjs/contributing) for details.
-
-## Community
-
-For help, discussion about best practices, or any other conversation that would benefit from being searchable:
-
-[Discussions on GitHub](https://github.com/stacksjs/stacks/discussions)
-
-For casual chit-chat with others using this package:
-
-[Join the Stacks Discord Server](https://stacksjs.com/discord)
-
-## Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Stacks development. If you are interested in becoming a sponsor, please reach out to us.
-
-- [JetBrains](https://www.jetbrains.com/)
-- [The Solana Foundation](https://solana.com/)
-
-## Credits
-
-- [Hidden Bar](https://github.com/dwarvesf/hidden) for being the initial code inspiration
-- [Chris Breuer](https://github.com/chrisbbreuer)
-- [All Contributors](https://github.com/stacksjs/barista/graphs/contributors)
-
-## License
-
-The MIT License (MIT). Please see [LICENSE](https://github.com/stacksjs/barista/blob/main/LICENSE.md) for more information.
-
-Made with 💙
+Native implementation belongs in stx and Craft. App sources stay in TypeScript
+and `.stx`. See the [README](https://github.com/stacksjs/barista#readme) for the
+source architecture and verification commands.
