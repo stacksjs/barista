@@ -17,9 +17,8 @@ export const tsCloud: CloudConfig = {
       proxy: { engine: 'rpx', onDemandTls: true, onDemandTlsEmail: 'hello@stacksjs.com' },
     },
     dns: {
-      provider: 'route53',
+      provider: 'cloudflare',
       domain: 'stacksjs.com',
-      hostedZoneId: 'Z01455702Q7952O6RCY37',
     },
   },
   sites: {

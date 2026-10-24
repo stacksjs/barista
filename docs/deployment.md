@@ -9,8 +9,8 @@ the existing `stacks` production server. Barista owns the
 ## Publish
 
 Install the locked dependencies and provide the shared host’s existing Hetzner
-and Route53 credentials through the deployment environment. ts-cloud uses its
-standard `HCLOUD_TOKEN`, AWS credential variables/profile and local SSH key.
+and Cloudflare credentials through the deployment environment. ts-cloud uses
+`HCLOUD_TOKEN`, `CLOUDFLARE_API_TOKEN` and the local SSH key.
 Credentials stay private and are not part of the website artifact.
 
 ```sh
@@ -26,7 +26,7 @@ only `storage/site/`. The native app, repository, local release credentials and
 dependencies are outside that upload boundary.
 
 ts-cloud resolves the Stacks host by its provider labels, publishes Barista’s
-release, and writes its own additive rpx gateway fragment. Route53 manages the
+release, and writes its own additive rpx gateway fragment. Cloudflare manages the
 hostname’s address records; rpx handles HTTPS certificates. The static route
 uses directory clean URLs, so `/docs/intro` resolves to the BunPress page at
 `docs/intro/index.html`. SPA fallback is disabled so missing URLs remain 404s.
