@@ -408,20 +408,20 @@
     <div class="group-title">Menu bar</div>
     <div class="row">
       <div>
-        <div class="row-label">Hide a group of app icons</div>
+        <div class="row-label">Hide a group of menu bar icons</div>
         <div class="row-note">One arrow to hide and reveal your group</div>
       </div>
-      <button type="button" class="switch" role="switch" :aria-checked="menuBarGrouping" :class="{ on: menuBarGrouping }" @click="setGrouping()" aria-label="Hide a group of app icons"></button>
+      <button type="button" class="switch" role="switch" :aria-checked="menuBarGrouping" :class="{ on: menuBarGrouping }" @click="setGrouping()" aria-label="Hide a group of menu bar icons"></button>
     </div>
     <div x-show="menuBarGrouping">
       <p class="hint" x-text="menuBarHint"></p>
       <div class="row">
         <button class="mini" x-show="menuBarNeedsPermission" @click="authorizeMenuBar()">Open System Settings…</button>
-        <button class="mini" x-show="menuBarUsable" @click="toggleMenuBar()" x-text="menuBarCollapsed ? 'Reveal icons' : 'Hide group'"></button>
+        <button class="mini" x-show="menuBarUsable" :aria-busy="menuBarBusy" @click="toggleMenuBar()" x-text="menuBarBusy ? 'Cancel' : menuBarCollapsed ? 'Reveal icons' : 'Hide group'"></button>
         <button class="mini" x-show="menuBarUsable" @click="arrangeMenuBar()">Arrange…</button>
         <span class="row-value">⌘⇧B</span>
       </div>
-      <p class="hint">Apps hide together. Apple modules and activity indicators may also hide; reveal restores them.</p>
+      <p class="hint">Apps hide together. Wi-Fi and Battery follow the arrow; activity indicators may also hide. Reveal restores them.</p>
     </div>
   </div>
 
@@ -494,6 +494,7 @@
   const autoLaunch = derived(() => status().autoLaunch === true)
   const menuBarGrouping = derived(() => status().menuBarGrouping === true)
   const menuBarCollapsed = derived(() => status().menuBar?.collapsed === true)
+  const menuBarBusy = derived(() => status().menuBar?.busy === true)
   const menuBarNeedsPermission = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === false)
   const menuBarUsable = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === true)
   const menuBarHint = derived(() => menuBarMessage(status().menuBar || { initialized: false, collapsed: false }))

@@ -13,7 +13,7 @@ export interface BaristaPreferences extends Record<string, unknown> {
   caffeinateDurationMinutes: number
   /** Keep a Dock icon. Off by default — Barista lives in the menu bar. */
   showInDock: boolean
-  /** One compact native arrow for a manually chosen group of app icons. */
+  /** One compact native arrow for a manually chosen group of menu bar icons. */
   menuBarGrouping: boolean
 }
 
