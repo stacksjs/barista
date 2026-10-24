@@ -122,7 +122,6 @@ jobs:
       cancel-in-progress: false
     env:
       SITE_URL: https://barista.stacksjs.com
-      HCLOUD_SSH_KEY: ${{ runner.temp }}/barista-deploy/id_ed25519
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -149,8 +148,10 @@ jobs:
           test -n "$DEPLOY_SSH_KEY"
           install -d -m 700 "$RUNNER_TEMP/barista-deploy"
           umask 077
-          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HCLOUD_SSH_KEY"
-          ssh-keygen -y -f "$HCLOUD_SSH_KEY" > "$HCLOUD_SSH_KEY.pub"
+          task_deploy_key="$RUNNER_TEMP/barista-deploy/id_ed25519"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$task_deploy_key"
+          ssh-keygen -y -f "$task_deploy_key" > "$task_deploy_key.pub"
+          printf 'HCLOUD_SSH_KEY=%s\n' "$task_deploy_key" >> "$GITHUB_ENV"
       - name: Deploy marketing page and docs through Stacks ts-cloud
         if: steps.revision.outputs.current == 'true'
         env:
