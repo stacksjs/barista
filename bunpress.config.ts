@@ -23,6 +23,7 @@ const config: BunPressConfig = {
     { text: 'Updates', link: '/updates' },
     { text: 'Releasing', link: '/releasing' },
     { text: 'Website development', link: '/site' },
+    { text: 'Website deployment', link: '/deployment' },
   ],
   themeConfig: {
     colors: { primary: '#2c6550' },

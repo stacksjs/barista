@@ -50,7 +50,9 @@
     "check": "bun run lint && bun run typecheck && bun test",
     "typecheck:views": "bunx --bun stx typecheck 'src/**/*.stx' 'resources/**/*.stx' --lib src/template-context.d.ts",
     "build:site": "bun scripts/build-site.ts && bun scripts/check-site.ts",
-    "preview:site": "bun scripts/preview-site.ts"
+    "preview:site": "bun scripts/preview-site.ts",
+    "deploy:site": "cloud deploy --env production --site marketing --yes",
+    "deploy:site:plan": "cloud deploy --env production --site marketing --dry-run"
   },
   "dependencies": {
     "@stacksjs/stx": "^0.2.683"
@@ -58,6 +60,7 @@
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.26",
     "@stacksjs/bunpress": "^0.2.22",
+    "@stacksjs/ts-cloud": "^0.16.68",
     "@stacksjs/ts-css": "^0.3.19",
     "better-dx": "^0.2.38"
   },

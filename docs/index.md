@@ -12,6 +12,7 @@ additionally requires **macOS 27**, the direct build and Accessibility access.
 - [Updates](./updates.md): check, download and install verified releases.
 - [Releasing](./releasing.md): signing, encrypted credentials and verification.
 - [Website development](./site.md): Stacks sources, assets, builds and preview.
+- [Website deployment](./deployment.md): publish to the shared Stacks server.
 
 Download the signed, notarized DMG from
 [GitHub Releases](https://github.com/stacksjs/barista/releases/latest).

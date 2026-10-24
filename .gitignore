@@ -26,3 +26,5 @@ pantry
 *.p12
 
 /storage/framework/docs/
+
+/storage/cloud/

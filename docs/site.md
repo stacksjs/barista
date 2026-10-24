@@ -35,8 +35,9 @@ For documentation-only live development, use `bun run dev:docs`.
 The combined build writes **`storage/site/`**. Documentation goes under
 `storage/site/docs/`, copied from BunPress’s `storage/framework/docs/.bunpress/`
 publish tree. The native app’s `dist/` directory is separate. Build output
-is ignored by Git; CI uploads it as a reviewable artifact. No public domain is
-configured or deployed by the build.
+is ignored by Git; CI uploads it as a reviewable artifact. The build itself
+does not publish. [Website deployment](./deployment.md) describes the ts-cloud
+target at `barista.stacksjs.com` and the explicit publish command.
 
 For a production build, set the site’s real origin:
 

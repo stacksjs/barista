@@ -199,12 +199,18 @@ bun run preview:site
 The combined static site is written to `storage/site/`, with the guide at
 `/docs/`. Preview it at [local preview](http://localhost:4173). Native app builds continue to
 use `dist/`. Set `SITE_URL` to the real production origin when building for a
-host; no public domain is deployed by these commands. CI builds the site,
+host; these build and preview commands do not publish. CI builds the site,
 checks its links and assets, and uploads the output as an artifact.
 
 See [Website development](./docs/site.md) for the design, asset sources and
 hosting requirements, [Configuration](./docs/config.md) for grouping limitations,
 and [Releasing](./docs/releasing.md) for the encrypted CI credential flow.
+
+The production target is [barista.stacksjs.com](https://barista.stacksjs.com).
+`bun run deploy:site:plan` previews the Stacks attachment; `bun run deploy:site`
+publishes the static site and guide to that shared server. See
+[Website deployment](./docs/deployment.md) for credentials, release boundaries
+and live verification.
 
 ## Contributing
 
