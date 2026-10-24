@@ -56,11 +56,11 @@
     "verify:site": "bun scripts/verify-site.ts"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.683"
+    "@stacksjs/stx": "^0.2.687"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.26",
-    "@stacksjs/bunpress": "^0.2.24",
+    "@stacksjs/bunpress": "^0.2.25",
     "@stacksjs/ts-cloud": "^0.16.68",
     "@stacksjs/ts-css": "^0.3.19",
     "better-dx": "^0.2.38"

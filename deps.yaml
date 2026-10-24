@@ -1,4 +1,4 @@
 dependencies:
   bun.sh: ^1.4.3
   # Native runtime, installed and placed on PATH by Pantry.
-  craft-native.org: ^0.0.328
+  craft-native.org: ^0.0.330
