@@ -1,0 +1,9 @@
+<footer class="shell site-footer flex flex-wrap items-center justify-between gap-6">
+  <a class="wordmark" href="/">Barista</a>
+  <p>Made with <a href="https://github.com/stacksjs/stx">stx</a> and <a href="https://github.com/craft-native/craft">Craft</a>.</p>
+  <nav class="flex flex-wrap gap-6" aria-label="Footer">
+    <a href="/docs/">Documentation</a>
+    <a href="https://github.com/stacksjs/barista/issues">Support</a>
+    <a href="https://github.com/stacksjs/barista/blob/main/LICENSE.md">MIT license</a>
+  </nav>
+</footer>

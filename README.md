@@ -18,7 +18,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 
 ## Features
 
-- **Caffeinate, primarily** — Prevent system sleep, display sleep and idle sleep with customizable durations (5m, 15m, 30m, 1h, 2h, 4h, 8h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
+- **Keep awake in one click** — Prevent idle sleep with preset durations (5m, 15m, 30m, 1h, 2h, 4h, 8h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
@@ -26,7 +26,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 - **Launch at login** — Start Barista when you log in.
 - **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256 and Apple notarization, requires Barista’s signing team, and installs before restarting the full app.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
-- **Beautiful UI** — Dark-themed popup window with intuitive controls.
+- **Preferences in one place** — A dark preferences window for durations, startup behavior, grouping and updates.
 
 ## Get Started
 
@@ -38,11 +38,14 @@ open it and drag **Barista** to **Applications**. Launch Barista from there.
 It starts awake indefinitely and opens at login by default. Right-click the cup
 for Preferences, durations and updates.
 
-To build from source, install dependencies with Pantry and Buddy:
+Keep-awake controls idle sleep. It does not override manual sleep, lid-close
+behavior, shutdown or macOS power protections. See the [keep-awake guide](./docs/caffeinate.md).
+
+To build from source, install native tools with Pantry and app dependencies with Bun:
 
 ```bash
 pantry install
-bun install
+bun install --frozen-lockfile
 pantry run dev
 ```
 
@@ -171,7 +174,7 @@ runtime:
 ```
 app.ts                 createMenuBarApp: context, routes, tray menu
 build.ts               Compile + package the direct app and DMG
-src/barista.stx        The popup — signals-driven, no vanilla DOM code
+src/barista.stx        Preferences, with stx signals and native composables
 src/caffeinate.ts      Named wrapper over the desktop power API
 src/tray.ts            The menu bar item: its cup icon and its menu
 src/durations.ts       The durations the popup and tray both offer
@@ -181,6 +184,27 @@ src/updates.ts         Self-update from GitHub releases
 
 See the stx guide, [Menu Bar Apps](https://github.com/stacksjs/stx/blob/main/docs/guide/menubar.md),
 for the pattern.
+
+## Website and documentation
+
+The marketing page is built with the Stacks frontend: stx layouts, partials and
+components, signals, native form bindings, and ts-css. The guide uses BunPress.
+Sources live in [`resources/`](./resources/README.md) and [`docs/`](./docs/index.md).
+
+```sh
+bun run build:site
+bun run preview:site
+```
+
+The combined static site is written to `storage/site/`, with the guide at
+`/docs/`. Preview it at [local preview](http://localhost:4173). Native app builds continue to
+use `dist/`. Set `SITE_URL` to the real production origin when building for a
+host; no public domain is deployed by these commands. CI builds the site,
+checks its links and assets, and uploads the output as an artifact.
+
+See [Website development](./docs/site.md) for the design, asset sources and
+hosting requirements, [Configuration](./docs/config.md) for grouping limitations,
+and [Releasing](./docs/releasing.md) for the encrypted CI credential flow.
 
 ## Contributing
 
@@ -195,10 +219,8 @@ We welcome contributions! Please feel free to submit a Pull Request.
 
 ## Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Stacks development. If you are interested in becoming a sponsor, please reach out to us.
-
-- [JetBrains](https://www.jetbrains.com/)
-- [The Solana Foundation](https://solana.com/)
+Support Barista and the Stacks ecosystem through
+[GitHub Sponsors](https://github.com/sponsors/chrisbbreuer).
 
 ## License
 

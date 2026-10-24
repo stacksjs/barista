@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="/assets/icon.png" type="image/png">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="preload" as="image" href="/assets/awake.jpg">
+  @yield('head')
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  @include('nav')
+  <main id="main" tabindex="-1">
+    @yield('content')
+  </main>
+  @include('footer')
+</body>
+</html>

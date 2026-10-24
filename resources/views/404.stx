@@ -1,0 +1,11 @@
+@layout('site')
+@section('head')
+<meta name="robots" content="noindex">
+@endsection
+@section('content')
+<section class="shell not-found section-space">
+  <h1>Page not found.</h1>
+  <p>This address does not point to a Barista page.</p>
+  <a class="button" href="/">Back to Barista</a>
+</section>
+@endsection

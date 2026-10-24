@@ -1,0 +1,12 @@
+<header class="site-nav shell flex items-center justify-between gap-6">
+  <a href="/" class="wordmark flex items-center gap-2" aria-label="Barista home">
+    <img src="/assets/icon.png" width="32" height="32" alt="">
+    Barista
+  </a>
+  <nav aria-label="Main" class="flex items-center gap-6">
+    <a href="/#how-it-works">How it works</a>
+    <a href="/docs/intro">Guide</a>
+    <a href="https://github.com/stacksjs/barista">GitHub</a>
+    <button type="button" id="theme-toggle" aria-label="Switch color theme">Theme</button>
+  </nav>
+</header>

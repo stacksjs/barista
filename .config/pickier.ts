@@ -16,6 +16,8 @@ const config: PickierConfig = {
     '**/*.swift',
     '**/*.xcodeproj/**',
     '**/artifacts/**',
+    '**/storage/site/**',
+    '**/storage/framework/docs/**',
     '**/keys/**',
   ],
 

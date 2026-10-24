@@ -1,0 +1,105 @@
+<script server>
+import { site } from '../data/site'
+</script>
+
+<script client>
+const preview = state('awake')
+</script>
+
+@layout('site')
+
+@section('content')
+<section class="hero shell grid items-center gap-10 md:grid-cols-2" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <h1 id="hero-title">Keep your<br>Mac awake.</h1>
+    <p class="hero-description">Keep your Mac awake and your menu bar tidy. One small, free app for both.</p>
+    <div class="flex flex-wrap items-center gap-4">
+      <a class="button" href="{{ site.download }}">Download for Mac <span aria-hidden="true">↓</span></a>
+      <a class="site-link" href="#how-it-works">How it works <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+  <figure class="hero-product flex items-center justify-center">
+    <NativeScreenshot source="/assets/awake.jpg" description="Barista Preferences with indefinite keep-awake active" eager="true" />
+  </figure>
+</section>
+
+<section class="requirements shell grid gap-6 md:grid-cols-2" aria-label="System requirements">
+  <p><strong>Made for your Mac.</strong> Apple Silicon, macOS 15 or newer. Free and open source.</p>
+  <p><strong>Want icon grouping too?</strong> Requires macOS 27 and Accessibility access. <a href="/docs/config">Read the details ↗</a></p>
+</section>
+
+<section id="how-it-works" class="shell section-space" aria-labelledby="how-title">
+  <div class="section-heading">
+    <h2 id="how-title">A cup in your menu bar.<br>A little less to think about.</h2>
+    <p>Long download, presentation, or a day at your desk. Choose how long your Mac stays awake, then get on with it.</p>
+  </div>
+  <div class="habits grid gap-10 md:grid-cols-2">
+    <article>
+      <h3>One click to keep going.</h3>
+      <p>Left-click the cup to start or stop. Right-click for durations and Preferences. A filled cup means your Mac is staying awake.</p>
+      <p class="shortcut"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>C</kbd><span>Toggle from any app</span></p>
+    </article>
+    <article>
+      <h3>Ready when you sign in.</h3>
+      <p>Barista opens at login and starts awake indefinitely by default. Prefer a timer? Pick five minutes to eight hours, or change the startup settings.</p>
+      <a class="site-link" href="/docs/caffeinate">Keep-awake guide ↗</a>
+    </article>
+  </div>
+</section>
+
+<section class="showcase section-space" aria-labelledby="preview-title">
+  <div class="shell">
+    <div class="section-heading">
+      <h2 id="preview-title">Small app. Useful controls.</h2>
+      <p>These are real captures of the native app. Explore the controls before you install.</p>
+    </div>
+    <fieldset class="preview-options flex flex-wrap gap-2">
+      <legend class="sr-only">Choose an app screenshot</legend>
+      <label><input type="radio" name="preview" value="awake" x-model="preview"><span>Keep awake</span></label>
+      <label><input type="radio" name="preview" value="timed" x-model="preview"><span>Set a timer</span></label>
+      <label><input type="radio" name="preview" value="grouping" x-model="preview"><span>Hide a group</span></label>
+      <label><input type="radio" name="preview" value="updates" x-model="preview"><span>Stay updated</span></label>
+    </fieldset>
+    <div class="preview-stage" aria-live="polite" aria-atomic="true">
+      <figure :if="preview() === 'awake'" class="preview grid items-center gap-10 md:grid-cols-2">
+        <NativeScreenshot source="/assets/awake.jpg" description="Barista with an indefinite awake session active" />
+        <figcaption><h3>As long as you need.</h3><p>Choose ∞ for an indefinite session. Turn it off from the cup, the shortcut, or Preferences.</p><p>Keep-awake controls idle sleep. Manual sleep, lid-close behavior, and macOS power protections still apply.</p></figcaption>
+      </figure>
+      <figure :if="preview() === 'timed'" class="preview grid items-center gap-10 md:grid-cols-2">
+        <NativeScreenshot source="/assets/timed.jpg" description="A one-hour Barista session with its countdown running" />
+        <figcaption><h3>A timer, then rest.</h3><p>Five minutes or a full workday. Choosing a duration starts a session immediately and replaces any running timer.</p><p>When the timer ends, Barista releases its power assertions so your normal idle-sleep settings take over.</p></figcaption>
+      </figure>
+      <figure :if="preview() === 'grouping'" class="preview grid items-center gap-10 md:grid-cols-2">
+        <NativeScreenshot source="/assets/grouping.jpg" description="Barista reporting that the selected group of menu bar icons is hidden" />
+        <figcaption><h3>Keep the icons you need.</h3><p>Hold ⌘ and drag unwanted icons left of the arrow. Click the arrow to hide or reveal the group. The cup stays visible.</p><p>Grouping needs macOS 27 and Accessibility. Apps with several icons hide together; Apple controls can also hide.</p><a class="site-link" href="/docs/config">Grouping and its limits ↗</a></figcaption>
+      </figure>
+      <figure :if="preview() === 'updates'" class="preview grid items-center gap-10 md:grid-cols-2">
+        <NativeScreenshot source="/assets/updates.jpg" description="Barista update settings confirming the installed version is up to date" />
+        <figcaption><h3>Updates from the source.</h3><p>Check for new GitHub releases in Preferences. Barista downloads the update, then offers Install and restart.</p><p>Downloads are checked by SHA-256, Apple notarization, and Barista’s signing team before installation.</p><a class="site-link" href="/docs/updates">How updates work ↗</a></figcaption>
+      </figure>
+    </div>
+    <noscript><p>The screenshot selector needs JavaScript. <a href="/docs/">Read the documentation</a> for all features.</p></noscript>
+  </div>
+</section>
+
+<section class="shell section-space" aria-labelledby="install-title">
+  <div class="install-header">
+    <h2 id="install-title">From download to menu bar.</h2>
+    <p>No account. No subscription. Just an app in Applications.</p>
+  </div>
+  <ol class="install-steps grid gap-10 md:grid-cols-2">
+    <li><h3>Move it to Applications.</h3><p>Open the downloaded DMG, drag Barista into Applications, then launch it from there.</p></li>
+    <li><h3>Make yourself at home.</h3><p>Your Mac starts awake indefinitely. Right-click the cup to set a timer, change startup behavior, or arrange your hidden group.</p></li>
+  </ol>
+</section>
+
+<section class="shell questions section-space" aria-labelledby="questions-title">
+  <h2 id="questions-title">A few things to know.</h2>
+  <div class="grid gap-10 md:grid-cols-2">
+    <article><h3>Does it replace Caffeine?</h3><p>For keeping your Mac awake, yes. Barista uses native macOS power assertions, with timed and indefinite sessions, login startup, and a global shortcut.</p></article>
+    <article><h3>Can it hide every icon?</h3><p>Grouping uses a private macOS API, following Hidden Bar’s approach. It can suppress Apple modules and activity indicators. Reveal the group to restore them.</p><a class="site-link" href="/docs/config">Read the grouping requirements ↗</a></article>
+    <article><h3>What about macOS overflow?</h3><p>macOS controls overflow when revealed icons do not fit. Barista adds no wide spacer and cannot guarantee app menus stay visible during system overflow.</p></article>
+    <article><h3>Is the source available?</h3><p>Yes, under the MIT license. The app is TypeScript and stx, with native behavior provided by Craft and the system WebKit view.</p><a class="site-link" href="{{ site.github }}">View the source ↗</a></article>
+  </div>
+</section>
+@endsection

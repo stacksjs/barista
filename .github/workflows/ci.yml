@@ -89,3 +89,18 @@ jobs:
           hdiutil attach -readonly -nobrowse -mountpoint "$task_volume" dist/Barista-*.dmg
           trap 'hdiutil detach "$task_volume"; rmdir "$task_volume"' EXIT
           bun run test:native "$task_volume/Barista.app"
+
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: oven-sh/setup-bun@v2.2.0
+      - run: bun install --frozen-lockfile
+      - name: Build marketing page and documentation, verify links and assets
+        run: bun run build:site
+      - name: Upload the static site for review
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-site
+          path: storage/site
+          if-no-files-found: error

@@ -42,21 +42,24 @@
     "release:minor": "bunx --bun @stacksjs/bumpx minor --recursive --commit --tag --push --yes",
     "release:major": "bunx --bun @stacksjs/bumpx major --recursive --commit --tag --push --yes",
     "test": "bun test",
-    "dev:docs": "bun --bun vitepress dev docs",
-    "build:docs": "bun --bun vitepress build docs",
-    "preview:docs": "bun --bun vitepress preview docs",
+    "dev:docs": "bun --bun bunpress dev",
+    "build:docs": "bun --bun bunpress build",
+    "preview:docs": "bun --bun bunpress preview --outdir storage/framework/docs",
     "typecheck": "bunx --bun tsc --noEmit && bun run typecheck:views",
     "test:native": "bun scripts/native-e2e.ts",
     "check": "bun run lint && bun run typecheck && bun test",
-    "typecheck:views": "bunx --bun stx typecheck 'src/**/*.stx' --lib src/template-context.d.ts"
+    "typecheck:views": "bunx --bun stx typecheck 'src/**/*.stx' 'resources/**/*.stx' --lib src/template-context.d.ts",
+    "build:site": "bun scripts/build-site.ts && bun scripts/check-site.ts",
+    "preview:site": "bun scripts/preview-site.ts"
   },
   "dependencies": {
     "@stacksjs/stx": "^0.2.683"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.26",
-    "better-dx": "^0.2.38",
-    "vitepress": "^1.6.4"
+    "@stacksjs/bunpress": "^0.2.22",
+    "@stacksjs/ts-css": "^0.3.19",
+    "better-dx": "^0.2.38"
   },
   "git-hooks": {
     "pre-commit": {
