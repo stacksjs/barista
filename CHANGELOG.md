@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.3...v0.0.4)
+
+## 🐛 Bug Fixes
+
+- **test**: define the application test root ([de8384f](https://github.com/stacksjs/barista/commit/de8384f)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.0.4 ([485b48e](https://github.com/stacksjs/barista/commit/485b48e)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.2...v0.0.3)
 
 ## 🐛 Bug Fixes
