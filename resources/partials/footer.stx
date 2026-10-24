@@ -3,6 +3,7 @@
   <p>Made with <a href="https://github.com/stacksjs/stx">stx</a> and <a href="https://github.com/craft-native/craft">Craft</a>.</p>
   <nav class="flex flex-wrap gap-6" aria-label="Footer">
     <a href="/docs/">Documentation</a>
+    <a href="/docs/privacy">Privacy</a>
     <a href="https://github.com/stacksjs/barista/issues">Support</a>
     <a href="https://github.com/stacksjs/barista/blob/main/LICENSE.md">MIT license</a>
   </nav>

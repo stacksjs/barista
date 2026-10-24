@@ -21,6 +21,7 @@ const config: BunPressConfig = {
     { text: 'Keep awake', link: '/caffeinate' },
     { text: 'Configuration', link: '/config' },
     { text: 'Updates', link: '/updates' },
+    { text: 'Privacy', link: '/privacy' },
     { text: 'Releasing', link: '/releasing' },
     { text: 'Website development', link: '/site' },
     { text: 'Website deployment', link: '/deployment' },
