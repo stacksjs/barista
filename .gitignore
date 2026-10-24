@@ -15,3 +15,11 @@ pantry
 /docs/.vitepress/dist
 
 /storage/framework/stx/
+
+# Plaintext release credentials and private encryption keys stay local.
+.env
+.env.*
+!.env.production
+.env.keys
+*.p8
+*.p12

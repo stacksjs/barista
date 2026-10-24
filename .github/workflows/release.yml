@@ -30,19 +30,31 @@ jobs:
             *) echo "::error::Select a version tag when running a release."; exit 1 ;;
           esac
 
-      # Installs deps.yaml (bun + the craft binary the build bundles into the
-      # .app) and imports the Apple signing certificates into a temporary
-      # keychain, exporting the identities the build reads.
-      - name: Set up pantry and signing
-        id: pantry
+      - name: Set up pantry
         uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
         with:
           version: '0.11.124'
-          apple-signing: 'true'
-          apple-signing-application-certificate: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
-          apple-signing-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
       - run: bun install --frozen-lockfile
+
+      - name: Decrypt release environment with Buddy Env
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        run: |
+          umask 077
+          test -n "$DOTENV_PRIVATE_KEY_PRODUCTION"
+          printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > "$RUNNER_TEMP/barista.env.keys"
+          bunx --bun @stacksjs/buddy@0.75.283 env:decrypt --file .env.production --file-keys "$RUNNER_TEMP/barista.env.keys" --stdout --quiet > "$RUNNER_TEMP/barista-release.env"
+          bun --env-file="$RUNNER_TEMP/barista-release.env" scripts/prepare-release.ts
+
+      - name: Import the Developer ID signing identity
+        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
+        with:
+          version: '0.11.124'
+          install: 'false'
+          apple-signing: 'true'
+          apple-signing-application-certificate: ${{ env.APPLE_APPLICATION_CERTIFICATE }}
+          apple-signing-certificate-password: ${{ env.APPLE_CERTIFICATE_PASSWORD }}
 
       - name: Verify source
         run: |
@@ -50,16 +62,15 @@ jobs:
           bun run check
 
       - name: Build, sign and notarize the direct app
-        env:
-          APPLE_NOTARIZE_APPLE_ID: ${{ secrets.APPLE_NOTARIZE_APPLE_ID }}
-          APPLE_NOTARIZE_PASSWORD: ${{ secrets.APPLE_NOTARIZE_PASSWORD }}
-          APPLE_NOTARIZE_TEAM_ID: '3JJRNQW6B7'
         run: |
           test -n "$APPLE_SIGNING_IDENTITY"
-          test -n "$APPLE_NOTARIZE_APPLE_ID"
-          test -n "$APPLE_NOTARIZE_PASSWORD"
+          test -s "$APPLE_NOTARY_API_KEY_PATH"
+          test -n "$APPLE_NOTARY_API_KEY_ID"
+          test -n "$APPLE_NOTARY_API_ISSUER"
           pantry run build
           codesign --verify --deep --strict dist/Barista.app
+          xcrun stapler validate dist/Barista.app
+          spctl --assess --type execute --verbose dist/Barista.app
 
       - name: Verify the packaged native app
         run: bun run test:native
@@ -85,3 +96,7 @@ jobs:
           release-changelog: auto
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove decrypted release credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/barista.env.keys" "$RUNNER_TEMP/barista-release.env" "$RUNNER_TEMP/barista-notary.p8"

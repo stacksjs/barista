@@ -9,7 +9,7 @@
  * locally (unsigned) and on CI (signed by pantry's `apple-signing` step):
  *
  *   APPLE_SIGNING_IDENTITY            application certificate
- *   APPLE_NOTARIZE_*                  Apple ID, app-specific password and team ID
+ *   APPLE_NOTARY_API_KEY_*            App Store Connect API key path, ID and issuer
  */
 import { createGitHubUpdateManifest, packageApp, resolveCraftExecutablePath, UPDATE_MANIFEST_ASSET } from '@stacksjs/stx/desktop'
 import { menuBarTemplatePlugin } from '@stacksjs/stx/menubar-build'
@@ -28,6 +28,10 @@ const signIdentity = process.env.APPLE_SIGNING_IDENTITY
 // Reject the former App Store path explicitly: this runtime uses a private API.
 if (process.env.APPLE_INSTALLER_SIGNING_IDENTITY)
   throw new Error('Barista icon hiding requires direct distribution. Use a Developer ID Application identity without an installer identity.')
+
+if (process.env.APPLE_NOTARY_API_KEY_PATH
+  && (!signIdentity || !process.env.APPLE_NOTARY_API_KEY_ID || !process.env.APPLE_NOTARY_API_ISSUER))
+  throw new Error('Notarization requires a signing identity, API key ID and issuer.')
 
 const binaryPath = join(OUT_DIR, 'barista')
 
@@ -86,9 +90,12 @@ const results = await packageApp({
     minimumSystemVersion: '15.0',
     // CI run numbers give every distributable a distinct build number.
     buildNumber: process.env.GITHUB_RUN_NUMBER,
-    notarize: Boolean(process.env.APPLE_NOTARIZE_APPLE_ID),
-    appleId: process.env.APPLE_NOTARIZE_APPLE_ID,
-    applePassword: process.env.APPLE_NOTARIZE_PASSWORD,
+    notarize: Boolean(process.env.APPLE_NOTARY_API_KEY_PATH),
+    notaryApiKey: process.env.APPLE_NOTARY_API_KEY_PATH ? {
+      path: process.env.APPLE_NOTARY_API_KEY_PATH,
+      keyId: process.env.APPLE_NOTARY_API_KEY_ID!,
+      issuer: process.env.APPLE_NOTARY_API_ISSUER!,
+    } : undefined,
     teamId: process.env.APPLE_NOTARIZE_TEAM_ID || TEAM_ID,
   },
 })
