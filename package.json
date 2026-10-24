@@ -52,7 +52,8 @@
     "build:site": "bun scripts/build-site.ts && bun scripts/check-site.ts",
     "preview:site": "bun scripts/preview-site.ts",
     "deploy:site": "cloud deploy --env production --site marketing --yes",
-    "deploy:site:plan": "cloud deploy --env production --site marketing --dry-run"
+    "deploy:site:plan": "cloud deploy --env production --site marketing --dry-run",
+    "verify:site": "bun scripts/verify-site.ts"
   },
   "dependencies": {
     "@stacksjs/stx": "^0.2.683"

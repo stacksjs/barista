@@ -206,11 +206,13 @@ See [Website development](./docs/site.md) for the design, asset sources and
 hosting requirements, [Configuration](./docs/config.md) for grouping limitations,
 and [Releasing](./docs/releasing.md) for the encrypted CI credential flow.
 
-The production target is [barista.stacksjs.com](https://barista.stacksjs.com).
+The live site is [barista.stacksjs.com](https://barista.stacksjs.com), with the
+[guide at /docs/](https://barista.stacksjs.com/docs/).
 `bun run deploy:site:plan` previews the Stacks attachment; `bun run deploy:site`
 publishes the static site and guide to that shared server. See
 [Website deployment](./docs/deployment.md) for credentials, release boundaries
-and live verification.
+and live verification. After a production build, `bun run verify:site` compares
+the deployed pages and assets with that build and checks HTTPS and missing URLs.
 
 ## Contributing
 

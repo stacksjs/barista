@@ -33,9 +33,21 @@ uses directory clean URLs, so `/docs/intro` resolves to the BunPress page at
 
 ## Verify
 
-After deployment, check the HTTPS home page, every documentation route, both
-sitemaps, robots rules, images, styles and scripts. Confirm the production
-canonical URLs, the GitHub release download link and a missing URL’s 404 status.
+After deployment, compare the live responses against the production build:
+
+```sh
+SITE_URL=https://barista.stacksjs.com bun run build:site
+bun run verify:site
+```
+
+The verifier checks the HTTPS home page, every built documentation page, both
+sitemaps, robots rules, images, styles and scripts against their SHA-256 hashes.
+It also checks clean routes, production canonical URLs, HTTP-to-HTTPS redirects
+and missing URLs at the root and under `/docs/`. Reserved 404 templates are not
+successful routes; the static gateway returns its native HTTP 404 response.
+The build checks search result destinations and heading fragments too.
+
+Confirm the GitHub release download link in a browser.
 Test the screenshot selector with pointer and keyboard, both appearance modes,
 and the guide’s navigation and search in a browser at desktop and phone widths.
 
