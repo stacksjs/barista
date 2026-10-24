@@ -545,7 +545,14 @@
       else await menubar.destroy()
     }
     const menuBar = await menubar.getState()
-    await post('/api/native/state', { menuBar, shortcutRegistered: status().shortcutRegistered === true })
+    // A server refresh can still contain the pre-registration snapshot while
+    // the bridge starts. Query native ownership instead of echoing that stale
+    // snapshot back and permanently replacing the successful registration.
+    const shortcuts = bridge()?.shortcuts
+    if (!shortcuts) return
+    const registered = await shortcuts.isRegistered('barista.caffeinate')
+      && await shortcuts.isRegistered('barista.menubar')
+    await post('/api/native/state', { menuBar, shortcutRegistered: registered })
   }
 
   async function setGrouping() {

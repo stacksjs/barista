@@ -86,6 +86,10 @@ async function start() {
   }
   url = await until(() => output.match(/Barista [^\n]+ — (http:\/\/127\.0\.0\.1:\d+)/)?.[1] || '', Boolean)
   const ready = await until(status, state => state.nativeReady === true && state.shortcutRegistered === true)
+  // The periodic refresh must not overwrite native registration with the
+  // server's pre-bridge snapshot after startup or an updater relaunch.
+  await Bun.sleep(1200)
+  assert.equal((await status()).shortcutRegistered, true, 'native shortcut ownership must survive the first periodic refresh')
   assert.equal(ready.menuBarController, 'nativeVisibility')
   const menuBar = ready.menuBar as Record<string, unknown>
   assert.equal(menuBar.backend, 'nativeVisibility', 'must never select the old spacer backend')
