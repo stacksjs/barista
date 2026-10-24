@@ -21,8 +21,14 @@ for (const path of paths) {
   pages.set(path, { ids, links })
 }
 
-for (const required of ['index.html', '404.html', 'docs/index.html', 'docs/intro/index.html', 'docs/config/index.html', 'docs/updates/index.html', 'docs/releasing/index.html', 'docs/site/index.html']) {
+for (const required of ['index.html', '404.html', 'docs/index.html', 'docs/intro/index.html', 'docs/config/index.html', 'docs/updates/index.html', 'docs/releasing/index.html', 'docs/site/index.html', 'docs/deployment/index.html']) {
   if (!pages.has(required)) failures.push(`Missing page: ${required}`)
+}
+
+const search = await Bun.file(resolve(root, 'docs/search-index.json')).json() as { url: string }[]
+for (const record of search) {
+  if (!record.url.startsWith('/docs/')) failures.push(`Search result leaves the guide: ${record.url}`)
+  pages.get('docs/index.html')?.links.push(record.url)
 }
 
 for (const [path, { links }] of pages) {
