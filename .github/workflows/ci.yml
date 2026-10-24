@@ -92,6 +92,8 @@ jobs:
 
   site:
     runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://barista.stacksjs.com
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
@@ -104,3 +106,63 @@ jobs:
           name: barista-site
           path: storage/site
           if-no-files-found: error
+
+  deploy-site:
+    needs: [lint, test, native, site]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: website-production
+      url: https://barista.stacksjs.com
+    permissions:
+      contents: read
+    concurrency:
+      group: barista-website-production
+      cancel-in-progress: false
+    env:
+      SITE_URL: https://barista.stacksjs.com
+      HCLOUD_SSH_KEY: ${{ runner.temp }}/barista-deploy/id_ed25519
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - name: Check that this push is still the main branch head
+        id: revision
+        run: |
+          git fetch --quiet --no-tags origin main
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo '::notice::A newer push superseded this deployment.'
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Prepare the dedicated website deploy identity
+        if: steps.revision.outputs.current == 'true'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY"
+          install -d -m 700 "$RUNNER_TEMP/barista-deploy"
+          umask 077
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HCLOUD_SSH_KEY"
+          ssh-keygen -y -f "$HCLOUD_SSH_KEY" > "$HCLOUD_SSH_KEY.pub"
+      - name: Deploy marketing page and docs through Stacks ts-cloud
+        if: steps.revision.outputs.current == 'true'
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          test -n "$HCLOUD_TOKEN"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          bun run deploy:site
+      - name: Verify the live release against this build
+        if: steps.revision.outputs.current == 'true'
+        run: bun run verify:site
+      - name: Remove the deploy identity
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/barista-deploy"
