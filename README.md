@@ -10,7 +10,7 @@
 Barista keeps your Mac awake from the menu bar, with timed or indefinite sessions.
 Barista starts in the menu bar with its preferences hidden. Left-click the cup
 to start or stop; right-click for durations and preferences.
-A separate compact arrow hides and reveals a group of app icons you choose with native ⌘-drag.
+A separate compact arrow hides and reveals a group of menu bar icons you choose with native ⌘-drag.
 
 Built with [stx](https://github.com/stacksjs/stx) and
 [Craft](https://github.com/craft-native/craft), using the system WebKit view
@@ -22,17 +22,23 @@ and native macOS power assertions. The packaged app includes its own runtime.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
-- **Native icon grouping** — ⌘-drag app icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected app icon. Apple modules may hide with the group.
+- **Native icon grouping** — ⌘-drag unwanted icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected app icon. Identifiable Apple controls, including Wi-Fi and Battery, follow the same boundary.
 - **Launch at login** — Start Barista when you log in.
-- **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256, and can install and relaunch.
+- **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256 and Apple notarization, requires Barista’s signing team, and installs before restarting the full app.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
 - **Beautiful UI** — Dark-themed popup window with intuitive controls.
 
 ## Get Started
 
-Requires macOS 15 or newer, matching the bundled Craft runtime.
+The packaged download requires macOS 15 or newer on Apple Silicon, matching the bundled Craft runtime.
 Icon hiding requires macOS 27, the direct build and Accessibility access.
-Install dependencies with Pantry and Buddy before building.
+
+Download the DMG from [GitHub Releases](https://github.com/stacksjs/barista/releases/latest),
+open it and drag **Barista** to **Applications**. Launch Barista from there.
+It starts awake indefinitely and opens at login by default. Right-click the cup
+for Preferences, durations and updates.
+
+To build from source, install dependencies with Pantry and Buddy:
 
 ```bash
 pantry install
@@ -42,9 +48,9 @@ pantry run dev
 
 ## Choose your hidden group
 
-1. Open Preferences and enable **Hide a group of app icons**.
+1. Open Preferences and enable **Hide a group of menu bar icons**.
 2. Choose **Open System Settings…** and enable Barista under **Privacy & Security → Device Control and Data Access** (the macOS 27 Accessibility permission).
-3. Choose **Arrange…**, then hold ⌘ and drag unwanted app icons left of Barista’s arrow.
+3. Choose **Arrange…**, then hold ⌘ and drag unwanted icons left of Barista’s arrow.
 4. Click the arrow, choose **Hide Grouped Icons**, or press ⌘⇧B. Click again to reveal.
 
 Keep Barista’s arrow visible while hiding a group. If macOS places the arrow in
@@ -53,7 +59,11 @@ its overflow, reveal it there first so Craft can read the group boundary.
 Barista follows [Hidden Bar’s current native visibility approach](https://github.com/dwarvesf/hidden).
 Craft reads the arrangement through Accessibility and hides applications through
 the private macOS MenuBarClientCore API. Apps with several icons hide together;
-an icon kept on the visible side keeps its app visible. Craft checks the visible
+an icon kept on the visible side keeps its app visible. Wi-Fi, Battery and other
+identifiable Apple controls also follow the arrow’s boundary. The cup can sit on
+either side of the arrow and always remains visible. Grouping follows the display
+containing the arrow; native visibility applies to the selected app or Apple
+control across displays. Craft checks the visible
 side after activation. If macOS hides an unselected app icon, it
 releases the restriction, restores the bar and reports the failure. An empty
 group leaves everything revealed. Apps launched while collapsed may remain
@@ -98,6 +108,31 @@ pantry run build
 Set `APPLE_SIGNING_IDENTITY` for a signed direct build. Direct builds use
 `barista.direct.entitlements` for the Bun host. App Store packaging is refused
 because native icon hiding uses a private API.
+
+## Releases
+
+Release credentials live locally in `.env`. Prepare `.env.production` from the
+local signing and notarization values, then encrypt it with Buddy Env before
+staging it:
+
+```bash
+bunx --bun @stacksjs/buddy@0.75.283 env:encrypt --file .env.production --file-keys .env.keys
+```
+
+Commit only the encrypted `.env.production`. Keep `.env`, `.env.keys`, `.p8`
+and `.p12` files private. GitHub stores `DOTENV_PRIVATE_KEY_PRODUCTION` as a
+repository secret. Release CI decrypts credentials into temporary runner files,
+imports the Developer ID identity with Pantry, notarizes and staples the app and
+DMG, then removes the plaintext files.
+
+When refreshing a credential, start from the existing encrypted file so Buddy
+can retain its encryption key. If you create a new key, update the matching
+GitHub repository secret from `.env.keys` before releasing.
+
+After verification, `bun run release:patch` creates and pushes the next version
+tag. The release workflow publishes the DMG and `update.json` only after testing
+the packaged app and read-only DMG. Installed copies download the update in the
+background; **Install and restart** becomes available after the download verifies.
 
 The README animation uses screenshots of the packaged native app. After
 refreshing the captures in `.github/art/demo/`, regenerate it with
