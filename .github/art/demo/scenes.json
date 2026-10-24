@@ -1,5 +1,6 @@
 {
-  "panelHeight": 660,
+  "panelHeight": 770,
+  "panelTop": 30,
   "scenes": [
     {
       "image": "awake.jpg",
@@ -17,7 +18,13 @@
       "image": "grouping.jpg",
       "title": "Hide the\nclutter.",
       "subtitle": "One compact native control.",
-      "detail": "Group icons with Command-drag.\nOne click to hide or reveal apps.\nApple modules may also hide."
+      "detail": "Command-drag icons left of the arrow.\nHide or reveal your group in one click.\nWi-Fi and Battery follow the arrow."
+    },
+    {
+      "image": "updates.jpg",
+      "title": "Stay up\nto date.",
+      "subtitle": "Updates from GitHub, in the app.",
+      "detail": "Downloads verify in the background.\nInstall and restart when you’re ready.\nYour preferences stay with you."
     }
   ]
 }

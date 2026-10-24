@@ -1,4 +1,4 @@
-<p align="center"><img src=".github/art/barista.gif" alt="Barista keep-awake and menu bar grouping demo" width="100%"></p>
+<p align="center"><img src=".github/art/barista.gif" alt="Barista native keep-awake, menu bar grouping and update demo" width="100%"></p>
 
 [![GitHub Actions][github-actions-src]][github-actions-href]
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://img.shields.io/badge/platform-macOS-lightgrey.svg)

@@ -13,11 +13,17 @@ interface Demo {
   scenes: Scene[]
   /** Crop after scaling the native screenshot to 350px wide. */
   panelHeight: number
+  /** Omit the native titlebar chrome from the presentation, retaining the raw capture. */
+  panelTop?: number
 }
 const root = resolve(import.meta.dir, '..')
 const manifest = resolve(process.argv[2] || join(root, '.github/art/demo/scenes.json'))
 const output = resolve(process.argv[3] || join(root, '.github/art/barista.gif'))
 const demo = JSON.parse(await readFile(manifest, 'utf8')) as Demo
+const canvasHeight = demo.panelHeight + 80
+const panelTop = demo.panelTop ?? 0
+if (!Number.isSafeInteger(panelTop) || panelTop < 0)
+  throw new Error('Expected a nonnegative native panel crop offset')
 const ffmpeg = Bun.which('ffmpeg')
 if (!ffmpeg) throw new Error('Install FFmpeg through Pantry before generating the demo')
 const font = '/System/Library/Fonts/Helvetica.ttc'
@@ -45,12 +51,12 @@ try {
     const clip = join(dir, `${index}.mkv`)
     const filters = [
       // Mask the captured desktop outside the native window's top corners.
-      `[0:v]scale=350:-1:flags=lanczos,crop=iw:min(ih\\,${demo.panelHeight}):0:0,format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lt(Y,18)*lt(X,18),if(lte(hypot(X-18,Y-18),18),255,0),if(lt(Y,18)*gt(X,W-19),if(lte(hypot(X-W+19,Y-18),18),255,0),255))'[panel]`,
+      `[0:v]scale=350:-1:flags=lanczos,crop=iw:min(ih-${panelTop}\\,${demo.panelHeight}):0:${panelTop},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lt(Y,18)*lt(X,18),if(lte(hypot(X-18,Y-18),18),255,0),if(lt(Y,18)*gt(X,W-19),if(lte(hypot(X-W+19,Y-18),18),255,0),255))'[panel]`,
       `[1:v]scale=42:42[icon]`,
       `[2:v][icon]overlay=58:44[brand]`,
-      `[brand][panel]overlay=600:40:shortest=1,drawbox=x=600:y=40:w=350:h=${demo.panelHeight}:color=0x453f4a:t=1,drawtext=fontfile='${filterPath(font)}':text='Barista':fontsize=22:fontcolor=0xf2f0ee:x=112:y=52,${text(0, 50, 174, '0xf2f0ee')},${text(1, 22, 330, '0xd9a441')},${text(2, 17, 395, '0xa8a29b')},${text(3, 13, 670, '0x6f6a64')},drawtext=fontfile='${filterPath(font)}':text='Built with stx + Craft':fontsize=13:fontcolor=0x6f6a64:x=58:y=700[out]`,
+      `[brand][panel]overlay=600:40:shortest=1,drawbox=x=600:y=40:w=350:h=${demo.panelHeight}:color=0x453f4a:t=1,drawtext=fontfile='${filterPath(font)}':text='Barista':fontsize=22:fontcolor=0xf2f0ee:x=112:y=52,${text(0, 50, 174, '0xf2f0ee')},${text(1, 22, 330, '0xd9a441')},${text(2, 17, 395, '0xa8a29b')},${text(3, 13, canvasHeight - 70, '0x6f6a64')},drawtext=fontfile='${filterPath(font)}':text='Built with stx + Craft':fontsize=13:fontcolor=0x6f6a64:x=58:y=${canvasHeight - 40}[out]`,
     ].join(';')
-    run(['-loop', '1', '-i', resolve(dirname(manifest), scene.image), '-loop', '1', '-i', join(root, 'src/assets/icon_512@2x.png'), '-f', 'lavfi', '-i', `color=c=0x17161a:s=1000x740:r=10:d=${seconds}`, '-filter_complex', filters, '-map', '[out]', '-t', String(seconds), '-c:v', 'ffv1', clip])
+    run(['-loop', '1', '-i', resolve(dirname(manifest), scene.image), '-loop', '1', '-i', join(root, 'src/assets/icon_512@2x.png'), '-f', 'lavfi', '-i', `color=c=0x17161a:s=1000x${canvasHeight}:r=10:d=${seconds}`, '-filter_complex', filters, '-map', '[out]', '-t', String(seconds), '-c:v', 'ffv1', clip])
     clips.push(clip)
   }
   const list = join(dir, 'clips.txt')
