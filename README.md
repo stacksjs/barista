@@ -213,8 +213,9 @@ publishes the static site and guide to that shared server. Pushes to `main`
 automatically deploy through Stacks after CI passes, then verify the live build.
 See
 [Website deployment](./docs/deployment.md) for credentials, release boundaries
-and live verification. After a production build, `bun run verify:site` compares
-the deployed pages and assets with that build and checks HTTPS and missing URLs.
+and live verification. `bun run verify:site` compares the deployed pages and
+assets with the exact deployed build and checks HTTPS and missing URLs. CI
+retains that production artifact for repeatable verification.
 
 ## Contributing
 

@@ -50,12 +50,25 @@ uses directory clean URLs, so `/docs/intro` resolves to the BunPress page at
 
 ## Verify
 
-After deployment, compare the live responses against the production build:
+After a manual `bun run deploy:site`, compare the live responses against the
+exact build it left in `storage/site/`:
 
 ```sh
-SITE_URL=https://barista.stacksjs.com bun run build:site
 bun run verify:site
 ```
+
+For an automatic deployment, download the verified production artifact from
+that successful CI run. Replace the run ID and full commit SHA below:
+
+```sh
+gh run download RUN_ID --name barista-site-production-COMMIT_SHA --dir /tmp/barista-production-build
+SITE_ARTIFACT_DIR=/tmp/barista-production-build bun run verify:site
+```
+
+Use an empty destination directory for each download. Production artifacts are
+retained for seven days. stx assigns build and setup IDs during compilation;
+rebuilding independently produces different bytes. Compare with the deployed
+artifact, rather than regenerating the site or ignoring those differences.
 
 The verifier checks the HTTPS home page, every built documentation page, both
 sitemaps, robots rules, images, styles and scripts against their SHA-256 hashes.
@@ -73,7 +86,9 @@ preserves prior releases; use its release management commands for rollback.
 Keep the `barista` project slug distinct from `stacks` and other tenants, and
 preserve every domain owned by Barista’s gateway fragment on later deployments.
 
-The GitHub `site` CI job also uploads a reviewable production artifact. The
+The GitHub `site` CI job also uploads a reviewable build as `barista-site`.
+It is separate from the deployed build. The `deploy-site` job retains its exact
+verified output as `barista-site-production-COMMIT_SHA` for later checks. The
 `deploy-site` job reports a deployment to `website-production`; its verification
 step must pass before the workflow is green. A failed deployment or verification
 remains a failed CI run. Re-running a main-branch workflow retries deployment

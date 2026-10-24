@@ -164,6 +164,14 @@ jobs:
       - name: Verify the live release against this build
         if: steps.revision.outputs.current == 'true'
         run: bun run verify:site
+      - name: Retain the verified production artifact
+        if: steps.revision.outputs.current == 'true'
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-site-production-${{ github.sha }}
+          path: storage/site
+          if-no-files-found: error
+          retention-days: 7
       - name: Remove the deploy identity
         if: always()
         run: rm -rf "$RUNNER_TEMP/barista-deploy"
