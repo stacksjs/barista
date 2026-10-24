@@ -171,6 +171,7 @@ jobs:
           name: barista-site-production-${{ github.sha }}
           path: storage/site
           if-no-files-found: error
+          overwrite: true
           retention-days: 7
       - name: Remove the deploy identity
         if: always()
