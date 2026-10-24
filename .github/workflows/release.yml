@@ -31,7 +31,7 @@ jobs:
           esac
 
       - name: Set up pantry
-        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
+        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f # main
         with:
           version: '0.11.126'
 
@@ -48,7 +48,7 @@ jobs:
           bun --env-file="$RUNNER_TEMP/barista-release.env" scripts/prepare-release.ts
 
       - name: Import the Developer ID signing identity
-        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
+        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f # main
         with:
           version: '0.11.126'
           install: 'false'
@@ -84,7 +84,7 @@ jobs:
 
       # Publish only after signed-app and read-only DMG verification.
       - name: Publish
-        uses: pantry-pm/pantry/packages/action@91ded221f8de3badd9fc5ab1d4072d561c1eb1d4 # v0.11.126
+        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f # main
         with:
           version: '0.11.126'
           install: 'false'
