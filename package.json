@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.26",
-    "@stacksjs/bunpress": "^0.2.23",
+    "@stacksjs/bunpress": "^0.2.24",
     "@stacksjs/ts-cloud": "^0.16.68",
     "@stacksjs/ts-css": "^0.3.19",
     "better-dx": "^0.2.38"
