@@ -36,8 +36,9 @@ The combined build writes **`storage/site/`**. Documentation goes under
 `storage/site/docs/`, copied from BunPress’s `storage/framework/docs/.bunpress/`
 publish tree. The native app’s `dist/` directory is separate. Build output
 is ignored by Git; CI uploads it as a reviewable artifact. The build itself
-does not publish. [Website deployment](./deployment.md) describes the ts-cloud
-target at `barista.stacksjs.com` and the explicit publish command.
+does not publish. Pushes to `main` deploy automatically after all CI checks pass.
+[Website deployment](./deployment.md) describes the Stacks ts-cloud target at
+`barista.stacksjs.com`, CI credentials, verification and manual publishing.
 
 For a production build, set the site’s real origin:
 
@@ -49,8 +50,9 @@ SITE_URL=https://your-domain.example bun run build:site
 prefix. stx produces canonical metadata, social tags, a sitemap and robots rules.
 Without `SITE_URL`, the build uses localhost and disallows indexing. Static
 hosting must resolve `/docs/intro` to `/docs/intro/index.html`, directory URLs to
-`index.html`, and missing paths to `404.html` with status 404. HTTPS and cache
-headers belong to the hosting configuration.
+`index.html`, and missing paths to HTTP 404. The production gateway returns its
+native error response; the local preview uses the generated 404 page. HTTPS and
+cache headers belong to the hosting configuration.
 
 ## Assets and design
 

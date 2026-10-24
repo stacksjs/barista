@@ -209,7 +209,9 @@ and [Releasing](./docs/releasing.md) for the encrypted CI credential flow.
 The live site is [barista.stacksjs.com](https://barista.stacksjs.com), with the
 [guide at /docs/](https://barista.stacksjs.com/docs/).
 `bun run deploy:site:plan` previews the Stacks attachment; `bun run deploy:site`
-publishes the static site and guide to that shared server. See
+publishes the static site and guide to that shared server. Pushes to `main`
+automatically deploy through Stacks after CI passes, then verify the live build.
+See
 [Website deployment](./docs/deployment.md) for credentials, release boundaries
 and live verification. After a production build, `bun run verify:site` compares
 the deployed pages and assets with that build and checks HTTPS and missing URLs.

@@ -8,6 +8,23 @@ the existing `stacks` production server. Barista owns the
 
 ## Publish
 
+Every push to `main` runs lint, type checks, unit tests, packaged native checks
+and the production site build. Once all four CI jobs pass, `deploy-site` runs
+`bun run deploy:site` through Stacks ts-cloud and then `bun run verify:site`.
+Pull requests build and test the site without deploying.
+
+Production deployments share one queue and a running deployment is allowed to
+finish. A queued commit superseded by a newer main-branch push skips publishing,
+so an older CI run cannot replace the latest branch head.
+
+The GitHub `website-production` environment allows only the `main` branch. It
+provides `HCLOUD_TOKEN`, `CLOUDFLARE_API_TOKEN` and `DEPLOY_SSH_KEY`. The SSH key is
+dedicated to Barista CI, is trusted by the existing Stacks host, and is removed
+from the runner after every job. The native app's signing and notarization
+credentials are separate from website deployment.
+
+## Manual deployment
+
 Install the locked dependencies and provide the shared host’s existing Hetzner
 and Cloudflare credentials through the deployment environment. ts-cloud uses
 `HCLOUD_TOKEN`, `CLOUDFLARE_API_TOKEN` and the local SSH key.
@@ -56,6 +73,8 @@ preserves prior releases; use its release management commands for rollback.
 Keep the `barista` project slug distinct from `stacks` and other tenants, and
 preserve every domain owned by Barista’s gateway fragment on later deployments.
 
-The GitHub `site` CI job builds and uploads a reviewable artifact. Production
-publishing is the explicit `deploy:site` command; CI does not receive the shared
-host’s provider credentials.
+The GitHub `site` CI job also uploads a reviewable production artifact. The
+`deploy-site` job reports a deployment to `website-production`; its verification
+step must pass before the workflow is green. A failed deployment or verification
+remains a failed CI run. Re-running a main-branch workflow retries deployment
+provided its commit has not been superseded.
