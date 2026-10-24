@@ -71,9 +71,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Provision native dependencies
-        uses: pantry-pm/pantry/packages/action@6fbf7259c2764d18a12d915bf8bc68c500cb4931 # v0.11.119
+        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
         with:
-          version: '0.11.119'
+          version: '0.11.124'
       - run: bun install --frozen-lockfile
       - name: Build and sign the self-contained app
         env:

@@ -35,9 +35,9 @@ jobs:
       # keychain, exporting the identities the build reads.
       - name: Set up pantry and signing
         id: pantry
-        uses: pantry-pm/pantry/packages/action@6fbf7259c2764d18a12d915bf8bc68c500cb4931 # v0.11.119
+        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
         with:
-          version: '0.11.119'
+          version: '0.11.124'
           apple-signing: 'true'
           apple-signing-application-certificate: ${{ secrets.APPLE_APPLICATION_CERTIFICATE }}
           apple-signing-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -73,9 +73,9 @@ jobs:
 
       # Publish only after signed-app and read-only DMG verification.
       - name: Publish
-        uses: pantry-pm/pantry/packages/action@6fbf7259c2764d18a12d915bf8bc68c500cb4931 # v0.11.119
+        uses: pantry-pm/pantry/packages/action@22b00e5f6ca39fb254071c59a2566f79dfe9d9e4 # v0.11.124
         with:
-          version: '0.11.119'
+          version: '0.11.124'
           install: 'false'
           release: 'true'
           release-files: |
