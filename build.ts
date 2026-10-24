@@ -38,12 +38,12 @@ const binaryPath = join(OUT_DIR, 'barista')
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// Craft 0.0.312 exposes the native Apple-module policy and protects visible apps.
+// Craft 0.0.328 supplies display-scoped grouping and app notarization tickets.
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version
-  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 312))
-  throw new Error('Barista requires Craft 0.0.312 or newer. Run `pantry update craft-native.org --latest` before building.')
+  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 328))
+  throw new Error('Barista requires Craft 0.0.328 or newer. Run `pantry install` before building.')
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({
