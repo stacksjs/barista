@@ -3,6 +3,7 @@ name: App Store
 on:
   push:
     tags:
+      - 'v*'
       - 'app-store/v*'
   workflow_dispatch:
 
@@ -10,13 +11,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: barista-app-store-${{ github.ref }}
+  group: barista-app-store
   cancel-in-progress: false
 
 jobs:
   app-store:
     runs-on: xcode-27
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
     steps:
@@ -27,8 +28,8 @@ jobs:
       - name: Validate the release source
         run: |
           case "$GITHUB_REF" in
-            refs/tags/app-store/v*) ;;
-            *) echo '::error::Select an app-store/v version tag to upload an App Store build.'; exit 1 ;;
+            refs/tags/v*|refs/tags/app-store/v*) ;;
+            *) echo '::error::Select a version tag to upload an App Store build.'; exit 1 ;;
           esac
           git merge-base --is-ancestor HEAD origin/main
 
@@ -44,8 +45,10 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Verify source and version
+        id: version
         run: |
-          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME !== `app-store/v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME.replace(/^app-store\//, "") !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun -e 'console.log(`version=${(await Bun.file("package.json").json()).version}`)' >> "$GITHUB_OUTPUT"
           bun run check
 
       - name: Decrypt Store credentials with Buddy Env
@@ -82,9 +85,21 @@ jobs:
           pkgutil --check-signature dist/app-store/Barista-*.pkg
 
       - name: Verify the packaged app under App Sandbox
+        env:
+          BARISTA_STORE_ARTWORK_DIR: storage/release-verification/store-artwork
+          BARISTA_STORE_SOURCE_REVISION: ${{ github.sha }}
         run: bun run test:native:store
 
+      - name: Retain current Store screenshots and capture provenance
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-store-artwork-v${{ steps.version.outputs.version }}
+          path: storage/release-verification/store-artwork/
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Validate and upload to App Store Connect
+        id: delivery
         run: |
           export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP"
           task_package=(dist/app-store/Barista-*.pkg)
@@ -92,13 +107,34 @@ jobs:
           xcrun altool --validate-app "${task_package[0]}" --api-key "$APPLE_NOTARY_API_KEY_ID" --api-issuer "$APPLE_NOTARY_API_ISSUER"
           xcrun altool --upload-package "${task_package[0]}" --wait --api-key "$APPLE_NOTARY_API_KEY_ID" --api-issuer "$APPLE_NOTARY_API_ISSUER"
 
+      - name: Prepare encrypted Store submission credentials
+        run: bun --env-file="$RUNNER_TEMP/barista-store.env" scripts/prepare-release.ts --submission
+
+      - name: Process the uploaded build and submit when Apple compliance is approved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BARISTA_STORE_ARTWORK_DIR: storage/release-verification/store-artwork
+          BARISTA_STORE_SOURCE_REVISION: ${{ github.sha }}
+          BARISTA_STORE_BUILD_NUMBER: ${{ github.run_number }}.${{ github.run_attempt }}
+        run: bun scripts/submit-store.ts
+
       - name: Retain the signed submission package
+        if: always() && steps.delivery.outcome == 'success'
         uses: actions/upload-artifact@v7.0.2
         with:
           name: barista-app-store-${{ github.sha }}-${{ github.run_attempt }}
           path: dist/app-store/Barista-*.pkg
           retention-days: 14
 
+      - name: Retain the Store release receipt
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-store-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: storage/release-verification/app-store.json
+          if-no-files-found: warn
+          retention-days: 90
+
       - name: Remove decrypted Store credentials
         if: always()
-        run: rm -f "$RUNNER_TEMP/barista.env.keys" "$RUNNER_TEMP/barista-store.env" "$RUNNER_TEMP"/AuthKey_*.p8
+        run: rm -f "$RUNNER_TEMP/barista.env.keys" "$RUNNER_TEMP/barista-store.env" "$RUNNER_TEMP/barista-submission.p8" "$RUNNER_TEMP"/AuthKey_*.p8

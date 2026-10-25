@@ -17,12 +17,15 @@ import { existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import pkg from './package.json' with { type: 'json' }
+import encryptionScope from './resources/app-store/encryption-scope.json' with { type: 'json' }
 import { REPOSITORY } from './src/updates'
 
 const BUNDLE_ID = 'com.stacksjs.barista'
 /** Apple Developer team that signs Barista. Not a secret — it appears in every identity name. */
 const TEAM_ID = '3JJRNQW6B7'
 const appStore = process.argv.includes('--app-store')
+if (appStore && (Bun.version !== encryptionScope.version || Bun.revision !== encryptionScope.revision))
+  throw new Error('The Store compiler runtime differs from the encryption declaration review baseline. Review its cryptographic characteristics before updating resources/app-store/encryption-scope.json.')
 const OUT_DIR = resolve(import.meta.dir, appStore ? 'dist/app-store' : 'dist')
 
 const signIdentity = appStore ? process.env.APPLE_STORE_SIGNING_IDENTITY : process.env.APPLE_SIGNING_IDENTITY

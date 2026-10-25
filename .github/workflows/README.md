@@ -14,7 +14,11 @@ This folder contains the following GitHub Actions:
   downloads, Apple trust, updater replacement and native startup without
   rebuilding or changing the release
 - [App Store](./app-store.yml) - builds and verifies the sandboxed edition and
-  delivers its signed package to Apple
+  current screenshots, delivers its signed package to Apple, and submits when
+  export compliance is approved
+- [Store submission](./store-submission.yml) - resumes Apple processing and
+  review submission every six hours and on manual dispatch; retains an explicit
+  waiting, submitted, published or failed receipt
 
 [CI]: ./ci.yml
 [Release]: ./release.yml

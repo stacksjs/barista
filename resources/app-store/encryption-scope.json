@@ -1,0 +1,8 @@
+{
+  "runtime": "Bun",
+  "version": "1.4.3",
+  "revision": "c6da4a4d3010e5553438c60f6bd76d981976867c",
+  "declarationReference": "The Apple declaration ID is stored in Buddy-encrypted APPLE_STORE_ENCRYPTION_DECLARATION_ID.",
+  "purpose": "Authenticated loopback HTTP using cryptographic random UUIDs; bundled standard BoringSSL capabilities disclosed to ANSSI and Apple.",
+  "reuse": "Review cryptographic characteristics before reusing the declaration after application changes. A compiler runtime change requires an updated review baseline."
+}

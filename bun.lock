@@ -13,6 +13,7 @@
         "@stacksjs/ts-cloud": "^0.16.69",
         "@stacksjs/ts-css": "^0.3.19",
         "better-dx": "^0.2.38",
+        "ts-pantry": "0.11.128",
       },
     },
   },
@@ -123,13 +124,15 @@
 
     "ts-jpeg": ["ts-jpeg@0.3.6", "", {}, "sha512-BJB8NzbRx/vWH97iA17D065J/LaaJfdgoSvspV+EcpPHTN/aXvWhUf9LNhSclu0kd4SSoBecD9qIiFAnjwXT0g=="],
 
-    "ts-pantry": ["ts-pantry@0.11.119", "", { "bin": { "ts-pantry": "./dist/bin/cli.js" } }, "sha512-GbEFWzpiKuT8NPYsXsDn7208KEHu6AH8L7AgywIb1K36Xjh8SqzVWrjnXHOfsPAsJ2N1HS20mThgZNiSkOdb/w=="],
+    "ts-pantry": ["ts-pantry@0.11.128", "", { "bin": { "ts-pantry": "./dist/bin/cli.js" } }, "sha512-PkUjaNET0Ir8XluSGJgWQ9cINF60ucP1/896BXpFAnASignwjAPMkCZNiwFKNHm9Z0i0rm92gzS9c3swptuCsQ=="],
 
     "ts-syntax-highlighter": ["ts-syntax-highlighter@0.2.17", "", { "bin": { "ts-syntax-highlighter": "./dist/bin/cli.js" } }, "sha512-cHxkTRvqYabO9axIrw6KUkMweIHzXmVmcVmO+Yi2NEa9nxQa15zoISvvlKYPzK4OLsUS5I4uVaLz0Oivc3oOSw=="],
 
     "typescript": ["typescript@7.1.0-dev.20261011.1", "", { "optionalDependencies": { "@typescript/typescript-darwin-arm64": "7.1.0-dev.20261011.1", "@typescript/typescript-darwin-x64": "7.1.0-dev.20261011.1", "@typescript/typescript-linux-arm": "7.1.0-dev.20261011.1", "@typescript/typescript-linux-arm64": "7.1.0-dev.20261011.1", "@typescript/typescript-linux-x64": "7.1.0-dev.20261011.1", "@typescript/typescript-win32-arm64": "7.1.0-dev.20261011.1", "@typescript/typescript-win32-x64": "7.1.0-dev.20261011.1" }, "bin": { "tsc": "bin/tsc" } }, "sha512-Oestzc61TT5cqxAyVxRsbL+pmMF8pzPlsnLcbCqAWqvC0eYQcp8EJrLWatIgjdUh4RiL79avUCHfM8hdkv07xg=="],
 
     "undici-types": ["undici-types@8.12.3", "", {}, "sha512-EXE4ydL3S76dFb27UFjNVZHTyv/TLdATj/KUe29ptdcg6qXL48J2tZ3126E5kICj5jn781OR+XlVH1N6Mz8jbA=="],
+
+    "@buddysh/buddy/ts-pantry": ["ts-pantry@0.11.119", "", { "bin": { "ts-pantry": "./dist/bin/cli.js" } }, "sha512-GbEFWzpiKuT8NPYsXsDn7208KEHu6AH8L7AgywIb1K36Xjh8SqzVWrjnXHOfsPAsJ2N1HS20mThgZNiSkOdb/w=="],
 
     "@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
   }

@@ -7,9 +7,14 @@ on:
         description: Existing GitHub release to verify (for example v0.0.8)
         required: true
         type: string
+      store_run_id:
+        description: Optional App Store workflow run containing the signed package to verify
+        required: false
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   updater:
@@ -33,3 +38,44 @@ jobs:
           path: storage/release-verification/
           if-no-files-found: error
           retention-days: 30
+
+  store:
+    if: inputs.store_run_id != ''
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - name: Retrieve the original signed Store package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STORE_RUN_ID: ${{ inputs.store_run_id }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$STORE_RUN_ID" =~ ^[0-9]+$ ]]
+          RELEASE_TAG="$RELEASE_TAG" bun -e 'import {releaseVersion} from "./scripts/release-version"; releaseVersion(process.env.RELEASE_TAG)'
+          task_source=$(gh run view "$STORE_RUN_ID" --json headSha --jq .headSha)
+          test "$task_source" = "$(gh api repos/$GITHUB_REPOSITORY/commits/$RELEASE_TAG --jq .sha)"
+          printf 'BARISTA_STORE_SOURCE_REVISION=%s\n' "$task_source" >> "$GITHUB_ENV"
+          printf 'BARISTA_VERIFICATION_TAG=%s\n' "$RELEASE_TAG" >> "$GITHUB_ENV"
+          gh run download "$STORE_RUN_ID" --pattern 'barista-app-store-*' --dir "$RUNNER_TEMP/barista-original-store"
+          task_package=$(find "$RUNNER_TEMP/barista-original-store" -name 'Barista-*.pkg' -type f)
+          test -f "$task_package"
+          pkgutil --check-signature "$task_package"
+          pkgutil --expand-full "$task_package" "$RUNNER_TEMP/barista-expanded-store"
+          task_bundle=$(find "$RUNNER_TEMP/barista-expanded-store" -path '*/Payload/Barista.app' -type d -prune)
+          test -n "$task_bundle"
+          printf 'BARISTA_STORE_VERIFICATION_BUNDLE=%s\n' "$task_bundle" >> "$GITHUB_ENV"
+      - name: Verify the sandboxed Store app and generate current artwork
+        env:
+          BARISTA_STORE_ARTWORK_DIR: storage/release-verification/store-artwork
+        run: bun scripts/native-store-e2e.ts "$BARISTA_STORE_VERIFICATION_BUNDLE"
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-store-artwork-${{ env.BARISTA_VERIFICATION_TAG }}
+          path: storage/release-verification/store-artwork/
+          if-no-files-found: error
+          retention-days: 90

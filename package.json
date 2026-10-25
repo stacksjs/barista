@@ -65,7 +65,8 @@
     "@stacksjs/bunpress": "^0.2.25",
     "@stacksjs/ts-cloud": "^0.16.69",
     "@stacksjs/ts-css": "^0.3.19",
-    "better-dx": "^0.2.38"
+    "better-dx": "^0.2.38",
+    "ts-pantry": "0.11.128"
   },
   "git-hooks": {
     "pre-commit": {

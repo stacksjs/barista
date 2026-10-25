@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { cpSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { captureScreenshot } from '@stacksjs/stx'
+import { generateStoreArtwork } from './store-artwork'
 
 if (process.platform !== 'darwin') throw new Error('Native Store E2E requires macOS')
 const source = realpathSync(resolve(process.argv[2] || 'dist/app-store/Barista.app'))
@@ -40,6 +42,14 @@ let output = ''
 let url = ''
 let cookie = ''
 let backendPid: number | undefined
+const artworkDirectory = process.env.BARISTA_STORE_ARTWORK_DIR
+
+async function captureScene(scene: 'awake' | 'timed' | 'off'): Promise<void> {
+  if (!artworkDirectory) return
+  await captureScreenshot(url, join(artworkDirectory, 'captures', `${scene}.png`), {
+    width: 320, height: 740, waitSelector: scene === 'off' ? '.countdown.idle' : '.status-line.awake',
+  })
+}
 
 function diagnostics(): string {
   return output.replace(/session=[\w-]+/g, 'session=REDACTED').slice(-4000)
@@ -165,6 +175,7 @@ try {
   assert.equal(initial.autoLaunch, false, 'Store login startup requires the user to opt in')
   assert(assertions().some(line => line.includes('PreventUserIdleDisplaySleep')))
   assert(assertions().some(line => line.includes('PreventUserIdleSystemSleep')))
+  await captureScene('awake')
   assert.equal((await fetch(new URL('/api/status', url))).status, 401)
   assert.equal((await fetch(new URL('/api/status', url), { headers: { cookie, origin: 'https://example.com' } })).status, 403)
   await post('/api/updates/check', undefined, 405)
@@ -175,9 +186,11 @@ try {
   await post('/api/caffeinate/disable')
   assert.equal((await status()).active, false)
   assert.equal(assertions().length, 0)
+  await captureScene('off')
   const timed = await post('/api/caffeinate/duration', { minutes: 60 })
   assert.equal(timed.durationMinutes, 60)
   assert(Math.abs(Date.parse(timed.endsAt as string) - Date.now() - 3_600_000) < 2000)
+  await captureScene('timed')
   assert.equal((await post('/api/caffeinate/duration', { minutes: -1 })).endsAt, null)
   assert.equal(assertions().filter(line => line.includes('Barista: keeping your Mac awake')).length, 3)
   await post('/api/caffeinate/duration', { minutes: 60 })
@@ -197,6 +210,13 @@ try {
   assert.equal((await status()).durationMinutes, -1)
   await stop()
   await verifySandboxEnforcement()
+  if (artworkDirectory) {
+    await generateStoreArtwork(artworkDirectory)
+    const version = Bun.spawnSync(['plutil', '-extract', 'CFBundleShortVersionString', 'raw', join(source, 'Contents/Info.plist')])
+    assert.equal(version.exitCode, 0)
+    assert(process.env.BARISTA_STORE_SOURCE_REVISION, 'Artwork requires the packaged app’s source revision')
+    writeFileSync(join(artworkDirectory, 'captures', 'manifest.json'), `${JSON.stringify({ version: version.stdout.toString().trim(), sourceRevision: process.env.BARISTA_STORE_SOURCE_REVISION, distribution: 'app-store', renderer: 'packaged-stx-view', scenes: ['awake', 'timed', 'off'] }, null, 2)}\n`)
+  }
   console.log('✓ Store executables exclude known private API markers and use a sandboxed native host')
   console.log('✓ authenticated native bridge, shortcut ownership, sessions and timers work')
   console.log('✓ grouping and external update controls are absent and their endpoints reject use')

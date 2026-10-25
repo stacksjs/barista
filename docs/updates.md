@@ -51,6 +51,10 @@ native startup using an isolated profile and an explicit restart callback. The
 installed-app checks below cover the interactive Install and Restart action.
 See [Releasing](./releasing.md).
 
+The automated verification of the existing 0.0.7 → 0.0.8 release assets passed
+on a fresh macOS runner, including first-attempt native startup, real power
+assertions, preserved preferences, checksums and same-team Apple trust.
+
 The actual installed 0.0.7 app downloaded and installed 0.0.8 through its native
 update controls. Its new host and WebKit runtime became ready on the first
 restart, without a manual relaunch. Signing, notarization, saved login/startup

@@ -4,6 +4,20 @@
 1440 × 900 composition. These files are separate from the public website.
 The website hero uses its own stx component and shows the GitHub edition.
 
+Release CI generates current captures and these compositions automatically:
+
+```sh
+BARISTA_STORE_ARTWORK_DIR=storage/release-verification/store-artwork \
+BARISTA_STORE_SOURCE_REVISION=$(git rev-parse HEAD) bun run test:native:store
+```
+
+The native test captures real session states through stx’s system WebKit API,
+then renders `screenshot.stx` at an Apple-supported size. Its manifest records
+the packaged app version and source commit. CI retains the artwork for 90 days;
+the submission workflow restores only artifacts from trusted main/tag runs and
+checks their provenance before uploading. The existing captures below remain
+useful for local artwork preview and visual review.
+
 Run the packaged Store app in an isolated sandboxed development profile, using
 the signing procedure in `scripts/native-store-e2e.ts`. For artwork, open its
 authenticated local stx view at a 320 × 740 viewport and save

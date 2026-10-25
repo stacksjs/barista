@@ -55,6 +55,11 @@ The encrypted file holds these variables:
 | `APPLE_STORE_CERTIFICATE_PASSWORD` | Password for the Store identity exports. |
 | `APPLE_STORE_PROVISIONING_PROFILE_BASE64` | Matching Mac App Store provisioning profile, base64 encoded. |
 | `APPLE_STORE_APP_ID` | Barista’s App Store Connect app record ID. |
+| `APPLE_STORE_SUBMISSION_API_KEY_BASE64` | Separate App Manager `.p8`, base64 encoded, for listing updates and review submission. |
+| `APPLE_STORE_SUBMISSION_API_KEY_ID` | Submission key identifier. |
+| `APPLE_STORE_SUBMISSION_API_ISSUER` | Submission key issuer UUID. |
+| `APPLE_STORE_ENCRYPTION_DECLARATION_ID` | Apple’s encryption declaration reference; builds can use it only once Apple approves it. |
+| `APPLE_STORE_REVIEW_FIRST_NAME`, `APPLE_STORE_REVIEW_LAST_NAME`, `APPLE_STORE_REVIEW_EMAIL`, `APPLE_STORE_REVIEW_PHONE` | Approved App Review contact, kept out of source and release receipts. |
 
 Prepare the production values locally, then encrypt before staging:
 
@@ -106,31 +111,55 @@ loopback requests. Store builds exclude grouping controls and external updater
 actions. Open at Login starts off and uses the native macOS login service when
 enabled.
 
-Each edition has its own release tag. GitHub builds use `v0.0.8`; Store builds
-use `app-store/v0.0.8` for the same app version. This lets each edition qualify
-its required native runtime and signing path independently. Both tags must point
-to verified source on `main`. Tag the Store edition only after its published
-Pantry runtime passes the Store build and sandbox checks:
+One `vMAJOR.MINOR.PATCH` tag starts both edition workflows. Each qualifies its
+runtime, signing and native behavior independently. The tag must match
+`package.json` and point to verified source on `main`. Legacy `app-store/v*`
+tags remain supported for Store-only delivery; normal releases need one tag.
+
+To recheck existing downloads without rebuilding or replacing release assets:
 
 ```sh
-git tag app-store/v0.0.8
-git push origin app-store/v0.0.8
+gh workflow run verify-release.yml -f tag=v0.0.8 -f store_run_id=40168009230
 ```
 
-The App Store workflow runs on these Store tags, using
+The App Store workflow runs on the release tag, using
 the stable Xcode 27.0 toolchain on GitHub's `xcode-27` image. It imports Store
 identities and the profile through Pantry, builds and verifies the
 PKG, runs native tests in an isolated sandboxed development copy, then validates
-and uploads through Apple’s tooling. The original distribution package remains
+and uploads through Apple’s tooling. Native E2E also captures the packaged stx
+view in awake, timed and off states and renders the Store compositions through
+stx’s system WebKit screenshot API. Artifact manifests bind the images to the
+app version and source commit. The original distribution package remains
 Store-signed. The PKG is retained as a CI artifact, not offered as a direct
 download. The Store listing has metadata, a published privacy disclosure and
 screenshots. Version 0.0.8 (build 2.1), using published Craft 0.0.340, passed
 the local and CI sandbox checks and was accepted and processed by App Store
-Connect. The build is selected on the listing; export compliance documentation
-is still required before review submission. Upload success does not mean Apple
-has approved a release.
+Connect. The build is selected on the listing. ANSSI’s official declaration
+attestation has been uploaded to Apple and is in export-compliance review.
+Upload success does not mean Apple has approved a release.
+
+After upload, Pantry waits for Apple to process the exact build, selects it,
+synchronizes the listing and screenshots, attaches an approved encryption
+declaration and submits to App Review. Automatic release after approval is
+enabled. The separate **Store submission** workflow resumes the latest stable
+GitHub version every six hours, or can be dispatched with a release tag. It
+does not rebuild, replace a selected in-review build, or resubmit an active
+review. It records `awaiting-export-approval`, `awaiting-app-review`,
+`submitted-for-review`, `awaiting-storefront`, `published` or a failure receipt
+in Actions artifacts. `published` additionally requires Apple’s public US
+storefront to return the matching bundle and version. Review rejections and
+developer withdrawals require a deliberate manual dispatch with `resubmit`
+after the feedback is resolved; the schedule does not keep resubmitting them.
+Apple remains responsible for compliance review and App Review decisions.
+
+The submission key is separate from the Developer key used for signing and
+uploads. All Store mutations are serialized across delivery and resume runs.
+The encryption declaration can cover later app versions only while their
+cryptographic characteristics remain unchanged. Store builds check the Bun
+compiler version and revision against `resources/app-store/encryption-scope.json`;
+review that scope and Apple’s declaration before updating the baseline.
 
 The 0.0.8 release uses published stx 0.2.693 to prepare its first document
 before opening WebKit. Both local editions pass their native checks with the
 published Pantry Craft 0.0.340 runtime. The GitHub release is published and the
-Store upload was accepted and processed. Export compliance remains pending.
+Store upload was accepted and processed. Export compliance is in Apple’s review.

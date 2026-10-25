@@ -1,0 +1,77 @@
+name: Store submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: GitHub release tag to resume (blank selects latest stable)
+        required: false
+        type: string
+      resubmit:
+        description: Resubmit after resolving Apple’s review feedback
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: barista-app-store
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Require trusted release automation from main
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - name: Select the released version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          task_tag="$REQUESTED_TAG"
+          if [ -z "$task_tag" ]; then task_tag=$(gh api repos/$GITHUB_REPOSITORY/releases/latest --jq .tag_name); fi
+          task_version=$(RELEASE_TAG="$task_tag" bun -e 'import {releaseVersion} from "./scripts/release-version"; console.log(releaseVersion(process.env.RELEASE_TAG))')
+          gh release view "$task_tag" --json tagName,isDraft,isPrerelease
+          printf 'BARISTA_STORE_VERSION=%s\n' "$task_version" >> "$GITHUB_ENV"
+      - name: Decrypt submission credentials with Buddy Env
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        run: |
+          umask 077
+          test -n "$DOTENV_PRIVATE_KEY_PRODUCTION"
+          printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > "$RUNNER_TEMP/barista.env.keys"
+          bunx --bun @stacksjs/buddy@0.75.299 env:decrypt --file .env.production --file-keys "$RUNNER_TEMP/barista.env.keys" --stdout --quiet > "$RUNNER_TEMP/barista-store.env"
+          bun --env-file="$RUNNER_TEMP/barista-store.env" scripts/prepare-release.ts --submission
+      - name: Resume build processing, compliance and App Review submission
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESUBMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.resubmit }}
+        run: |
+          if [ "$RESUBMIT" = true ]; then
+            bun scripts/submit-store.ts --resubmit
+          else
+            bun scripts/submit-store.ts
+          fi
+      - name: Retain the precise release phase
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-store-status-${{ github.run_id }}
+          path: storage/release-verification/app-store.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Remove plaintext submission credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/barista.env.keys" "$RUNNER_TEMP/barista-store.env" "$RUNNER_TEMP/barista-submission.p8"

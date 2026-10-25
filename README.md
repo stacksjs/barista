@@ -45,8 +45,8 @@ settings. The GitHub edition includes icon grouping and its verified updater.
 The sandboxed Mac App Store edition excludes grouping because its native
 visibility backend requires a private Apple API. It uses Craft’s public-only
 runtime and native login registration, with Open at Login off until enabled.
-The Store edition is being prepared for submission; use GitHub Releases for
-the currently available download.
+The Store build is uploaded and awaiting Apple’s export-compliance approval
+before App Review submission. Use GitHub Releases for the available download.
 
 Keep-awake controls idle sleep. It does not override manual sleep, lid-close
 behavior, shutdown or macOS power protections. See the [keep-awake guide](./docs/caffeinate.md).
@@ -133,7 +133,7 @@ local signing and notarization values, then encrypt it with Buddy Env before
 staging it:
 
 ```bash
-bunx --bun @stacksjs/buddy@0.75.283 env:encrypt --file .env.production --file-keys .env.keys
+bunx --bun @stacksjs/buddy@0.75.299 env:encrypt --file .env.production --file-keys .env.keys
 ```
 
 Commit only the encrypted `.env.production`. Keep `.env`, `.env.keys`, `.p8`
@@ -147,9 +147,15 @@ can retain its encryption key. If you create a new key, update the matching
 GitHub repository secret from `.env.keys` before releasing.
 
 After verification, `bun run release:patch` creates and pushes the next version
-tag. The release workflow publishes the DMG and `update.json` only after testing
-the packaged app and read-only DMG. Installed copies download the update in the
-background; **Install and restart** becomes available after the download verifies.
+tag. That tag starts both edition workflows. The direct release stages the DMG
+and `update.json` as a prerelease after packaged-app checks, then tests a real
+previous-to-new updater replacement and native restart before promoting it to
+latest. The Store flow verifies its sandboxed package, generates current
+screenshots through stx, uploads to Apple and submits for review once compliance
+is approved. A resume workflow checks Apple every six hours and reports the
+precise waiting or release phase. See [Releasing](./docs/releasing.md).
+Installed copies download the direct update in the background;
+**Install and restart** becomes available after the download verifies.
 
 The README animation uses captures of the installed app’s actual stx interface
 at its native panel size; its native window is verified separately. After
