@@ -90,15 +90,15 @@ loopback requests. Store builds exclude grouping controls and external updater
 actions. Open at Login starts off and uses the native macOS login service when
 enabled.
 
-Each edition has its own release tag. GitHub builds use `v0.0.7`; Store builds
-use `app-store/v0.0.7` for the same app version. This lets each edition qualify
+Each edition has its own release tag. GitHub builds use `v0.0.8`; Store builds
+use `app-store/v0.0.8` for the same app version. This lets each edition qualify
 its required native runtime and signing path independently. Both tags must point
 to verified source on `main`. Tag the Store edition only after its published
 Pantry runtime passes the Store build and sandbox checks:
 
 ```sh
-git tag app-store/v0.0.7
-git push origin app-store/v0.0.7
+git tag app-store/v0.0.8
+git push origin app-store/v0.0.8
 ```
 
 The App Store workflow runs on these Store tags, using
@@ -113,3 +113,7 @@ the local and CI sandbox checks and was accepted and processed by App Store
 Connect. The build is selected on the listing; export compliance documentation
 is still required before review submission. Upload success does not mean Apple
 has approved a release.
+
+The 0.0.8 candidate uses published stx 0.2.693 to prepare its first document
+before opening WebKit. Both local editions pass their native checks with the
+published Pantry Craft 0.0.340 runtime; its Store upload is pending.

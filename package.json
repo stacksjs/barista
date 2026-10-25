@@ -2,7 +2,7 @@
   "name": "barista",
   "private": true,
   "type": "module",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A tiny, native macOS menu bar app that keeps your Mac awake — a free replacement for Caffeine, Amphetamine and KeepingYouAwake.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -58,7 +58,7 @@
     "test:native:store": "bun scripts/native-store-e2e.ts"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.692"
+    "@stacksjs/stx": "^0.2.693"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.28",

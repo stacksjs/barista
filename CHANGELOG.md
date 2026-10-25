@@ -1,3 +1,20 @@
+# Changelog
+
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.7...v0.0.8)
+
+## 🐛 Bug Fixes
+
+- **startup**: prepare the first document before native navigation through published stx 0.2.693 ([stx source](https://github.com/stacksjs/stx/commit/4b5b6cf077755bb7ad63f9a33347e490a95b3d59)).
+- **updates**: report downloads without holding a WebKit request open ([89681c8](https://github.com/stacksjs/barista/commit/89681c8)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 📝 Documentation
+
+- refresh the 0.0.7 app gallery and record release verification ([8babbf2](https://github.com/stacksjs/barista/commit/8babbf2)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.6...v0.0.7)
 
 ## 🐛 Bug Fixes
