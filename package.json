@@ -58,7 +58,7 @@
     "test:native:store": "bun scripts/native-store-e2e.ts"
   },
   "dependencies": {
-    "@stacksjs/stx": "^0.2.693"
+    "@stacksjs/stx": "^0.2.696"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.28",
