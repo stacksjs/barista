@@ -108,6 +108,8 @@ PKG, runs native tests in an isolated sandboxed development copy, then validates
 and uploads through Apple’s tooling. The original distribution package remains
 Store-signed. The PKG is retained as a CI artifact, not offered as a direct
 download. The Store listing has metadata, a published privacy disclosure and
-screenshots. The 0.0.7 candidate passes the local build and sandbox checks using
-published Craft 0.0.340. Its upload and review submission are pending. Upload
-success does not mean Apple has approved a release.
+screenshots. Version 0.0.7 (build 1.1), using published Craft 0.0.340, passed
+the local and CI sandbox checks and was accepted and processed by App Store
+Connect. The build is selected on the listing; export compliance documentation
+is still required before review submission. Upload success does not mean Apple
+has approved a release.

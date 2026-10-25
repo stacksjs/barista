@@ -34,5 +34,16 @@ Apple notarization, preserved preferences and login configuration, Accessibility
 authorization and native power assertions. Shortcut ownership remained registered after the
 periodic refresh, and the native update check completed with “Barista is up
 to date.” The installed app also passed repeated native hide/reveal checks.
+The installed 0.0.6 app also downloaded and installed 0.0.7 through its own UI.
+The replacement passed strict signing, stapling and Gatekeeper checks and
+preserved login settings, Accessibility authorization and indefinite awake.
+Verification exposed two failure cases: a full disk safely prevented replacement,
+and a slow first document render caused WebKit to time out after restart. A
+normal relaunch restored the 0.0.7 UI; that relaunch is not counted as a successful
+first-load check. Startup readiness is being corrected at the stx source, and
+the next Barista release will also keep update HTTP requests independent of
+background downloads. The running 0.0.7 app passed native timer, hide/reveal,
+shortcut ownership and current-version checks after relaunch.
+
 Release CI separately checks the packaged app and its read-only DMG before
 publication. See [Releasing](./releasing.md).
