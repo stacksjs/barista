@@ -122,6 +122,11 @@ To recheck existing downloads without rebuilding or replacing release assets:
 gh workflow run verify-release.yml -f tag=v0.0.8 -f store_run_id=40168009230
 ```
 
+To qualify current source with real Store signing, sandbox checks and fresh
+screenshots before tagging, dispatch **App Store** on `main` with `deliver`
+off. That mode retains its signed package and artwork without uploading a new
+build to Apple. Tag pushes always perform delivery after qualification.
+
 The App Store workflow runs on the release tag, using
 the stable Xcode 27.0 toolchain on GitHub's `xcode-27` image. It imports Store
 identities and the profile through Pantry, builds and verifies the

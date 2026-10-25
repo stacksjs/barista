@@ -6,6 +6,11 @@ on:
       - 'v*'
       - 'app-store/v*'
   workflow_dispatch:
+    inputs:
+      deliver:
+        description: Upload a version tag to Apple (leave off to qualify main without delivery)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -26,12 +31,20 @@ jobs:
           fetch-depth: 0
 
       - name: Validate the release source
+        id: source
+        env:
+          REQUEST_DELIVERY: ${{ github.event_name == 'push' || inputs.deliver }}
         run: |
           case "$GITHUB_REF" in
             refs/tags/v*|refs/tags/app-store/v*) ;;
+            refs/heads/main)
+              test "$GITHUB_EVENT_NAME" = workflow_dispatch
+              test "$REQUEST_DELIVERY" = false
+              ;;
             *) echo '::error::Select a version tag to upload an App Store build.'; exit 1 ;;
           esac
           git merge-base --is-ancestor HEAD origin/main
+          printf 'deliver=%s\n' "$REQUEST_DELIVERY" >> "$GITHUB_OUTPUT"
 
       - name: Verify the selected Apple upload toolchain
         run: |
@@ -39,15 +52,15 @@ jobs:
           xcrun altool --version
 
       - name: Set up the Pantry runtime
-        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f
+        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
         with:
-          version: '0.11.126'
+          version: '0.11.128'
       - run: bun install --frozen-lockfile
 
       - name: Verify source and version
         id: version
         run: |
-          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME.replace(/^app-store\//, "") !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_TYPE === "tag" && process.env.GITHUB_REF_NAME.replace(/^app-store\//, "") !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
           bun -e 'console.log(`version=${(await Bun.file("package.json").json()).version}`)' >> "$GITHUB_OUTPUT"
           bun run check
 
@@ -63,9 +76,9 @@ jobs:
 
       - name: Import Store signing identities and profile
         id: signing
-        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f
+        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
         with:
-          version: '0.11.126'
+          version: '0.11.128'
           install: 'false'
           apple-signing: 'true'
           apple-signing-application-certificate: ${{ env.APPLE_STORE_APPLICATION_CERTIFICATE }}
@@ -85,6 +98,7 @@ jobs:
           pkgutil --check-signature dist/app-store/Barista-*.pkg
 
       - name: Verify the packaged app under App Sandbox
+        id: native
         env:
           BARISTA_STORE_ARTWORK_DIR: storage/release-verification/store-artwork
           BARISTA_STORE_SOURCE_REVISION: ${{ github.sha }}
@@ -99,6 +113,7 @@ jobs:
           retention-days: 90
 
       - name: Validate and upload to App Store Connect
+        if: steps.source.outputs.deliver == 'true'
         id: delivery
         run: |
           export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP"
@@ -108,9 +123,11 @@ jobs:
           xcrun altool --upload-package "${task_package[0]}" --wait --api-key "$APPLE_NOTARY_API_KEY_ID" --api-issuer "$APPLE_NOTARY_API_ISSUER"
 
       - name: Prepare encrypted Store submission credentials
+        if: steps.source.outputs.deliver == 'true'
         run: bun --env-file="$RUNNER_TEMP/barista-store.env" scripts/prepare-release.ts --submission
 
       - name: Process the uploaded build and submit when Apple compliance is approved
+        if: steps.source.outputs.deliver == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BARISTA_STORE_ARTWORK_DIR: storage/release-verification/store-artwork
@@ -119,7 +136,7 @@ jobs:
         run: bun scripts/submit-store.ts
 
       - name: Retain the signed submission package
-        if: always() && steps.delivery.outcome == 'success'
+        if: always() && steps.native.outcome == 'success'
         uses: actions/upload-artifact@v7.0.2
         with:
           name: barista-app-store-${{ github.sha }}-${{ github.run_attempt }}
