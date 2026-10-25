@@ -3,7 +3,7 @@
  *
  * Compiles the app to a single binary, then hands it to Craft's packaging,
  * which produces a self-contained `.app` and a `.dmg` for direct download.
- * The private native icon-hiding backend requires direct distribution.
+ * App Store builds use Craft's public runtime and the sandboxed native host.
  *
  * Signing is driven entirely by environment variables so the same command works
  * locally (unsigned) and on CI (signed by pantry's `apple-signing` step):
@@ -22,14 +22,14 @@ import { REPOSITORY } from './src/updates'
 const BUNDLE_ID = 'com.stacksjs.barista'
 /** Apple Developer team that signs Barista. Not a secret — it appears in every identity name. */
 const TEAM_ID = '3JJRNQW6B7'
-const OUT_DIR = resolve(import.meta.dir, 'dist')
+const appStore = process.argv.includes('--app-store')
+const OUT_DIR = resolve(import.meta.dir, appStore ? 'dist/app-store' : 'dist')
 
-const signIdentity = process.env.APPLE_SIGNING_IDENTITY
-// Reject the former App Store path explicitly: this runtime uses a private API.
-if (process.env.APPLE_INSTALLER_SIGNING_IDENTITY)
-  throw new Error('Barista icon hiding requires direct distribution. Use a Developer ID Application identity without an installer identity.')
+const signIdentity = appStore ? process.env.APPLE_STORE_SIGNING_IDENTITY : process.env.APPLE_SIGNING_IDENTITY
+if (appStore && (!signIdentity || !process.env.APPLE_STORE_INSTALLER_IDENTITY || !process.env.APPLE_STORE_PROVISIONING_PROFILE))
+  throw new Error('App Store builds require application and installer identities plus a matching provisioning profile.')
 
-if (process.env.APPLE_NOTARY_API_KEY_PATH
+if (!appStore && process.env.APPLE_NOTARY_API_KEY_PATH
   && (!signIdentity || !process.env.APPLE_NOTARY_API_KEY_ID || !process.env.APPLE_NOTARY_API_ISSUER))
   throw new Error('Notarization requires a signing identity, API key ID and issuer.')
 
@@ -38,12 +38,13 @@ const binaryPath = join(OUT_DIR, 'barista')
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// Craft 0.0.328 supplies display-scoped grouping and app notarization tickets.
+// Direct grouping needs Craft 0.0.338; Store builds also need 0.0.340’s public WebKit boundary.
+const minimumCraftPatch = appStore ? 340 : 338
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version
-  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < 328))
-  throw new Error('Barista requires Craft 0.0.328 or newer. Run `pantry install` before building.')
+  || (Number(version[1]) === 0 && Number(version[2]) === 0 && Number(version[3]) < minimumCraftPatch))
+  throw new Error(`This edition requires Craft 0.0.${minimumCraftPatch} or newer. Run \`pantry install\` before building.`)
 
 console.log(`Compiling Barista ${pkg.version}...`)
 const compiled = await Bun.build({
@@ -54,6 +55,7 @@ const compiled = await Bun.build({
   // Most of the binary is Bun's own runtime, which is a fixed cost; minifying
   // still trims roughly a megabyte of app and dependency code.
   minify: true,
+  define: { 'process.env.BARISTA_DISTRIBUTION': JSON.stringify(appStore ? 'app-store' : 'direct') },
   compile: { outfile: binaryPath },
 })
 
@@ -62,10 +64,10 @@ if (!compiled.success) {
   process.exit(1)
 }
 
-const entitlements = resolve(import.meta.dir, 'barista.direct.entitlements')
+const entitlements = resolve(import.meta.dir, appStore ? 'barista.app-store.entitlements' : 'barista.direct.entitlements')
 const icon = resolve(import.meta.dir, 'src/assets/icon.icns')
 
-console.log(signIdentity ? 'Packaging signed direct build...' : 'Packaging unsigned local build...')
+console.log(appStore ? 'Packaging sandboxed App Store build...' : signIdentity ? 'Packaging signed direct build...' : 'Packaging unsigned local build...')
 const results = await packageApp({
   name: 'Barista',
   version: pkg.version,
@@ -78,20 +80,28 @@ const results = await packageApp({
   platforms: ['macos'],
   iconPath: existsSync(icon) ? icon : undefined,
   macos: {
-    dmg: true,
-    appStore: false,
+    dmg: !appStore,
+    appStore,
     signIdentity,
+    installerIdentity: appStore ? process.env.APPLE_STORE_INSTALLER_IDENTITY : undefined,
+    signingKeychain: appStore ? process.env.APPLE_STORE_KEYCHAIN : undefined,
+    provisioningProfile: appStore ? process.env.APPLE_STORE_PROVISIONING_PROFILE : undefined,
     entitlements: existsSync(entitlements) ? entitlements : undefined,
     // Craft embeds an identified native agent; stx launches it from the bundle.
     nativeRuntimePath: bundledCraft,
+    nativeWindow: appStore ? {
+      width: 320, height: 740, systemTray: true, headless: true,
+      keepRunning: true, hideDockIcon: true, titlebarHidden: true,
+      alwaysOnTop: true, resizable: false, darkMode: true,
+    } : undefined,
     // Barista lives in the menu bar; a Dock icon would be noise.
     menuBarOnly: true,
     category: 'public.app-category.utilities',
     minimumSystemVersion: '15.0',
     // CI run numbers give every distributable a distinct build number.
     buildNumber: process.env.GITHUB_RUN_NUMBER,
-    notarize: Boolean(process.env.APPLE_NOTARY_API_KEY_PATH),
-    notaryApiKey: process.env.APPLE_NOTARY_API_KEY_PATH ? {
+    notarize: !appStore && Boolean(process.env.APPLE_NOTARY_API_KEY_PATH),
+    notaryApiKey: !appStore && process.env.APPLE_NOTARY_API_KEY_PATH ? {
       path: process.env.APPLE_NOTARY_API_KEY_PATH,
       keyId: process.env.APPLE_NOTARY_API_KEY_ID!,
       issuer: process.env.APPLE_NOTARY_API_ISSUER!,

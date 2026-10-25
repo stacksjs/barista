@@ -53,7 +53,9 @@
     "preview:site": "bun scripts/preview-site.ts",
     "deploy:site": "cloud deploy --env production --site marketing --yes",
     "deploy:site:plan": "cloud deploy --env production --site marketing --dry-run",
-    "verify:site": "bun scripts/verify-site.ts"
+    "verify:site": "bun scripts/verify-site.ts",
+    "build:app-store": "bun --bun run build.ts --app-store",
+    "test:native:store": "bun scripts/native-store-e2e.ts"
   },
   "dependencies": {
     "@stacksjs/stx": "^0.2.690"
