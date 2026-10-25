@@ -37,7 +37,7 @@ apply.
 
 ## Contact
 
-For privacy questions, email [chris@stacksjs.org](mailto:chris@stacksjs.org).
+For privacy questions, email [chris@stacksjs.com](mailto:chris@stacksjs.com).
 Please keep private information out of public GitHub issues.
 
 Last updated: October 24, 2026.
