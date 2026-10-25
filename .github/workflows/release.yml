@@ -12,9 +12,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: barista-direct-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: macos-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -29,6 +34,12 @@ jobs:
             refs/tags/v*) echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT" ;;
             *) echo "::error::Select a version tag when running a release."; exit 1 ;;
           esac
+          git merge-base --is-ancestor HEAD origin/main
+          if gh release view "$GITHUB_REF_NAME" --json isPrerelease --jq '.isPrerelease' > "$RUNNER_TEMP/barista-release-state" 2>/dev/null; then
+            test "$(cat "$RUNNER_TEMP/barista-release-state")" = true || { echo '::error::A stable release is immutable. Use Verify release to recheck it.'; exit 1; }
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up pantry
         uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f # main
@@ -36,6 +47,11 @@ jobs:
           version: '0.11.126'
 
       - run: bun install --frozen-lockfile
+
+      - name: Prevent an older tag from replacing the stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun scripts/release-version.ts "$GITHUB_REF_NAME" "$(gh api repos/$GITHUB_REPOSITORY/releases/latest --jq .tag_name)"
 
       - name: Decrypt release environment with Buddy Env
         env:
@@ -82,13 +98,14 @@ jobs:
           trap 'hdiutil detach "$task_volume"; rmdir "$task_volume"' EXIT
           bun run test:native "$task_volume/Barista.app"
 
-      # Publish only after signed-app and read-only DMG verification.
-      - name: Publish
+      # Candidates are downloadable for qualification but never served by /latest.
+      - name: Stage the release candidate
         uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f # main
         with:
           version: '0.11.126'
           install: 'false'
           release: 'true'
+          release-prerelease: 'true'
           release-files: |
             dist/Barista-${{ steps.version.outputs.version }}.dmg
             dist/update.json
@@ -96,6 +113,28 @@ jobs:
           release-changelog: auto
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Qualify the updater against the published candidate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun scripts/verify-updater.ts "$GITHUB_REF_NAME"
+
+      - name: Promote the verified release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bun scripts/release-version.ts "$GITHUB_REF_NAME" "$(gh api repos/$GITHUB_REPOSITORY/releases/latest --jq .tag_name)"
+          gh release edit "$GITHUB_REF_NAME" --prerelease=false --latest
+          test "$(gh api repos/$GITHUB_REPOSITORY/releases/latest --jq .tag_name)" = "$GITHUB_REF_NAME"
+
+      - name: Retain updater qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-updater-${{ github.ref_name }}-${{ github.run_attempt }}
+          path: storage/release-verification/
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Remove decrypted release credentials
         if: always()

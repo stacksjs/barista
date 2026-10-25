@@ -1,0 +1,35 @@
+name: Verify release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing GitHub release to verify (for example v0.0.8)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  updater:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: '1.4.3'
+      - run: bun install --frozen-lockfile
+      - name: Verify previous-to-selected signed release replacement and native restart
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: bun scripts/verify-updater.ts "$RELEASE_TAG"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: barista-published-updater-${{ github.run_id }}
+          path: storage/release-verification/
+          if-no-files-found: error
+          retention-days: 30

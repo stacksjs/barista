@@ -15,7 +15,23 @@ bun run release:patch
 The release command bumps the version, commits and pushes its tag. The tag must
 match `package.json`. Release CI installs the locked Pantry runtime, checks the
 source, signs and notarizes the app and DMG, and verifies the packaged app and
-read-only DMG before publishing the DMG and `update.json`.
+read-only DMG before staging the DMG and `update.json` as a GitHub prerelease.
+The updater qualification then downloads the previous stable app and the exact
+candidate assets from GitHub. It exercises the public stx/Craft updater with
+SHA-256 verification, same-team notarization checks, bundle replacement and a
+native restart. The replacement must initialize on its first attempt, retain
+isolated preferences and own real macOS keep-awake assertions. Only a passing
+candidate becomes the latest stable release. A failed candidate stays a
+prerelease, so installed apps continue to see the previous stable version.
+
+Qualification runs on an idle macOS runner and refuses to run alongside an
+existing Barista process. Its restart callback launches the packaged executable
+with isolated preferences; the interactive Install and Restart route also needs
+the installed-app verification described in [Updates](./updates.md).
+Verification evidence is retained as a GitHub Actions artifact for 30 days.
+The **Verify release** workflow can recheck existing assets without rebuilding
+or changing a stable release. Stable release assets are immutable, and older
+tags cannot replace a newer stable release.
 
 ## Encrypted signing configuration
 

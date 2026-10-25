@@ -44,8 +44,12 @@ first-load check. Version 0.0.8 includes the stx startup-readiness correction an
 HTTP requests independent of background downloads. The running 0.0.7 app passed native timer, hide/reveal,
 shortcut ownership and current-version checks after relaunch.
 
-Release CI separately checks the packaged app and its read-only DMG before
-publication. See [Releasing](./releasing.md).
+Release CI checks the packaged app and its read-only DMG, stages a prerelease,
+then exercises the public stx/Craft updater against the downloaded release assets
+before promoting it to latest. The automated harness verifies replacement and
+native startup using an isolated profile and an explicit restart callback. The
+installed-app checks below cover the interactive Install and Restart action.
+See [Releasing](./releasing.md).
 
 The actual installed 0.0.7 app downloaded and installed 0.0.8 through its native
 update controls. Its new host and WebKit runtime became ready on the first
