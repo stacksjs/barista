@@ -1,5 +1,34 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.8...v0.0.9)
+
+## 🐛 Bug Fixes
+
+- **docs**: correct the Barista contact email domain ([ffb21b4](https://github.com/stacksjs/barista/commit/ffb21b4)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 📝 Documentation
+
+- publish verified 0.0.8 captures and updater results ([8c079f0](https://github.com/stacksjs/barista/commit/8c079f0)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 👷 Build System
+
+- pin the reviewed Bun release compiler ([151771c](https://github.com/stacksjs/barista/commit/151771c)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 💚 Continuous Integration
+
+- preserve the selected compiler through Pantry signing ([ea4c078](https://github.com/stacksjs/barista/commit/ea4c078)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **app-store**: qualify source before tagged delivery ([04a094e](https://github.com/stacksjs/barista/commit/04a094e)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **app-store**: automate listing artwork and review submission ([0286af2](https://github.com/stacksjs/barista/commit/0286af2)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **release**: qualify signed updater candidates before promotion ([43084b4](https://github.com/stacksjs/barista/commit/43084b4)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- **deps**: upgrade stx Craft and Pantry release tooling ([286861f](https://github.com/stacksjs/barista/commit/286861f)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.7...v0.0.8)
 
 ## 🐛 Bug Fixes
