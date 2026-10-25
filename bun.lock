@@ -8,7 +8,7 @@
         "@stacksjs/stx": "^0.2.692",
       },
       "devDependencies": {
-        "@stacksjs/bumpx": "^0.2.27",
+        "@stacksjs/bumpx": "^0.2.28",
         "@stacksjs/bunpress": "^0.2.25",
         "@stacksjs/ts-cloud": "^0.16.69",
         "@stacksjs/ts-css": "^0.3.19",
@@ -21,7 +21,7 @@
 
     "@cwcss/crosswind": ["@cwcss/crosswind@0.2.19", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "bunfig": "^0.15.17" }, "bin": { "crosswind": "./dist/cli.js" } }, "sha512-NswUZPNHbdkW4rxvmwjjIM7jyfQ/rr0X1J1uwjTUwixc3BXQs1Fk7pP5cC7MxkGGnmRTFs2O9J+U9tJ36ZJ7fQ=="],
 
-    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.2.27", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/logsmith": "^0.2.6", "bunfig": "^0.15.6" }, "bin": { "bumpx": "./dist/bin/cli.js" } }, "sha512-LOaqknhToQDIey7UwfG9BPZ2CQfK1TfA/mZxpPnxoPKfzTvVWaudKatpw/R3J4+8WuR0V08/olV28lBxI9S7cg=="],
+    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.2.28", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/logsmith": "^0.2.6", "bunfig": "^0.15.6" }, "bin": { "bumpx": "./dist/bin/cli.js" } }, "sha512-4C7bxRS6ryyusURf00RV30XjxjOv471w43Pc3Jok++0fjtoV4zEYR3XfpXPLEB0/L0mITIO8axamx2J3a4gvhQ=="],
 
     "@stacksjs/bunpress": ["@stacksjs/bunpress@0.2.25", "", { "dependencies": { "@cwcss/crosswind": "^0.2.16", "@stacksjs/clapp": "^0.2.0", "@stacksjs/stx": "^0.2.550", "@stacksjs/ts-i18n": "^0.1.11", "bunfig": "^0.15.17", "ts-syntax-highlighter": "^0.2.14" }, "peerDependencies": { "@stacksjs/ts-cloud": "^0.7.51" }, "optionalPeers": ["@stacksjs/ts-cloud"], "bin": { "bunpress": "./dist/bin/cli.js" } }, "sha512-4mzXXQlCgMbkFe4Re6jAcKyGE2hSevpPFBbIytBdrrpEhCDl3VR5UH0v6Ei73wh3jkPAtxWBbJu4B7f72nqrsQ=="],
 
@@ -97,7 +97,7 @@
 
     "bunfig": ["bunfig@0.15.21", "", { "dependencies": { "@stacksjs/clarity": "^0.3.24" }, "bin": { "bunfig": "./dist/cli.js" } }, "sha512-CuOLpPGC+ESF+Y0V8g4B04Y5JR49sZpYSye34n+vfsk2wGJu0wyBYVk9dICLtJZq6yfaaqoPc7MkLSkFdJ9akw=="],
 
-    "craft-native": ["craft-native@0.0.338", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-9UuGe0+ziApMO5Q6NN4PGXLRyTzYZ1MV8gogqmikJPZPh3Z4iNWgO9AjL7AtXaAJMmA5qTIs8hlGKEMbwqHP7Q=="],
+    "craft-native": ["craft-native@0.0.340", "", { "bin": { "craft-sdk": "dist/cli.js" } }, "sha512-lhs8fNRRgbz24GQQNxa9yIgxcLqxE6v5JXfyRSWl0UA3Mzeets45r3Lq8R9/jGh3M2rFDtZxZEnzPSNQCBcndg=="],
 
     "data-uri-to-buffer": ["data-uri-to-buffer@6.0.2", "", {}, "sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw=="],
 

@@ -61,7 +61,7 @@
     "@stacksjs/stx": "^0.2.692"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.2.27",
+    "@stacksjs/bumpx": "^0.2.28",
     "@stacksjs/bunpress": "^0.2.25",
     "@stacksjs/ts-cloud": "^0.16.69",
     "@stacksjs/ts-css": "^0.3.19",
