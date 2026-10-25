@@ -26,19 +26,6 @@
   --button: #edf1ee;
   --button-text: #171a18;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not(.light):not(.dark) {
-    color-scheme: dark;
-    --canvas: #171a18;
-    --surface: #202522;
-    --ink: #edf1ee;
-    --muted: #b0bab3;
-    --line: #3b443d;
-    --accent: #a4cfb5;
-    --button: #edf1ee;
-    --button-text: #171a18;
-  }
-}
 * { box-sizing: border-box; }
 body, figure, fieldset, h1, h2, h3, p { margin: 0; }
 body { min-width: 320px; }
