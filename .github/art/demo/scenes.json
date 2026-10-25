@@ -1,5 +1,5 @@
 {
-  "version": "0.0.7",
+  "version": "0.0.8",
   "renderer": "packaged-stx-view",
   "viewport": {
     "width": 320,
@@ -30,10 +30,10 @@
       "image": "updates.jpg",
       "title": "Stay up\nto date.",
       "subtitle": "Updates from GitHub, in the app.",
-      "detail": "Downloads verify in the background.\nInstall and restart when you’re ready.\nYour preferences stay with you."
+      "detail": "Downloads verify in the background.\nInstall and restart when you\u2019re ready.\nYour preferences stay with you."
     }
   ],
   "nativeRuntime": "0.0.340",
-  "stx": "0.2.692",
+  "stx": "0.2.693",
   "distribution": "github"
 }

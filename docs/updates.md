@@ -40,10 +40,16 @@ preserved login settings, Accessibility authorization and indefinite awake.
 Verification exposed two failure cases: a full disk safely prevented replacement,
 and a slow first document render caused WebKit to time out after restart. A
 normal relaunch restored the 0.0.7 UI; that relaunch is not counted as a successful
-first-load check. Startup readiness is being corrected at the stx source, and
-the next Barista release will also keep update HTTP requests independent of
-background downloads. The running 0.0.7 app passed native timer, hide/reveal,
+first-load check. Version 0.0.8 includes the stx startup-readiness correction and keeps update
+HTTP requests independent of background downloads. The running 0.0.7 app passed native timer, hide/reveal,
 shortcut ownership and current-version checks after relaunch.
 
 Release CI separately checks the packaged app and its read-only DMG before
 publication. See [Releasing](./releasing.md).
+
+The actual installed 0.0.7 app downloaded and installed 0.0.8 through its native
+update controls. Its new host and WebKit runtime became ready on the first
+restart, without a manual relaunch. Signing, notarization, saved login/startup
+preferences, Accessibility, shortcut ownership, real power assertions, timers
+and hide/reveal were verified. A check in the installed 0.0.8 app returned
+background progress in 4 ms and then settled to up to date.

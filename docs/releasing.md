@@ -108,12 +108,13 @@ PKG, runs native tests in an isolated sandboxed development copy, then validates
 and uploads through Apple’s tooling. The original distribution package remains
 Store-signed. The PKG is retained as a CI artifact, not offered as a direct
 download. The Store listing has metadata, a published privacy disclosure and
-screenshots. Version 0.0.7 (build 1.1), using published Craft 0.0.340, passed
+screenshots. Version 0.0.8 (build 2.1), using published Craft 0.0.340, passed
 the local and CI sandbox checks and was accepted and processed by App Store
 Connect. The build is selected on the listing; export compliance documentation
 is still required before review submission. Upload success does not mean Apple
 has approved a release.
 
-The 0.0.8 candidate uses published stx 0.2.693 to prepare its first document
+The 0.0.8 release uses published stx 0.2.693 to prepare its first document
 before opening WebKit. Both local editions pass their native checks with the
-published Pantry Craft 0.0.340 runtime; its Store upload is pending.
+published Pantry Craft 0.0.340 runtime. The GitHub release is published and the
+Store upload was accepted and processed. Export compliance remains pending.
