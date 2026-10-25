@@ -10,10 +10,10 @@ const sourceNative = join(source, 'Contents/MacOS/Barista')
 for (const binary of [sourceBackend, sourceNative]) {
   const type = Bun.spawnSync(['file', '-b', binary])
   assert.match(type.stdout.toString(), /Mach-O/, 'both native host and TypeScript backend must be packaged executables')
+  const bytes = readFileSync(binary)
+  for (const forbidden of ['MenuBarClientCore', 'MBAssessmentMode', 'developerExtrasEnabled', 'javaScriptCanAccessClipboard', 'drawsBackground'])
+    assert(!bytes.includes(Buffer.from(forbidden)), `${binary} must exclude known private platform API markers`)
 }
-const nativeBytes = readFileSync(sourceNative)
-for (const forbidden of ['MenuBarClientCore', 'MBAssessmentMode', 'developerExtrasEnabled', 'javaScriptCanAccessClipboard', 'drawsBackground'])
-  assert(!nativeBytes.includes(Buffer.from(forbidden)), 'the Store runtime must exclude known private platform API markers')
 const signature = Bun.spawnSync(['codesign', '--verify', '--deep', '--strict', source])
 assert.equal(signature.exitCode, 0, signature.stderr.toString())
 
@@ -197,7 +197,7 @@ try {
   assert.equal((await status()).durationMinutes, -1)
   await stop()
   await verifySandboxEnforcement()
-  console.log('✓ Store runtime excludes known private API markers and uses a sandboxed native host')
+  console.log('✓ Store executables exclude known private API markers and use a sandboxed native host')
   console.log('✓ authenticated native bridge, shortcut ownership, sessions and timers work')
   console.log('✓ grouping and external update controls are absent and their endpoints reject use')
   console.log('✓ login remains opt-in, preferences survive relaunch and power assertions are released')
