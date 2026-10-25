@@ -20,11 +20,11 @@ and native macOS power assertions. The packaged app includes its own runtime.
 
 - **Keep awake in one click** — Prevent idle sleep with preset durations (5m, 15m, 30m, 1h, 2h, 4h, 8h, indefinite). **Left-click the cup** to brew or stop; the icon fills while your Mac is awake and the remaining time is on hover.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
-- **Awake on startup** — Start awake indefinitely by default, including after login. Turn off Start Awake or Open at Login in Preferences if you prefer.
+- **Awake on startup** — Start awake indefinitely by default. The GitHub edition also opens at login by default; the Store edition asks you to enable Open at Login in Preferences.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
 - **Native icon grouping** — ⌘-drag unwanted icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected app icon. Identifiable Apple controls, including Wi-Fi and Battery, follow the same boundary.
 - **Launch at login** — Start Barista when you log in.
-- **Self-updating** — Checks its own GitHub releases, verifies the download by SHA-256 and Apple notarization, requires Barista’s signing team, and installs before restarting the full app.
+- **Updates for each edition** — The GitHub edition checks its releases, verifies SHA-256, Apple notarization and Barista’s signing team, then installs and restarts. The Store edition receives updates through the Mac App Store.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
 - **Preferences in one place** — A dark preferences window for durations, startup behavior, grouping and updates.
 
@@ -37,6 +37,16 @@ Download the DMG from [GitHub Releases](https://github.com/stacksjs/barista/rele
 open it and drag **Barista** to **Applications**. Launch Barista from there.
 It starts awake indefinitely and opens at login by default. Right-click the cup
 for Preferences, durations and updates.
+
+## Editions
+
+Both editions provide native keep-awake, timers, the ⌘⇧C shortcut and login
+settings. The GitHub edition includes icon grouping and its verified updater.
+The sandboxed Mac App Store edition excludes grouping because its native
+visibility backend requires a private Apple API. It uses Craft’s public-only
+runtime and native login registration, with Open at Login off until enabled.
+The Store edition is being prepared for submission; use GitHub Releases for
+the currently available download.
 
 Keep-awake controls idle sleep. It does not override manual sleep, lid-close
 behavior, shutdown or macOS power protections. See the [keep-awake guide](./docs/caffeinate.md).
@@ -66,9 +76,11 @@ an icon kept on the visible side keeps its app visible. Wi-Fi, Battery and other
 identifiable Apple controls also follow the arrow’s boundary. The cup can sit on
 either side of the arrow and always remains visible. Grouping follows the display
 containing the arrow; native visibility applies to the selected app or Apple
-control across displays. Craft checks the visible
-side after activation. If macOS hides an unselected app icon, it
-releases the restriction, restores the bar and reports the failure. An empty
+control across displays. Craft uses each displayed native slot's position,
+including when an app reports stale coordinates from another display. It checks
+that selected apps disappear and visible apps remain after activation. If macOS
+does not apply that selection, it releases the restriction, restores the bar and
+reports the failure. An empty
 group leaves everything revealed. Apps launched while collapsed may remain
 hidden until you reveal the group.
 
@@ -109,8 +121,10 @@ pantry run build
 ```
 
 Set `APPLE_SIGNING_IDENTITY` for a signed direct build. Direct builds use
-`barista.direct.entitlements` for the Bun host. App Store packaging is refused
-because native icon hiding uses a private API.
+`barista.direct.entitlements` for the Bun host. `pantry run build:app-store`
+packages the separate sandboxed edition with Craft as the native app host and
+an inherited Bun backend. It requires Store signing identities and a matching
+provisioning profile. See [Releasing](./docs/releasing.md).
 
 ## Releases
 
@@ -173,7 +187,7 @@ runtime:
 
 ```
 app.ts                 createMenuBarApp: context, routes, tray menu
-build.ts               Compile + package the direct app and DMG
+build.ts               Compile + package the direct DMG or sandboxed Store PKG
 src/barista.stx        Preferences, with stx signals and native composables
 src/caffeinate.ts      Named wrapper over the desktop power API
 src/tray.ts            The menu bar item: its cup icon and its menu
