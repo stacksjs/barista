@@ -1,0 +1,104 @@
+name: App Store
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: barista-app-store-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  app-store:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate the release source
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) ;;
+            *) echo '::error::Select a version tag to upload an App Store build.'; exit 1 ;;
+          esac
+          git merge-base --is-ancestor HEAD origin/main
+
+      - name: Verify the selected Apple upload toolchain
+        run: |
+          xcodebuild -version
+          xcrun altool --version
+
+      - name: Set up the Pantry runtime
+        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f
+        with:
+          version: '0.11.126'
+      - run: bun install --frozen-lockfile
+
+      - name: Verify source and version
+        run: |
+          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun run check
+
+      - name: Decrypt Store credentials with Buddy Env
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        run: |
+          umask 077
+          test -n "$DOTENV_PRIVATE_KEY_PRODUCTION"
+          printf 'DOTENV_PRIVATE_KEY_PRODUCTION=%s\n' "$DOTENV_PRIVATE_KEY_PRODUCTION" > "$RUNNER_TEMP/barista.env.keys"
+          bunx --bun @stacksjs/buddy@0.75.299 env:decrypt --file .env.production --file-keys "$RUNNER_TEMP/barista.env.keys" --stdout --quiet > "$RUNNER_TEMP/barista-store.env"
+          bun --env-file="$RUNNER_TEMP/barista-store.env" scripts/prepare-release.ts --app-store
+
+      - name: Import Store signing identities and profile
+        id: signing
+        uses: pantry-pm/pantry/packages/action@f2e40c971d83c63a81d91afd5ad4dc63780f8b0f
+        with:
+          version: '0.11.126'
+          install: 'false'
+          apple-signing: 'true'
+          apple-signing-application-certificate: ${{ env.APPLE_STORE_APPLICATION_CERTIFICATE }}
+          apple-signing-installer-certificate: ${{ env.APPLE_STORE_INSTALLER_CERTIFICATE }}
+          apple-signing-certificate-password: ${{ env.APPLE_STORE_CERTIFICATE_PASSWORD }}
+          apple-signing-provisioning-profile: ${{ env.APPLE_STORE_PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Build and sign the sandboxed edition
+        env:
+          APPLE_STORE_SIGNING_IDENTITY: ${{ steps.signing.outputs.apple-signing-identity }}
+          APPLE_STORE_INSTALLER_IDENTITY: ${{ steps.signing.outputs.apple-signing-installer-identity }}
+          APPLE_STORE_PROVISIONING_PROFILE: ${{ steps.signing.outputs.apple-signing-provisioning-profile }}
+        run: |
+          export GITHUB_RUN_NUMBER="$GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT"
+          pantry run build:app-store
+          codesign --verify --deep --strict dist/app-store/Barista.app
+          pkgutil --check-signature dist/app-store/Barista-*.pkg
+
+      - name: Verify the packaged app under App Sandbox
+        run: bun run test:native:store
+
+      - name: Validate and upload to App Store Connect
+        run: |
+          export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP"
+          task_package=(dist/app-store/Barista-*.pkg)
+          test "${#task_package[@]}" -eq 1
+          xcrun altool --validate-app "${task_package[0]}" --api-key "$APPLE_NOTARY_API_KEY_ID" --api-issuer "$APPLE_NOTARY_API_ISSUER"
+          xcrun altool --upload-package "${task_package[0]}" --wait --api-key "$APPLE_NOTARY_API_KEY_ID" --api-issuer "$APPLE_NOTARY_API_ISSUER"
+
+      - name: Retain the signed submission package
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: barista-app-store-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/app-store/Barista-*.pkg
+          retention-days: 14
+
+      - name: Remove decrypted Store credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/barista.env.keys" "$RUNNER_TEMP/barista-store.env" "$RUNNER_TEMP"/AuthKey_*.p8
