@@ -90,7 +90,18 @@ loopback requests. Store builds exclude grouping controls and external updater
 actions. Open at Login starts off and uses the native macOS login service when
 enabled.
 
-The App Store workflow runs on version tags alongside the GitHub release, using
+Each edition has its own release tag. GitHub builds use `v0.0.6`; Store builds
+use `app-store/v0.0.6` for the same app version. This lets each edition qualify
+its required native runtime and signing path independently. Both tags must point
+to verified source on `main`. Tag the Store edition only after its published
+Pantry runtime passes the Store build and sandbox checks:
+
+```sh
+git tag app-store/v0.0.6
+git push origin app-store/v0.0.6
+```
+
+The App Store workflow runs on these Store tags, using
 the stable Xcode 27.0 toolchain on GitHub's `xcode-27` image. It imports Store
 identities and the profile through Pantry, builds and verifies the
 PKG, runs native tests in an isolated sandboxed development copy, then validates

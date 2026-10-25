@@ -3,7 +3,7 @@ name: App Store
 on:
   push:
     tags:
-      - 'v*'
+      - 'app-store/v*'
   workflow_dispatch:
 
 permissions:
@@ -27,8 +27,8 @@ jobs:
       - name: Validate the release source
         run: |
           case "$GITHUB_REF" in
-            refs/tags/v*) ;;
-            *) echo '::error::Select a version tag to upload an App Store build.'; exit 1 ;;
+            refs/tags/app-store/v*) ;;
+            *) echo '::error::Select an app-store/v version tag to upload an App Store build.'; exit 1 ;;
           esac
           git merge-base --is-ancestor HEAD origin/main
 
@@ -45,7 +45,7 @@ jobs:
 
       - name: Verify source and version
         run: |
-          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME !== `v${pkg.version}`) throw new Error("Release tag must match package.json")'
+          bun -e 'const pkg = await Bun.file("package.json").json(); if (process.env.GITHUB_REF_NAME !== `app-store/v${pkg.version}`) throw new Error("Release tag must match package.json")'
           bun run check
 
       - name: Decrypt Store credentials with Buddy Env
