@@ -678,21 +678,19 @@
     else if (result.installing) updateMessage.set('Installing and restarting…')
     else if (result.checking) updateMessage.set(result.available ? 'Downloading version ' + result.available + '…' : 'Checking for updates…')
     else if (result.ready) updateMessage.set('Version ' + result.available + ' is ready to install')
+    else if (!result.available) updateMessage.set('Barista is up to date')
   }
 
   async function checkForUpdates() {
     updateBusy.set(true)
     updateMessage.set('Checking for updates…')
     try {
-      const result = await fetch('/api/updates/check', { method: 'POST' }).then(r => r.json())
+      await fetch('/api/updates/check', { method: 'POST' }).then(r => r.json())
       await syncUpdates()
-      if (result.supported && !result.error && !result.available) updateMessage.set('Barista is up to date')
     }
     catch (error) {
-      updateMessage.set('Could not check: ' + (error as Error).message)
-    }
-    finally {
       updateBusy.set(false)
+      updateMessage.set('Could not check: ' + (error as Error).message)
     }
   }
 

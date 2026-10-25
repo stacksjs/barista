@@ -165,7 +165,12 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
       },
 
       '/api/updates': () => updates?.status() ?? { supported: false, channel: 'app-store' },
-      'POST /api/updates/check': () => updates?.check() ?? Response.json({ error: 'Updates are managed by the Mac App Store' }, { status: 405 }),
+      'POST /api/updates/check': () => {
+        if (!updates) return Response.json({ error: 'Updates are managed by the Mac App Store' }, { status: 405 })
+        // Downloads outlive a WebKit HTTP request. The popup polls progress.
+        void updates.check()
+        return updates.status()
+      },
       'POST /api/updates/install': async () => {
         try {
           if (!updates) return Response.json({ error: 'Updates are managed by the Mac App Store' }, { status: 405 })
