@@ -52,7 +52,7 @@ jobs:
           xcrun altool --version
 
       - name: Set up the Pantry runtime
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
       - run: bun install --frozen-lockfile
@@ -76,7 +76,7 @@ jobs:
 
       - name: Import Store signing identities and profile
         id: signing
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
           install: 'false'

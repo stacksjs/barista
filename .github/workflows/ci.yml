@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Provision native dependencies
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
       - run: bun install --frozen-lockfile

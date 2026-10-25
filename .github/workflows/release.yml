@@ -42,7 +42,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up pantry
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
 
@@ -64,7 +64,7 @@ jobs:
           bun --env-file="$RUNNER_TEMP/barista-release.env" scripts/prepare-release.ts
 
       - name: Import the Developer ID signing identity
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
           install: 'false'
@@ -100,7 +100,7 @@ jobs:
 
       # Candidates are downloadable for qualification but never served by /latest.
       - name: Stage the release candidate
-        uses: pantry-pm/pantry/packages/action@b15da315ddb28b6f561ca2a9990ab14821274cae # b15da315ddb28b6f561ca2a9990ab14821274cae
+        uses: pantry-pm/pantry/packages/action@165819b641dadb99710f8f33d3bc9c4018e555b8 # 165819b641dadb99710f8f33d3bc9c4018e555b8
         with:
           version: '0.11.128'
           install: 'false'
