@@ -17,13 +17,15 @@ import { caffeinateSnapshot, disableCaffeinate, enableCaffeinate, toggleCaffeina
 import { DURATIONS, isKnownDuration } from './src/durations'
 import { DEFAULT_PREFERENCES } from './src/preferences'
 import { buildTrayMenu, trayIcon, trayTooltip } from './src/tray'
-import { createUpdateChecker } from './src/updates'
 
 export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>> {
+  const appStore = process.env.BARISTA_DISTRIBUTION === 'app-store'
   let nativeReady = false
   let menuBar: MenuBarState = { initialized: false, collapsed: false }
   let shortcutRegistered = false
-  const updates = await createUpdateChecker(pkg.version, () => { app.stop(); process.exit(0) })
+  // The Store binary omits the external updater when compiled for that channel.
+  const updates = process.env.BARISTA_DISTRIBUTION === 'app-store' ? null
+    : await (await import('./src/updates')).createUpdateChecker(pkg.version, () => { app.stop(); process.exit(0) })
 
   /** The shape both the popup and the tray read from. */
   function baristaState(prefs: { getAll: () => BaristaPreferences }) {
@@ -34,7 +36,8 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
       ...caffeinate,
       // The tray shows a cup, and spells the time out on hover.
       nativeReady,
-      menuBarController: 'nativeVisibility',
+      appStore,
+      menuBarController: appStore ? 'none' : 'nativeVisibility',
       menuBarInitialized: menuBar.initialized,
       menuBar,
       shortcutRegistered,
@@ -45,10 +48,11 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
     name: 'Barista',
     template: resolve(import.meta.dir, 'src/barista.stx'),
     templateSource,
-    preferences: DEFAULT_PREFERENCES,
+    host: appStore ? 'craft' : 'application',
+    preferences: appStore ? { ...DEFAULT_PREFERENCES, autoLaunch: false, menuBarGrouping: false } : DEFAULT_PREFERENCES,
     preferencesPath: process.env.BARISTA_PREFERENCES_PATH,
     // An isolated E2E profile must never remove or replace the real login item.
-    launchAtLogin: process.env.BARISTA_PREFERENCES_PATH ? undefined : 'autoLaunch',
+    launchAtLogin: appStore || process.env.BARISTA_PREFERENCES_PATH ? undefined : 'autoLaunch',
 
     window: {
       width: 320,
@@ -79,13 +83,14 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
         remaining: caffeinate.remainingFormatted,
         durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
         menuBarGrouping: prefs.get('menuBarGrouping'),
+        updatesSupported: !appStore,
         menuBar,
       })
     },
 
     onStop: () => {
       disableCaffeinate()
-      updates.stop()
+      updates?.stop()
     },
 
     routes: {
@@ -98,6 +103,8 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
             || typeof value !== typeof DEFAULT_PREFERENCES[key]
             || (key === 'caffeinateDurationMinutes' && !isKnownDuration(value as number)))
           return Response.json({ error: `Invalid preference: ${key}` }, { status: 400 })
+          if (appStore && key === 'menuBarGrouping' && value === true)
+            return Response.json({ error: 'Icon grouping is available in the GitHub edition' }, { status: 400 })
         }
         for (const [key, value] of Object.entries(patch)) prefs.set(key, value)
         return prefs.getAll()
@@ -112,6 +119,7 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
           remaining: caffeinate.remainingFormatted,
           durationMinutes: caffeinate.durationMinutes ?? prefs.get('caffeinateDurationMinutes'),
           menuBarGrouping: prefs.get('menuBarGrouping'),
+          updatesSupported: !appStore,
           menuBar,
         }
 
@@ -156,10 +164,11 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
         return { nativeReady, menuBar, menuBarInitialized: menuBar.initialized, shortcutRegistered }
       },
 
-      '/api/updates': () => updates.status(),
-      'POST /api/updates/check': () => updates.check(),
+      '/api/updates': () => updates?.status() ?? { supported: false, channel: 'app-store' },
+      'POST /api/updates/check': () => updates?.check() ?? Response.json({ error: 'Updates are managed by the Mac App Store' }, { status: 405 }),
       'POST /api/updates/install': async () => {
         try {
+          if (!updates) return Response.json({ error: 'Updates are managed by the Mac App Store' }, { status: 405 })
           await updates.install()
           return { installing: true }
         }
@@ -174,7 +183,8 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
   for (const key of ['isAutoCollapse', 'autoCollapseDelay', 'separatorHidden', 'globalHotkey', 'alwaysHiddenEnabled'])
     app.preferences.delete(key)
 
-  updates.start()
+  if (appStore) app.preferences.set('menuBarGrouping', false)
+  updates?.start()
   return app
 }
 

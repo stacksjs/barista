@@ -404,6 +404,7 @@
     </div>
   </div>
 
+  @if(!appStore)
   <div class="group">
     <div class="group-title">Menu bar</div>
     <div class="row">
@@ -425,6 +426,7 @@
     </div>
   </div>
 
+  @endif
   <div class="group">
     <div class="group-title">Behaviour</div>
 
@@ -449,6 +451,11 @@
 
   <div class="group">
     <div class="group-title">Updates</div>
+    @if(appStore)
+    <div class="row">
+      <div><div class="row-label">Version {{ version }}</div><div class="row-note">Updates are managed by the Mac App Store</div></div>
+    </div>
+    @else
     <div class="row">
       <div>
         <div class="row-label">Version {{ version }}</div>
@@ -460,6 +467,7 @@
       <span class="row-label">Ready to install</span>
       <button class="mini primary" :disabled="updateBusy" @click="installUpdate()">Install and restart</button>
     </div>
+    @endif
   </div>
 
   <div class="footer">
@@ -478,6 +486,7 @@
     menuBarInitialized: boolean
     menuBar: MenuBarState
     shortcutRegistered: boolean
+    appStore: boolean
   }
   const bridge = useNativeDesktop()
 
@@ -539,7 +548,7 @@
     const menubar = bridge()?.menubar
     if (!menubar) return
     const enabled = menuBarGrouping()
-    if (appliedGrouping !== enabled) {
+    if (!status().appStore && appliedGrouping !== enabled) {
       appliedGrouping = enabled
       if (enabled) await menubar.init({ backend: 'nativeVisibility', preserveSystemItems: false })
       else await menubar.destroy()
@@ -551,7 +560,7 @@
     const shortcuts = bridge()?.shortcuts
     if (!shortcuts) return
     const registered = await shortcuts.isRegistered('barista.caffeinate')
-      && await shortcuts.isRegistered('barista.menubar')
+      && (status().appStore === true || await shortcuts.isRegistered('barista.menubar'))
     await post('/api/native/state', { menuBar, shortcutRegistered: registered })
   }
 
@@ -583,6 +592,17 @@
   // ===== Preferences =====
 
   async function savePreference<K extends keyof BaristaPreferences>(key: K, value: BaristaPreferences[K]) {
+    if (key === 'autoLaunch' && status().appStore) {
+      const login = bridge()?.autoLaunch
+      if (!login) throw new Error('Native login settings are unavailable')
+      const success = value ? await login.enable() : await login.disable()
+      if (!success) {
+        errorMessage.set('Could not change Open at login. Review Login Items in System Settings.')
+        return
+      }
+      await post('/api/preferences', { autoLaunch: await login.isEnabled() })
+      return
+    }
     await post('/api/preferences', { [key]: value })
   }
 
@@ -714,18 +734,21 @@
   })
 
   // Craft owns native grouping, permission checks, click handling and cleanup.
+  onMount(loadInitialState)
   bridge.onReady(async native => {
     loadInitialState()
     await syncTray()
     const shortcuts = native.shortcuts
     if (!shortcuts) throw new Error('Native shortcuts are unavailable')
     await shortcuts.register('barista.caffeinate', 'Cmd+Shift+C')
-    await shortcuts.register('barista.menubar', 'Cmd+Shift+B')
+    if (!status().appStore) await shortcuts.register('barista.menubar', 'Cmd+Shift+B')
     const registered = await shortcuts.isRegistered('barista.caffeinate')
-      && await shortcuts.isRegistered('barista.menubar')
+      && (status().appStore === true || await shortcuts.isRegistered('barista.menubar'))
     const menubar = native.menubar
     if (!menubar) throw new Error('Native menu bar state is unavailable')
     status.set({ ...status(), shortcutRegistered: registered })
+    if (status().appStore && native.autoLaunch)
+      await post('/api/preferences', { autoLaunch: await native.autoLaunch.isEnabled() })
     await syncMenuBar()
     if (!registered) errorMessage.set('A shortcut is already in use by another app')
   })

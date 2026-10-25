@@ -43,6 +43,7 @@ export interface TrayState {
   durationMinutes: number
   menuBarGrouping?: boolean
   menuBar?: MenuBarState
+  updatesSupported?: boolean
 }
 
 export function trayIcon(caffeinated: boolean): string {
@@ -110,7 +111,7 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
     ] : []),
     { label: 'Preferences...', action: 'preferences', shortcut: 'Cmd+,' },
     { label: 'About Barista', action: 'about' },
-    { label: 'Check for Updates...', action: 'checkForUpdates' },
+    ...(state.updatesSupported === false ? [] : [{ label: 'Check for Updates...', action: 'checkForUpdates' }]),
 
     { type: 'separator' },
     { label: 'Quit Barista', action: 'quit', shortcut: 'Cmd+Q' },
