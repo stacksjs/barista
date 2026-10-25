@@ -61,3 +61,12 @@ restart, without a manual relaunch. Signing, notarization, saved login/startup
 preferences, Accessibility, shortcut ownership, real power assertions, timers
 and hide/reveal were verified. A check in the installed 0.0.8 app returned
 background progress in 4 ms and then settled to up to date.
+
+The installed 0.0.8 app downloaded 0.0.9 and completed **Install and restart**
+without a manual relaunch. Both old processes exited and the new host and
+native runtime initialized. Signing, notarization, Accessibility, shortcut
+registration, login startup, saved indefinite awake and real power assertions
+passed. A one-hour timer and two native hide/reveal cycles also passed, then
+the app was restored to indefinite awake with the group revealed. The release
+pipeline independently qualified the same 0.0.8 → 0.0.9 artifact bytes before
+making them the latest stable download.

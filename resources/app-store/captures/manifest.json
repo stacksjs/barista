@@ -1,16 +1,11 @@
 {
-  "version": "0.0.8",
+  "version": "0.0.9",
+  "sourceRevision": "c054e68a118185daa200fd1d6c7db87ae60b50fb",
+  "distribution": "app-store",
   "renderer": "packaged-stx-view",
-  "viewport": {
-    "width": 320,
-    "height": 740
-  },
   "scenes": [
     "awake",
     "timed",
     "off"
-  ],
-  "distribution": "app-store",
-  "nativeRuntime": "0.0.340",
-  "stx": "0.2.693"
+  ]
 }

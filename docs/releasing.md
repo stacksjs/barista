@@ -139,8 +139,9 @@ Store-signed. The PKG is retained as a CI artifact, not offered as a direct
 download. The Store listing has metadata, a published privacy disclosure and
 screenshots. Version 0.0.8 (build 2.1), using published Craft 0.0.340, passed
 the local and CI sandbox checks and was accepted and processed by App Store
-Connect. The build is selected on the listing. ANSSI’s official declaration
-attestation has been uploaded to Apple and is in export-compliance review.
+Connect. Version 0.0.9 (build 6.1) is now selected on the listing. ANSSI’s
+official declaration attestation has been uploaded to Apple and is in
+export-compliance review as of October 25, 2026.
 Upload success does not mean Apple has approved a release.
 
 After upload, Pantry waits for Apple to process the exact build, selects it,
@@ -168,3 +169,13 @@ The 0.0.8 release uses published stx 0.2.693 to prepare its first document
 before opening WebKit. Both local editions pass their native checks with the
 published Pantry Craft 0.0.340 runtime. The GitHub release is published and the
 Store upload was accepted and processed. Export compliance is in Apple’s review.
+
+Version 0.0.9 uses stx 0.2.696, Craft 0.0.346 and Pantry 0.11.128. Its release
+workflow staged the signed, notarized download, qualified the real 0.0.8 → 0.0.9
+updater replacement and native restart on a fresh macOS runner, then promoted
+the release to latest. The installed app also updated through its own controls
+without a manual relaunch. Native readiness, Apple trust, Accessibility, login
+preferences, indefinite awake, timers and two hide/reveal cycles passed.
+The Store workflow generated current artwork, validated and uploaded build 6.1,
+selected it, and recorded `awaiting-export-approval`. The artwork restore path
+was also verified against the retained CI artifact and release commit.

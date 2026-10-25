@@ -45,8 +45,10 @@ settings. The GitHub edition includes icon grouping and its verified updater.
 The sandboxed Mac App Store edition excludes grouping because its native
 visibility backend requires a private Apple API. It uses Craft’s public-only
 runtime and native login registration, with Open at Login off until enabled.
-The Store build is uploaded and awaiting Apple’s export-compliance approval
-before App Review submission. Use GitHub Releases for the available download.
+As of October 25, 2026, Store version 0.0.9 is uploaded and awaiting Apple’s
+export-compliance approval before App Review submission. Use GitHub Releases
+for the available download; the automated Store workflow records its current
+phase in [Actions](https://github.com/stacksjs/barista/actions/workflows/store-submission.yml).
 
 Keep-awake controls idle sleep. It does not override manual sleep, lid-close
 behavior, shutdown or macOS power protections. See the [keep-awake guide](./docs/caffeinate.md).

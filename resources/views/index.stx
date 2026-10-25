@@ -102,7 +102,7 @@ const preview = state('awake')
     <article><h3>Does it replace Caffeine?</h3><p>For keeping your Mac awake, yes. Barista uses native macOS power assertions, with timed and indefinite sessions, login startup, and a global shortcut.</p></article>
     <article><h3>Can it hide every icon?</h3><p>Grouping uses a private macOS API, following Hidden Bar’s approach. It can suppress Apple modules and activity indicators. Reveal the group to restore them.</p><a class="site-link" href="/docs/config">Read the grouping requirements ↗</a></article>
     <article><h3>What about macOS overflow?</h3><p>macOS controls overflow when revealed icons do not fit. Barista adds no wide spacer and cannot guarantee app menus stay visible during system overflow.</p></article>
-    <article><h3>Will there be a Store edition?</h3><p>A sandboxed Mac App Store edition is being prepared with keep-awake, timers, shortcuts and login settings. Grouping and the GitHub updater belong to the direct edition.</p><a class="site-link" href="/docs/releasing">About the two editions ↗</a></article>
+    <article><h3>How do the editions differ?</h3><p>The sandboxed Mac App Store edition provides keep-awake, timers, shortcuts and login settings. Grouping and the GitHub updater belong to the direct edition. Store distribution requires Apple’s review.</p><a class="site-link" href="/docs/releasing">Editions and release status ↗</a></article>
   </div>
 </section>
 @endsection
