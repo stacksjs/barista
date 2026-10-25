@@ -28,10 +28,11 @@ after launch, so you can review the arrangement before hiding it again.
 ## Release verification
 
 The real native updater has been exercised from a packaged 0.0.0 build to
-0.0.4, and from the installed 0.0.4 app to 0.0.5. Verification covered full
-host/runtime restart, trusted signatures, preserved preferences, login startup,
-Accessibility and native power assertions. The 0.0.5 check also exposed a
-shortcut-readiness reporting race; the next build refreshes that state from the
-native registration and checks it after the periodic UI refresh.
+0.0.4, from the installed 0.0.4 app to 0.0.5, and from 0.0.5 to 0.0.6.
+The 0.0.6 verification checked full host/runtime restart, trusted signatures,
+Apple notarization, preserved preferences and login configuration, Accessibility
+authorization and native power assertions. Shortcut ownership remained registered after the
+periodic refresh, and the native update check completed with “Barista is up
+to date.” The installed app also passed repeated native hide/reveal checks.
 Release CI separately checks the packaged app and its read-only DMG before
 publication. See [Releasing](./releasing.md).

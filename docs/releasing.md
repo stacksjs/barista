@@ -107,5 +107,6 @@ identities and the profile through Pantry, builds and verifies the
 PKG, runs native tests in an isolated sandboxed development copy, then validates
 and uploads through Apple’s tooling. The original distribution package remains
 Store-signed. The PKG is retained as a CI artifact, not offered as a direct
-download. App Store Connect metadata, screenshots and review submission still
-need to be completed; upload success does not mean Apple has approved a release.
+download. The 0.0.6 listing has metadata, a published privacy disclosure and
+three screenshots. Its binary upload and review submission await the qualified
+public runtime. Upload success does not mean Apple has approved a release.
