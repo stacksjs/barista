@@ -6,10 +6,10 @@
       "version": "1.4.3",
       "resolved": "registry:bun.sh@1.4.3"
     },
-    "craft-native.org@0.0.330": {
+    "craft-native.org@0.0.338": {
       "name": "craft-native.org",
-      "version": "0.0.330",
-      "resolved": "registry:craft-native.org@0.0.330"
+      "version": "0.0.338",
+      "resolved": "registry:craft-native.org@0.0.338"
     }
   }
 }
