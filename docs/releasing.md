@@ -90,15 +90,15 @@ loopback requests. Store builds exclude grouping controls and external updater
 actions. Open at Login starts off and uses the native macOS login service when
 enabled.
 
-Each edition has its own release tag. GitHub builds use `v0.0.6`; Store builds
-use `app-store/v0.0.6` for the same app version. This lets each edition qualify
+Each edition has its own release tag. GitHub builds use `v0.0.7`; Store builds
+use `app-store/v0.0.7` for the same app version. This lets each edition qualify
 its required native runtime and signing path independently. Both tags must point
 to verified source on `main`. Tag the Store edition only after its published
 Pantry runtime passes the Store build and sandbox checks:
 
 ```sh
-git tag app-store/v0.0.6
-git push origin app-store/v0.0.6
+git tag app-store/v0.0.7
+git push origin app-store/v0.0.7
 ```
 
 The App Store workflow runs on these Store tags, using
@@ -107,6 +107,7 @@ identities and the profile through Pantry, builds and verifies the
 PKG, runs native tests in an isolated sandboxed development copy, then validates
 and uploads through Apple’s tooling. The original distribution package remains
 Store-signed. The PKG is retained as a CI artifact, not offered as a direct
-download. The 0.0.6 listing has metadata, a published privacy disclosure and
-three screenshots. Its binary upload and review submission await the qualified
-public runtime. Upload success does not mean Apple has approved a release.
+download. The Store listing has metadata, a published privacy disclosure and
+screenshots. The 0.0.7 candidate passes the local build and sandbox checks using
+published Craft 0.0.340. Its upload and review submission are pending. Upload
+success does not mean Apple has approved a release.

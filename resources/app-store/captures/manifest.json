@@ -1,5 +1,5 @@
 {
-  "version": "0.0.6",
+  "version": "0.0.7",
   "renderer": "packaged-stx-view",
   "viewport": {
     "width": 320,
@@ -9,5 +9,8 @@
     "awake",
     "timed",
     "off"
-  ]
+  ],
+  "distribution": "app-store",
+  "nativeRuntime": "0.0.340",
+  "stx": "0.2.692"
 }
