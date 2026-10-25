@@ -11,3 +11,7 @@ Run `bun run build:site` from the repository root, then `bun run preview:site`.
 The built site includes the BunPress guide from `../docs/`. See
 [Website development](../docs/site.md) for asset provenance, design decisions,
 production URL configuration and verification.
+
+Store listing compositions live separately in [`app-store/`](./app-store/README.md).
+They use stx and captures of the sandboxed edition, without the direct
+edition’s grouping or external updater controls.

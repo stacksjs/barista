@@ -1,7 +1,9 @@
 # Releasing
 
-Barista ships a signed, notarized direct app and DMG for Apple Silicon.
-Icon grouping uses a private macOS API, so the build refuses App Store packaging.
+Barista has two Apple Silicon distributions. The GitHub edition ships a signed,
+notarized app and DMG, including icon grouping and the self-updater. The Mac App
+Store edition ships a sandboxed, Store-signed PKG for submission. Its public-only
+Craft runtime excludes the private grouping API, and updates belong to Apple.
 
 ```sh
 bun run check
@@ -32,11 +34,16 @@ The encrypted file holds these variables:
 | `APPLE_NOTARY_API_KEY_ID` | Apple API key identifier. |
 | `APPLE_NOTARY_API_ISSUER` | Apple API issuer UUID. |
 | `APPLE_NOTARIZE_TEAM_ID` | Developer signing team. |
+| `APPLE_STORE_APPLICATION_CERTIFICATE` | Mac App Distribution `.p12`, base64 encoded. |
+| `APPLE_STORE_INSTALLER_CERTIFICATE` | Mac Installer Distribution `.p12`, base64 encoded. |
+| `APPLE_STORE_CERTIFICATE_PASSWORD` | Password for the Store identity exports. |
+| `APPLE_STORE_PROVISIONING_PROFILE_BASE64` | Matching Mac App Store provisioning profile, base64 encoded. |
+| `APPLE_STORE_APP_ID` | Barista’s App Store Connect app record ID. |
 
 Prepare the production values locally, then encrypt before staging:
 
 ```sh
-bunx --bun @stacksjs/buddy@0.75.283 env:encrypt --file .env.production --file-keys .env.keys
+bunx --bun @stacksjs/buddy@0.75.299 env:encrypt --file .env.production --file-keys .env.keys
 ```
 
 When refreshing credentials, start from the existing encrypted file so Buddy
@@ -63,3 +70,31 @@ installed app’s login item or saved preferences. Physical ⌘-drag arrangement
 also need a native desktop check.
 
 See [Updates](./updates.md) for the installed updater’s verification process.
+
+## Mac App Store
+
+```sh
+pantry run build:app-store
+bun run test:native:store
+```
+
+Local packaging requires `APPLE_STORE_SIGNING_IDENTITY`,
+`APPLE_STORE_INSTALLER_IDENTITY` and `APPLE_STORE_PROVISIONING_PROFILE`.
+`APPLE_STORE_KEYCHAIN` selects a private signing keychain when needed. The output
+is under `dist/app-store/`. The build requires Pantry’s adjacent
+`craft-app-store` runtime and refuses a runtime containing private APIs.
+
+Craft owns the native application, AppKit lifecycle and login registration.
+The compiled TypeScript backend inherits its sandbox and serves authenticated
+loopback requests. Store builds exclude grouping controls and external updater
+actions. Open at Login starts off and uses the native macOS login service when
+enabled.
+
+The App Store workflow runs on version tags alongside the GitHub release, using
+the stable Xcode 27.0 toolchain on GitHub's `xcode-27` image. It imports Store
+identities and the profile through Pantry, builds and verifies the
+PKG, runs native tests in an isolated sandboxed development copy, then validates
+and uploads through Apple’s tooling. The original distribution package remains
+Store-signed. The PKG is retained as a CI artifact, not offered as a direct
+download. App Store Connect metadata, screenshots and review submission still
+need to be completed; upload success does not mean Apple has approved a release.
