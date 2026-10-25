@@ -5,7 +5,7 @@ export const loading = $props.eager === 'true' ? 'eager' : 'lazy'
 export const priority = $props.eager === 'true' ? 'high' : 'auto'
 </script>
 
-<!-- Focus the capture on app content, omitting the screen-share window badge. -->
+<!-- Actual packaged stx content, captured at the native panel viewport. -->
 <div class="native-frame">
-  <img class="native-shot" src="{{ source }}" width="640" height="1480" alt="{{ description }}" loading="{{ loading }}" fetchpriority="{{ priority }}">
+  <img class="native-shot" src="{{ source }}" width="320" height="740" alt="{{ description }}" loading="{{ loading }}" fetchpriority="{{ priority }}">
 </div>

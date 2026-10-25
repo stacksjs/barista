@@ -151,8 +151,9 @@ tag. The release workflow publishes the DMG and `update.json` only after testing
 the packaged app and read-only DMG. Installed copies download the update in the
 background; **Install and restart** becomes available after the download verifies.
 
-The README animation uses screenshots of the packaged native app. After
-refreshing the captures in `.github/art/demo/`, regenerate it with
+The README animation uses captures of the installed app’s actual stx interface
+at its native panel size; its native window is verified separately. After
+refreshing `.github/art/demo/` and recording the current version, regenerate it with
 `bun scripts/generate-demo.ts` (requires FFmpeg through Pantry).
 
 ## Verification

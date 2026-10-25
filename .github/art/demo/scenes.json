@@ -1,6 +1,12 @@
 {
-  "panelHeight": 770,
-  "panelTop": 30,
+  "version": "0.0.6",
+  "renderer": "packaged-stx-view",
+  "viewport": {
+    "width": 320,
+    "height": 740
+  },
+  "panelHeight": 808,
+  "panelTop": 0,
   "scenes": [
     {
       "image": "awake.jpg",
@@ -24,7 +30,7 @@
       "image": "updates.jpg",
       "title": "Stay up\nto date.",
       "subtitle": "Updates from GitHub, in the app.",
-      "detail": "Downloads verify in the background.\nInstall and restart when you’re ready.\nYour preferences stay with you."
+      "detail": "Downloads verify in the background.\nInstall and restart when you\u2019re ready.\nYour preferences stay with you."
     }
   ]
 }

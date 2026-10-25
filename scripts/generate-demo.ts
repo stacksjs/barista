@@ -1,4 +1,4 @@
-/** Encode the README demo from screenshots of the verified native app. */
+/** Encode the README demo from verified packaged stx interface captures. */
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -10,6 +10,7 @@ interface Scene {
   detail: string
 }
 interface Demo {
+  version: string
   scenes: Scene[]
   /** Crop after scaling the native screenshot to 350px wide. */
   panelHeight: number
@@ -20,6 +21,9 @@ const root = resolve(import.meta.dir, '..')
 const manifest = resolve(process.argv[2] || join(root, '.github/art/demo/scenes.json'))
 const output = resolve(process.argv[3] || join(root, '.github/art/barista.gif'))
 const demo = JSON.parse(await readFile(manifest, 'utf8')) as Demo
+const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')) as { version: string }
+if (demo.version !== pkg.version)
+  throw new Error('Recapture the current packaged Barista version before generating its demo')
 const canvasHeight = demo.panelHeight + 80
 const panelTop = demo.panelTop ?? 0
 if (!Number.isSafeInteger(panelTop) || panelTop < 0)
@@ -62,7 +66,7 @@ try {
   const list = join(dir, 'clips.txt')
   await writeFile(list, clips.map(file => `file '${file}'`).join('\n'))
   run(['-f', 'concat', '-safe', '0', '-i', list, '-filter_complex', 'fps=10,split[a][b];[a]palettegen=stats_mode=diff:reserve_transparent=0:max_colors=192[p];[b][p]paletteuse=dither=bayer:bayer_scale=4', '-loop', '0', output])
-  console.log(`Generated ${output} from ${demo.scenes.length} native screenshots`)
+  console.log(`Generated ${output} from ${demo.scenes.length} packaged interface captures`)
 }
 finally {
   await rm(dir, { recursive: true, force: true })

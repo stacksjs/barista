@@ -12,6 +12,7 @@ uses Stacks’ BunPress documentation engine. Neither build needs the Craft runt
 | `resources/views/` | Marketing home and a dedicated 404 page. |
 | `resources/layouts/site.stx` | Shared document shell and resource hints. |
 | `resources/partials/` | Navigation and footer. |
+| `resources/components/AppPreview.stx` | Layered hero UI rendered directly with stx. |
 | `resources/components/NativeScreenshot.stx` | Reusable, focused real-app capture. |
 | `resources/data/site.ts` | Product metadata and stable GitHub release links. |
 | `resources/assets/site.css` | Semantic theme tokens and product-specific styles. |
@@ -58,15 +59,19 @@ cache headers belong to the hosting configuration.
 
 The app icon comes from `src/assets/icon_512@2x.png`. Screenshots come from
 `.github/art/demo/{awake,timed,grouping,updates}.jpg`, the same real packaged-app
-captures used by the README animation. The build copies these into `/assets/`;
+stx interface captures used by the README animation, taken from the installed
+app at its 320 × 740 panel viewport. Native window behavior is verified
+separately. The build copies these into `/assets/`;
 there is no second screenshot source to maintain. Refresh them after relevant
 native UI changes, then run `bun scripts/generate-demo.ts` for the README GIF.
 
 The design follows Stacks’ `stacks-design-taste`, `stacks-design-minimalist` and
 `stacks-design-output` skills, with variance 6, motion 3 and density 3. It uses
 system sans typography, neutral surfaces, one green accent, 8px control radii,
-12px image radii, and no automatic motion. Genuine product captures take the
-place of generated marketing artwork so every control shown is accurate.
+12px image radii, and no automatic motion. The hero uses three overlapping,
+slightly angled stx renderings of the app interface. The gallery and README
+animation use actual packaged interface captures. No generated artwork stands
+in for app controls.
 
 The page follows system appearance and offers a theme switch through stx’s
 built-in bootstrap. Tokens cover both themes. The screenshot selector uses

@@ -74,8 +74,8 @@ h3 { font-size: 22px; line-height: 1.3; letter-spacing: -0.025em; font-weight: 5
 .app-preview-switch { width: 30px; height: 18px; border-radius: 20px; background: #d9a441; flex-shrink: 0; }
 .app-preview-switch::after { content: ''; display: block; width: 12px; height: 12px; background: #fff; border-radius: 50%; margin: 3px 3px 3px auto; }
 .app-preview-keys, .app-preview-mini { color: #a8a29b; border: 1px solid #453f4a; border-radius: 5px; padding: 3px 6px; font-size: 10px; }
-.native-frame { width: 224px; height: 478px; overflow: hidden; border-radius: 12px; border: 1px solid var(--line); }
-.native-shot { width: 100%; transform: translateY(-22px); }
+.native-frame { width: 224px; overflow: hidden; border-radius: 12px; border: 1px solid var(--line); }
+.native-shot { display: block; width: 100%; height: auto; }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 48px; padding: 12px 19px; border: 1px solid transparent; border-radius: 8px; background: var(--button); color: var(--button-text); font-size: 15px; font-weight: 550; text-decoration: none; white-space: nowrap; transition: transform 160ms ease; }
 .button:hover { opacity: 0.88; }
 .button:active { transform: scale(0.98); }
@@ -141,7 +141,7 @@ kbd { min-width: 27px; padding: 3px 6px; border: 1px solid var(--line); border-r
   .preview-options span { padding: 11px 13px; }
   .preview { padding: 28px 20px; min-height: auto; }
   .preview-stage { min-height: 820px; }
-  .preview .native-frame { width: 200px; height: 426px; }
+  .preview .native-frame { width: 200px; }
   .preview figcaption h3 { font-size: 28px; }
   .site-footer { align-items: flex-start; flex-direction: column; }
 }
