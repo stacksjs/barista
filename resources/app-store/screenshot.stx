@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Barista — {{ storeArtwork.title }}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #28251f; background: #f4f1e9; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    main { width: 1440px; height: 900px; padding: 64px 110px; display: grid; grid-template-columns: 1fr 320px; align-items: center; gap: 100px; overflow: hidden; }
+    .brand { display: flex; gap: 14px; align-items: center; font-size: 26px; font-weight: 600; letter-spacing: -.04em; }
+    .brand img { width: 44px; height: 44px; }
+    h1 { max-width: 730px; margin: 76px 0 28px; font-size: 86px; font-weight: 650; line-height: 1.02; letter-spacing: -.055em; }
+    .accent { color: #976820; }
+    p { max-width: 600px; margin: 0; color: #6b6559; font-size: 27px; line-height: 1.5; letter-spacing: -.02em; }
+    .footnote { margin-top: 72px; font-size: 19px; }
+    .app { display: block; width: 320px; height: auto; border-radius: 18px; box-shadow: 0 28px 70px #28251f28; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <div class="brand"><img src="{{ storeArtwork.icon }}" alt="">Barista</div>
+      <h1>{{ storeArtwork.title }}<br><span class="accent">{{ storeArtwork.emphasis }}</span></h1>
+      <p>{{ storeArtwork.description }}</p>
+      <p class="footnote">Free. No account. No subscription.</p>
+    </section>
+    <img class="app" src="{{ storeArtwork.capture }}" alt="{{ storeArtwork.alternative }}">
+  </main>
+</body>
+</html>
