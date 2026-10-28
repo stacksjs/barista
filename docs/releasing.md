@@ -2,8 +2,8 @@
 
 Barista has two Apple Silicon distributions. The GitHub edition ships a signed,
 notarized app and DMG, including icon grouping and the self-updater. The Mac App
-Store edition ships a sandboxed, Store-signed PKG for submission. Its public-only
-Craft runtime excludes the private grouping API, and updates belong to Apple.
+Store edition ships a sandboxed, Store-signed PKG for submission with Craft’s
+public-only runtime. It excludes icon grouping, and updates belong to Apple.
 
 ```sh
 bun run check

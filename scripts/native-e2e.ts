@@ -68,6 +68,7 @@ async function start() {
   const env: Record<string, string | undefined> = {
     ...process.env,
     BARISTA_PREFERENCES_PATH: preferencesPath,
+    __CFBundleIdentifier: testBundleId,
     PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
   }
   delete env.CRAFT_BINARY_PATH
@@ -90,14 +91,10 @@ async function start() {
   // server's pre-bridge snapshot after startup or an updater relaunch.
   await Bun.sleep(1200)
   assert.equal((await status()).shortcutRegistered, true, 'native shortcut ownership must survive the first periodic refresh')
-  assert.equal(ready.menuBarController, 'nativeVisibility')
+  assert.equal(ready.menuBarController, 'legacy')
   const menuBar = ready.menuBar as Record<string, unknown>
-  assert.equal(menuBar.backend, 'nativeVisibility', 'must never select the old spacer backend')
-  assert.equal(menuBar.preserveSystemItems, false, 'must explicitly accept native Apple-module suppression while protecting unselected apps')
-  assert.equal(typeof menuBar.available, 'boolean')
-  assert.equal(typeof menuBar.authorized, 'boolean')
-  assert.equal(ready.menuBarInitialized, menuBar.available)
-  assert.equal(menuBar.markerWidth, menuBar.available ? 20 : 0, 'grouping must not reserve a wide spacer')
+  assert.equal(menuBar.backend, 'legacy', 'group by individual icon position without a global visibility assertion')
+  assert.equal(ready.menuBarInitialized, true)
   assert.equal(menuBar.collapsed, false)
   assert.equal(menuBar.busy, false)
   const children = Bun.spawnSync(['/usr/bin/pgrep', '-P', String(child.pid)])
@@ -158,23 +155,22 @@ try {
   const saved = JSON.parse(readFileSync(preferencesPath, 'utf8'))
   for (const key of Object.keys(retiredPreferences))
     assert.equal(Object.hasOwn(saved, key), false, `${key} must be retired during upgrade`)
-  steps.push('hidden native webview selects native visibility explicitly, reserves shortcuts and keeps the group control compact')
+  steps.push('hidden native webview selects positional grouping and reserves shortcuts')
 
   const tray = await fetch(`${url}/api/tray`).then(response => response.json())
   const actions = tray.menu.map((item: { action?: string }) => item.action)
   assert.equal(actions.filter((action: string) => action === 'toggleMenuBar').length, 1)
   assert.equal(actions.includes('arrangeMenuBar'), true)
   assert.equal(actions.includes('toggleAutoCollapse'), false)
-  steps.push('native tray exposes exactly one hide/reveal action and no legacy spacer controls')
+  steps.push('native tray exposes exactly one hide/reveal action and no automatic grouping controls')
 
   await post('/api/preferences', { menuBarGrouping: false })
   await until(status, state => state.menuBarInitialized === false && (state.menuBar as Record<string, unknown>).backend === 'legacy')
   const disabledMenu = await fetch(`${url}/api/tray`).then(response => response.json())
   assert.equal(disabledMenu.menu.some((item: { action?: string }) => item.action === 'toggleMenuBar'), false)
   await post('/api/preferences', { menuBarGrouping: true })
-  const enabled = await until(status, state => (state.menuBar as Record<string, unknown>).backend === 'nativeVisibility')
-  assert.equal((enabled.menuBar as Record<string, unknown>).markerWidth, (enabled.menuBar as Record<string, unknown>).available ? 20 : 0)
-  steps.push('preference changes remove and recreate the actual native group control without a spacer')
+  await until(status, state => (state.menuBar as Record<string, unknown>).initialized === true)
+  steps.push('preference changes remove and recreate the actual native positional group control')
 
   for (const minutes of [0, -2, 7, null, '60'])
     await post('/api/caffeinate/duration', { minutes }, 400)
@@ -210,9 +206,9 @@ try {
   const relaunched = await status()
   assert.equal(relaunched.active, true)
   assert.equal(relaunched.caffeinateDurationMinutes, -1)
-  assert.equal(relaunched.menuBarInitialized, (relaunched.menuBar as Record<string, unknown>).available)
+  assert.equal(relaunched.menuBarInitialized, true)
   assert(ownedAssertions().some(line => line.includes('PreventUserIdleSystemSleep')))
-  steps.push('hidden relaunch preserves Start Awake and reopens with a compact, revealed group')
+  steps.push('hidden relaunch preserves Start Awake and reopens with a revealed group')
 
   assert(nativePid, 'native process was not recorded')
   process.kill(nativePid, 'SIGTERM')

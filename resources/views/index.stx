@@ -28,7 +28,7 @@ const preview = state('awake')
 
 <section class="requirements shell grid gap-6 md:grid-cols-2" aria-label="System requirements">
   <p><strong>Made for your Mac.</strong> Apple Silicon, macOS 15 or newer. Free and open source.</p>
-  <p><strong>Want icon grouping too?</strong> The GitHub edition requires macOS 27 and Accessibility access. <a href="/docs/config">Read the details ↗</a></p>
+  <p><strong>Want icon grouping too?</strong> The GitHub edition includes it on macOS 15 and newer. <a href="/docs/config">Read the details ↗</a></p>
 </section>
 
 <section id="how-it-works" class="shell section-space" aria-labelledby="how-title">
@@ -74,7 +74,7 @@ const preview = state('awake')
       </figure>
       <figure :if="preview() === 'grouping'" class="preview grid items-center gap-10 md:grid-cols-2">
         <NativeScreenshot source="/assets/grouping.jpg" description="Barista reporting that the selected group of menu bar icons is hidden" />
-        <figcaption><h3>Keep the icons you need.</h3><p>Hold ⌘ and drag unwanted icons left of the arrow. Click the arrow to hide or reveal the group. The cup stays visible.</p><p>Grouping needs macOS 27 and Accessibility. Apps with several icons hide together; Apple controls can also hide.</p><a class="site-link" href="/docs/config">Grouping and its limits ↗</a></figcaption>
+        <figcaption><h3>Keep the icons you need.</h3><p>Hold ⌘ and drag unwanted icons left of &gt;. Click &gt; to hide those icons, then &lt; to reveal them.</p><p>Icons on the right stay visible. Each icon follows its position, even when several belong to the same app.</p><a class="site-link" href="/docs/config">Grouping and its limits ↗</a></figcaption>
       </figure>
       <figure :if="preview() === 'updates'" class="preview grid items-center gap-10 md:grid-cols-2">
         <NativeScreenshot source="/assets/updates.jpg" description="Barista update settings confirming the installed version is up to date" />
@@ -100,8 +100,8 @@ const preview = state('awake')
   <h2 id="questions-title">A few things to know.</h2>
   <div class="grid gap-10 md:grid-cols-2">
     <article><h3>Does it replace Caffeine?</h3><p>For keeping your Mac awake, yes. Barista uses native macOS power assertions, with timed and indefinite sessions, login startup, and a global shortcut.</p></article>
-    <article><h3>Can it hide every icon?</h3><p>Grouping uses a private macOS API, following Hidden Bar’s approach. It can suppress Apple modules and activity indicators. Reveal the group to restore them.</p><a class="site-link" href="/docs/config">Read the grouping requirements ↗</a></article>
-    <article><h3>What about macOS overflow?</h3><p>macOS controls overflow when revealed icons do not fit. Barista adds no wide spacer and cannot guarantee app menus stay visible during system overflow.</p></article>
+    <article><h3>Which icons hide?</h3><p>Icons you arrange to the left of &gt; hide together. Icons on the right stay visible. Click &lt; to reveal the group.</p><a class="site-link" href="/docs/config">Read the grouping requirements ↗</a></article>
+    <article><h3>What about macOS overflow?</h3><p>macOS controls overflow when revealed icons do not fit. Barista’s arrow hides and reveals the group you arrange to its left.</p></article>
     <article><h3>How do the editions differ?</h3><p>The sandboxed Mac App Store edition provides keep-awake, timers, shortcuts and login settings. Grouping and the GitHub updater belong to the direct edition. Store distribution requires Apple’s review.</p><a class="site-link" href="/docs/releasing">Editions and release status ↗</a></article>
   </div>
 </section>

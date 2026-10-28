@@ -22,7 +22,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 - **Right-click for everything else** — A native menu with the current status, durations, preferences and updates.
 - **Awake on startup** — Start awake indefinitely by default. The GitHub edition also opens at login by default; the Store edition asks you to enable Open at Login in Preferences.
 - **Global hotkey** — ⌘⇧C toggles keep-awake.
-- **Native icon grouping** — ⌘-drag unwanted icons left of Barista’s arrow, then click it to hide or reveal the group. One compact control, with no pipes or wide spacer. ⌘⇧B toggles the group. Craft restores the bar if macOS also hides an unselected app icon. Identifiable Apple controls, including Wi-Fi and Battery, follow the same boundary.
+- **Native icon grouping** — ⌘-drag unwanted icons left of Barista’s arrow, then click it to hide or reveal the group. Click `>` to hide only the icons on its left; click `<` to reveal them. Icons on the right stay visible. ⌘⇧B toggles the group.
 - **Launch at login** — Start Barista when you log in.
 - **Updates for each edition** — The GitHub edition checks its releases, verifies SHA-256, Apple notarization and Barista’s signing team, then installs and restarts. The Store edition receives updates through the Mac App Store.
 - **Native integration** — Native status items, menus, keyboard shortcuts and power assertions, with a system WebKit preferences view.
@@ -31,7 +31,7 @@ and native macOS power assertions. The packaged app includes its own runtime.
 ## Get Started
 
 The packaged download requires macOS 15 or newer on Apple Silicon, matching the bundled Craft runtime.
-Icon hiding requires macOS 27, the direct build and Accessibility access.
+Icon grouping is available in the direct build on macOS 15 and newer.
 
 Download the DMG from [GitHub Releases](https://github.com/stacksjs/barista/releases/latest),
 open it and drag **Barista** to **Applications**. Launch Barista from there.
@@ -42,8 +42,7 @@ for Preferences, durations and updates.
 
 Both editions provide native keep-awake, timers, the ⌘⇧C shortcut and login
 settings. The GitHub edition includes icon grouping and its verified updater.
-The sandboxed Mac App Store edition excludes grouping because its native
-visibility backend requires a private Apple API. It uses Craft’s public-only
+The sandboxed Mac App Store edition excludes grouping. It uses Craft’s public-only
 runtime and native login registration, with Open at Login off until enabled.
 As of October 25, 2026, Store version 0.0.9 is uploaded and awaiting Apple’s
 export-compliance approval before App Review submission. Use GitHub Releases
@@ -64,47 +63,20 @@ pantry run dev
 ## Choose your hidden group
 
 1. Open Preferences and enable **Hide a group of menu bar icons**.
-2. Choose **Open System Settings…** and enable Barista under **Privacy & Security → Device Control and Data Access** (the macOS 27 Accessibility permission).
-3. Choose **Arrange…**, then hold ⌘ and drag unwanted icons left of Barista’s arrow.
-4. Click the arrow, choose **Hide Grouped Icons**, or press ⌘⇧B. Click again to reveal.
+2. Choose **Arrange…**, then hold ⌘ and drag unwanted icons left of `>`.
+3. Click `>` to hide those icons. Icons on the right stay visible.
+4. Click `<`, choose **Reveal Hidden Icons**, or press ⌘⇧B to reveal the group.
 
-Keep Barista’s arrow visible while hiding a group. If macOS places the arrow in
-its overflow, reveal it there first so Craft can read the group boundary.
+Craft owns the native positional grouping. It reserves status-bar space to tuck
+individual icons on the left away, without applying a system-wide application
+allow-list. Different icons from the same app can be on different sides. The
+arrow remains the reveal control even if the cup is in the hidden group.
 
-Barista follows [Hidden Bar’s current native visibility approach](https://github.com/dwarvesf/hidden).
-Craft reads the arrangement through Accessibility and hides applications through
-the private macOS MenuBarClientCore API. Apps with several icons hide together;
-an icon kept on the visible side keeps its app visible. Wi-Fi, Battery and other
-identifiable Apple controls also follow the arrow’s boundary. The cup can sit on
-either side of the arrow and always remains visible. Grouping follows the display
-containing the arrow; native visibility applies to the selected app or Apple
-control across displays. Craft uses each displayed native slot's position,
-including when an app reports stale coordinates from another display. It checks
-that selected apps disappear and visible apps remain after activation. If macOS
-does not apply that selection, it releases the restriction, restores the bar and
-reports the failure. An empty
-group leaves everything revealed. Apps launched while collapsed may remain
-hidden until you reveal the group.
+Grouping does not require Accessibility authorization. It starts revealed and
+returns to that state when disabled or when Barista quits. macOS owns system
+overflow when the revealed icons exceed available space. The App Store edition
+continues to offer keep-awake without icon grouping.
 
-If verification fails, Barista opens Preferences to explain why it restored the
-bar.
-
-The private API is not reliable for every arrangement. On macOS 27.0.1 it can
-suppress Apple modules such as Focus, Now Playing and camera/microphone activity
-indicators even when system items are allowed. Barista explicitly accepts that
-behavior, matching Hidden Bar. Reveal the group to restore those modules.
-Craft still protects unselected app icons and preserves the native signing
-identities of visible applications and helpers. Apps sharing an identity remain
-visible together if any of their icons are on the visible side.
-
-The group is revealed on launch. Disabling grouping, quitting, permission loss or
-an activation error restores icons. Apple can change the private API, so this
-feature reports unavailable instead of falling back to a wide spacer. It is for
-direct distribution and cannot be used in App Store submissions.
-
-macOS still owns system overflow when the revealed icons exceed available space,
-including its presentation over app menus. Barista does not widen a status item or
-replace that system control. Keep-awake works independently on macOS 15 and newer.
 Upgrades preserve awake, duration, login and Dock choices while retiring the old
 separator, always-hidden and auto-collapse settings.
 
@@ -176,9 +148,9 @@ The native E2E suite clones and signs the packaged `.app` with unique app and
 runtime identities, an isolated preference profile and an empty working directory.
 It uses only system tools on PATH, waits for its real WebKit view to initialize the tray and shortcuts, checks
 macOS power assertions, switches timed/indefinite sessions, validates rejected
-inputs, verifies the selected native backend and compact control, and checks shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
+inputs, verifies native positional grouping, and checks shutdown and Start Awake after relaunch. CI verifies an ad hoc signed bundle and runs it
 against both the packaged app and its read-only DMG before release publishing. Timed expiry is covered in stx's native
-power tests. Craft also tests cancelled and late activations, errors, permission revocation and cleanup. Physical ⌘-drag placement still requires a macOS desktop check.
+power tests. Craft also verifies that a packaged positional group stays collapsed until explicitly revealed. Physical ⌘-drag placement still requires a macOS desktop check.
 
 ## Architecture
 

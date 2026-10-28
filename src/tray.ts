@@ -105,7 +105,7 @@ export function buildTrayMenu(state: TrayState): MenuBarMenuItem[] {
 
     { type: 'separator' },
     ...(state.menuBarGrouping ? [
-      { label: state.menuBar?.authorized === false ? 'Set Up Icon Hiding...' : state.menuBar?.collapsed ? 'Reveal Hidden Icons' : 'Hide Grouped Icons', action: 'toggleMenuBar', enabled: state.menuBar?.available !== false, shortcut: 'Cmd+Shift+B' },
+      { label: state.menuBar?.busy ? 'Cancel Hiding Icons' : state.menuBar?.collapsed ? 'Reveal Hidden Icons' : 'Hide Grouped Icons', action: 'toggleMenuBar', enabled: state.menuBar?.initialized === true, shortcut: 'Cmd+Shift+B' },
       { label: 'Arrange Icons...', action: 'arrangeMenuBar' },
       { type: 'separator' as const },
     ] : []),

@@ -26,12 +26,11 @@ See [Keep awake](./caffeinate.md) for manual sleep and lid-close behavior.
 
 ## Choose a hidden group
 
-On macOS 27, grant Barista Accessibility access, then ⌘-drag unwanted icons to
-the left of its arrow. Click the arrow or press **⌘⇧B** to hide or reveal the
-group. The cup stays visible on either side.
+In the direct build, ⌘-drag unwanted icons to the left of `>`. Click `>` to
+hide only those icons, then click `<` to reveal them. Icons on the right stay
+visible. Press **⌘⇧B** to toggle the group.
 
-This feature uses a private native API. It can also suppress Apple modules and
-activity indicators. Read [Configuration](./config.md) before enabling it.
+See [Configuration](./config.md) for grouping and system overflow behavior.
 
 ## Develop from source
 

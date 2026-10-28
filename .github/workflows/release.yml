@@ -2,7 +2,7 @@ name: Release
 
 # `bun run release:minor` (or :patch / :major) bumps the version, tags it and
 # pushes. That tag drives everything below: build the signed app, then let the
-# pantry action publish it to the GitHub release. Private icon hiding requires direct distribution.
+# pantry action publish it to the GitHub release. Icon grouping is included in the direct edition.
 on:
   push:
     tags:

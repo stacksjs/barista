@@ -37,7 +37,7 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
       // The tray shows a cup, and spells the time out on hover.
       nativeReady,
       appStore,
-      menuBarController: appStore ? 'none' : 'nativeVisibility',
+      menuBarController: appStore ? 'none' : 'legacy',
       menuBarInitialized: menuBar.initialized,
       menuBar,
       shortcutRegistered,
@@ -184,7 +184,7 @@ export async function createBaristaApp(): Promise<MenuBarApp<BaristaPreferences>
     },
   })
 
-  // The native backend has no spacer, separator or legacy auto-collapse options.
+  // Grouping is manual; retire the old separator and auto-collapse preferences.
   for (const key of ['isAutoCollapse', 'autoCollapseDelay', 'separatorHidden', 'globalHotkey', 'alwaysHiddenEnabled'])
     app.preferences.delete(key)
 

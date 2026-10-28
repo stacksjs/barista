@@ -417,12 +417,11 @@
     <div x-show="menuBarGrouping">
       <p class="hint" x-text="menuBarHint"></p>
       <div class="row">
-        <button class="mini" x-show="menuBarNeedsPermission" @click="authorizeMenuBar()">Open System Settings…</button>
         <button class="mini" x-show="menuBarUsable" :aria-busy="menuBarBusy" @click="toggleMenuBar()" x-text="menuBarBusy ? 'Cancel' : menuBarCollapsed ? 'Reveal icons' : 'Hide group'"></button>
         <button class="mini" x-show="menuBarUsable" @click="arrangeMenuBar()">Arrange…</button>
         <span class="row-value">⌘⇧B</span>
       </div>
-      <p class="hint">Apps hide together. Wi-Fi and Battery follow the arrow; activity indicators may also hide. Reveal restores them.</p>
+      <p class="hint">Icons to the left of &gt; hide together. Icons on the right stay visible. Click &lt; to reveal your group.</p>
     </div>
   </div>
 
@@ -504,8 +503,7 @@
   const menuBarGrouping = derived(() => status().menuBarGrouping === true)
   const menuBarCollapsed = derived(() => status().menuBar?.collapsed === true)
   const menuBarBusy = derived(() => status().menuBar?.busy === true)
-  const menuBarNeedsPermission = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === false)
-  const menuBarUsable = derived(() => status().menuBar?.available === true && status().menuBar?.authorized === true)
+  const menuBarUsable = derived(() => status().menuBar?.initialized === true)
   const menuBarHint = derived(() => menuBarMessage(status().menuBar || { initialized: false, collapsed: false }))
 
   const errorMessage = state('')
@@ -550,7 +548,7 @@
     const enabled = menuBarGrouping()
     if (!status().appStore && appliedGrouping !== enabled) {
       appliedGrouping = enabled
-      if (enabled) await menubar.init({ backend: 'nativeVisibility', preserveSystemItems: false })
+      if (enabled) await menubar.init({ backend: 'legacy' })
       else await menubar.destroy()
     }
     const menuBar = await menubar.getState()
@@ -572,13 +570,7 @@
     await syncMenuBar()
   }
 
-  async function authorizeMenuBar() {
-    await bridge()?.menubar?.requestPermission()
-    await syncMenuBar()
-  }
-
   async function toggleMenuBar() {
-    if (menuBarNeedsPermission()) return authorizeMenuBar()
     await bridge()?.menubar?.toggle()
     await syncMenuBar()
   }
@@ -719,11 +711,8 @@
   })
   useEventListener('craft:shortcut:error', () => errorMessage.set('Could not reserve a global shortcut'))
 
-  useEventListener('craft:menubar:stateChange', async event => {
+  useEventListener('craft:menubar:stateChange', async () => {
     await syncMenuBar()
-    const error = (event as CustomEvent<MenuBarState>).detail.error
-    if (error === 'permissionRequired' || error === 'visibilityMismatch')
-      await bridge()?.window?.show()
   })
 
   // The cup toggles awake; the native arrow toggles only the chosen group.
@@ -731,7 +720,7 @@
     await toggleCaffeinate()
   })
 
-  // Craft owns native grouping, permission checks, click handling and cleanup.
+  // Craft owns native grouping, click handling and cleanup.
   onMount(loadInitialState)
   bridge.onReady(async native => {
     loadInitialState()

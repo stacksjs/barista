@@ -6,3 +6,4 @@
 - Use Buddy/Buddy Bot for dependency upgrades, and Pantry for the Craft runtime.
 - Verify native changes with `bun run check`, `pantry run build`, and `bun run test:native`. Native E2E needs macOS and runs against the packaged app with an isolated preference profile.
 - Push completed, verified changes to `origin/main` using the user's configured Git identity. Do not add coauthor or agent attribution trailers.
+- After pushing completed changes, run `bun run release:patch` to publish the next patch release.

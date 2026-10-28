@@ -15,50 +15,30 @@ New installs use **∞** and **Start awake**. The GitHub edition enables
 grouping and leaves **Open at login** off until you enable its native login
 item. Existing saved choices are preserved within each edition. Turn Off
 releases the current session’s power assertions. Keep-awake works independently
-of grouping permissions.
+of icon grouping.
 
 ## Choose which icons to hide
 
-Icon hiding requires **macOS 27**, the direct build and Accessibility access.
+The direct build supports positional grouping on macOS 15 and newer.
 
 1. Enable **Hide a group of menu bar icons** in Preferences.
-2. Choose **Open System Settings…** and enable Barista under **Privacy & Security → Device Control and Data Access**. This is macOS 27’s Accessibility permission.
-3. Choose **Arrange…** to reveal everything. Hold ⌘ and drag unwanted icons left of Barista’s arrow.
-4. Click the arrow, choose **Hide Grouped Icons**, or press **⌘⇧B**. Click again to reveal.
+2. Choose **Arrange…** and hold ⌘ to drag unwanted icons to the left of `>`.
+3. Click `>` or choose **Hide Grouped Icons** to hide only the icons on its left.
+4. Click `<`, choose **Reveal Hidden Icons**, or press **⌘⇧B** to reveal the group.
 
-Keep the arrow visible while hiding. If macOS puts it in system overflow,
-reveal it there first so Craft can read the boundary. The cup can be on either
-side and stays visible. There are no pipe dividers or wide spacers.
+Icons on the right stay visible. Each icon follows its own position, even if
+another icon from the same app is on the other side. The cup can be in the hidden
+group; the arrow remains available to reveal it.
 
-## Native behavior and limits
+## Native behavior
 
-Craft implements the private MenuBarClientCore visibility API researched by
-[Hidden Bar](https://github.com/dwarvesf/hidden). Apple can change it. If the
-backend is unavailable, Barista leaves icons visible and explains why. This
-feature cannot be distributed through the App Store.
+Craft reserves native status-bar space to tuck the left group away. Barista
+consumes its public grouping API and does not need Accessibility authorization.
+The arrow points right when expanded and left when collapsed. The group starts
+revealed; disabling grouping or quitting restores it.
 
-Selection follows the display containing the arrow. Native visibility applies
-to selected applications or Apple controls across displays. Wi-Fi, Battery and
-other identifiable Apple controls follow the same left-of-arrow boundary.
-
-Hiding applies per app. If an app owns several icons, keeping any of them on
-the visible side keeps the whole app visible. Craft preserves visible app and
-helper signing identities. Craft reads the displayed native slot rather than
-stale app coordinates, waits for the native layout to settle, and verifies that
-selected apps disappear while visible apps remain. If macOS does not apply the
-selection, it restores the bar and reports the failure. An empty group stays revealed;
-ambiguous geometry is not guessed. Apps launched while collapsed may remain
-hidden until you reveal the group.
-
-On macOS 27.0.1 the private API can also suppress Focus, Now Playing and
-camera/microphone activity indicators, even when those modules sit on the
-visible side. Barista accepts this behavior, matching Hidden Bar. **Reveal the
-group to restore those modules.**
-
-The group starts revealed. Disabling grouping, quitting, permission loss or
-activation errors restore its icons. When revealed icons do not fit, macOS
-owns system overflow, including its presentation over the left app menus.
-Barista cannot guarantee those menus stay visible while system overflow is open.
+When revealed icons do not fit, macOS owns system overflow. The App Store edition
+continues to provide keep-awake without icon grouping.
 
 ## Saved preferences
 

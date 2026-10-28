@@ -23,9 +23,9 @@ download a newer signed app. GitHub receives normal network information such
 as your IP address. Barista does not add preference data or a tracking identifier
 to those requests. See [GitHub’s privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Optional icon grouping uses Accessibility and a private macOS API locally. It
-does not record or transmit your menu bar contents. Grouping is available only
-in the GitHub edition.
+Optional icon grouping reserves native status-bar space locally. It does not
+record or transmit your menu bar contents or require Accessibility access.
+Grouping is available only in the GitHub edition.
 
 ## Website and external links
 
