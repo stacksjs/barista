@@ -1,5 +1,23 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.9...v0.0.10)
+
+## 🐛 Bug Fixes
+
+- **menubar**: keep the left icon group collapsed ([74600bc](https://github.com/stacksjs/barista/commit/74600bc)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 📝 Documentation
+
+- refresh 0.0.9 captures and release verification ([0f46733](https://github.com/stacksjs/barista/commit/0f46733)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.0.10 ([f9f43ca](https://github.com/stacksjs/barista/commit/f9f43ca)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.8...v0.0.9)
 
 ## 🐛 Bug Fixes
