@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.10...v0.0.11)
+
+## 🐛 Bug Fixes
+
+- keep the menu bar reveal control visible ([aa112be](https://github.com/stacksjs/barista/commit/aa112be)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.0.11 ([b95a834](https://github.com/stacksjs/barista/commit/b95a834)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.9...v0.0.10)
 
 ## 🐛 Bug Fixes

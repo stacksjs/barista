@@ -2,7 +2,7 @@
   "name": "barista",
   "private": true,
   "type": "module",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A tiny, native macOS menu bar app that keeps your Mac awake — a free replacement for Caffeine, Amphetamine and KeepingYouAwake.",
   "author": "Chris Breuer <chris@stacksjs.com>",
   "license": "MIT",
