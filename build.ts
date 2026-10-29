@@ -41,9 +41,9 @@ const binaryPath = join(OUT_DIR, 'barista')
 // stx resolves Pantry's native provider, which can be embedded in the bundle.
 const bundledCraft = resolveCraftExecutablePath(process.env.CRAFT_BINARY_PATH)
 
-// Positional grouping needs Craft 0.0.385 for compact controls and spacing across displays.
+// Positional grouping needs Craft 0.0.387 to follow native reordering.
 // Store builds retain the public WebKit boundary introduced in 0.0.340.
-const minimumCraftPatch = appStore ? 340 : 385
+const minimumCraftPatch = appStore ? 340 : 387
 const probe = Bun.spawnSync([bundledCraft, '--version'])
 const version = `${probe.stdout}${probe.stderr}`.match(/craft version (\d+)\.(\d+)\.(\d+)/i)
 if (probe.exitCode !== 0 || !version
