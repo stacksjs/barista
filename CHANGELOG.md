@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.11...v0.0.12)
+
+## 🐛 Bug Fixes
+
+- keep the menu bar boundary visible after reordering ([2881a36](https://github.com/stacksjs/barista/commit/2881a36)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.0.12 ([6032dc1](https://github.com/stacksjs/barista/commit/6032dc1)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.10...v0.0.11)
 
 ## 🐛 Bug Fixes
