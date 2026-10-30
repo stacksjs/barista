@@ -2,4 +2,4 @@ dependencies:
   # Keep the compiler aligned with the reviewed Store encryption runtime.
   bun.sh: 1.4.3
   # Native runtime, installed and placed on PATH by Pantry.
-  craft-native.org: ^0.0.387
+  craft-native.org: ^0.0.390
