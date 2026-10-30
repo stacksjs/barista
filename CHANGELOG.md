@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/barista/compare/v0.0.12...v0.0.13)
+
+## 🐛 Bug Fixes
+
+- **menubar**: use stable grouping after command drag ([884b624](https://github.com/stacksjs/barista/commit/884b624)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.0.13 ([4c76cfb](https://github.com/stacksjs/barista/commit/4c76cfb)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/barista/compare/v0.0.11...v0.0.12)
 
 ## 🐛 Bug Fixes
